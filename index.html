@@ -110,13 +110,24 @@
       border-radius: 50%;
     }
     .toc-logo {
-      width: min(420px, 85vw);
+      width: min(560px, 92vw);
       height: auto;
-      max-height: 90px;
+      max-height: 110px;
       object-fit: contain;
       margin-bottom: 1.5rem;
       position: relative;
       z-index: 1;
+    }
+    .toc-bg-logo {
+      position: absolute;
+      right: -40px;
+      top: -40px;
+      width: min(520px, 60vw);
+      opacity: 0.12;
+      transform: rotate(-45deg);
+      z-index: 0;
+      pointer-events: none;
+      filter: drop-shadow(0 12px 28px rgba(0,0,0,0.25));
     }
     .toc-title {
       font-family: 'DM Serif Display', serif;
@@ -184,6 +195,36 @@
       position: absolute; left: 0.85rem; top: 50%; transform: translateY(-50%);
       width: 18px; height: 18px; color: var(--slate-500);
       pointer-events: none;
+    }
+    .toc-search-results {
+      display: none;
+      margin-top: 0.5rem;
+    }
+    .toc-search-results.show { display: block; }
+    .toc-search-item {
+      padding: 0.85rem 1rem;
+      border-radius: 10px;
+      background: rgba(74,144,196,0.08);
+      border: 1px solid rgba(74,144,196,0.12);
+      margin-bottom: 0.5rem;
+      cursor: pointer;
+      transition: background 0.15s ease, border-color 0.15s ease;
+    }
+    .toc-search-item:hover { background: rgba(74,144,196,0.16); }
+    .toc-search-item.visited { opacity: 0.6; }
+    .toc-search-item .result-title {
+      font-size: 0.85rem; color: var(--white); font-weight: 600; margin-bottom: 0.25rem;
+    }
+    .toc-search-item .result-meta {
+      font-size: 0.72rem; color: var(--slate-500); text-transform: uppercase; letter-spacing: 0.05em;
+    }
+    .toc-search-item .result-snippet {
+      font-size: 0.78rem; color: var(--slate-300); line-height: 1.5;
+    }
+    .toc-search-item .result-snippet mark {
+      background: rgba(74,144,196,0.3);
+      color: var(--blue-200);
+      border-radius: 2px; padding: 0 2px;
     }
 
     .toc-group { margin-bottom: 0.5rem; }
@@ -867,6 +908,7 @@
   <!-- ═══════ TOC / LANDING VIEW ═══════ -->
   <div id="tocView" class="hidden">
     <header class="toc-header">
+      <img src="logo.png" alt="" class="toc-bg-logo" aria-hidden="true">
       <img src="logo.png" alt="Retail Odyssey" class="toc-logo">
       <h1 class="toc-title">Advantage Teammate Handbook</h1>
       <p class="toc-subtitle">This page revised February 2026 &nbsp;·&nbsp; 56 Pages</p>
@@ -889,8 +931,9 @@
     <div class="toc-body">
       <div class="toc-search-bar">
         <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/></svg>
-        <input type="text" id="tocSearchInput" placeholder="Search handbook sections…" autocomplete="off">
+        <input type="text" id="tocSearchInput" placeholder="Search handbook and supplements…" autocomplete="off">
       </div>
+      <div id="tocSearchResults" class="toc-search-results"></div>
       <div id="tocSections"></div>
     </div>
     <div class="toc-mobile-actions">
@@ -1194,6 +1237,11 @@ let handbookDoc = null;
 let supplementDoc = null;
 let currentDocType = 'handbook';
 let currentSupplementState = '';
+let handbookTextCache = {};
+let supplementTextCache = {};
+let handbookTextReady = false;
+let supplementTextReady = false;
+let tocSearchVisited = new Set();
 
 const HANDBOOK_URL = '2025_Teammate_Handbook.pdf';
 const SUPPLEMENT_URL = 'State Supplement 2025.pdf';
@@ -1304,6 +1352,39 @@ async function ensureSupplementDoc() {
   supplementDoc = await task.promise;
   hideLoading();
   return supplementDoc;
+}
+
+async function ensureHandbookText() {
+  if (handbookTextReady || !handbookDoc) return;
+  handbookTextCache = {};
+  const pages = handbookDoc.numPages;
+  for (let i = 1; i <= pages; i++) {
+    try {
+      const page = await handbookDoc.getPage(i);
+      const content = await page.getTextContent();
+      handbookTextCache[i] = content.items.map(item => item.str).join(' ');
+    } catch (e) {
+      handbookTextCache[i] = '';
+    }
+  }
+  handbookTextReady = true;
+}
+
+async function ensureSupplementText() {
+  if (supplementTextReady) return;
+  await ensureSupplementDoc();
+  supplementTextCache = {};
+  const pages = supplementDoc.numPages;
+  for (let i = 1; i <= pages; i++) {
+    try {
+      const page = await supplementDoc.getPage(i);
+      const content = await page.getTextContent();
+      supplementTextCache[i] = content.items.map(item => item.str).join(' ');
+    } catch (e) {
+      supplementTextCache[i] = '';
+    }
+  }
+  supplementTextReady = true;
 }
 
 function computeBaseScale() {
@@ -1514,6 +1595,14 @@ async function openSupplementState(state) {
   closeSupplementOverlay();
   closeTocOverlay();
   goToPage(targetPage, state);
+}
+
+async function openSupplementPage(page) {
+  currentSupplementState = '';
+  await switchDocument('supplement', page);
+  closeSupplementOverlay();
+  closeTocOverlay();
+  goToPage(page);
 }
 
 function nextPage() {
@@ -1742,17 +1831,8 @@ document.getElementById('pageSlider').addEventListener('input', (e) => {
    TEXT EXTRACTION (for search)
    ═══════════════════════════════════════════════════════════ */
 async function extractAllText() {
-  if (!handbookDoc) return;
-  const pages = handbookDoc.numPages;
-  for (let i = 1; i <= pages; i++) {
-    try {
-      const page = await handbookDoc.getPage(i);
-      const content = await page.getTextContent();
-      pageTextCache[i] = content.items.map(item => item.str).join(' ');
-    } catch (e) {
-      pageTextCache[i] = '';
-    }
-  }
+  await ensureHandbookText();
+  pageTextCache = handbookTextCache;
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -1828,19 +1908,105 @@ function performSearch(query) {
 
 function escapeRegex(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
 
-/* TOC search filter */
-document.getElementById('tocSearchInput').addEventListener('input', (e) => {
-  const q = e.target.value.toLowerCase();
-  document.querySelectorAll('#tocSections .toc-group').forEach(group => {
-    const searchText = group.dataset.search || '';
-    if (!q || searchText.includes(q)) {
-      group.style.display = '';
-      if (q) group.classList.add('open');
-    } else {
-      group.style.display = 'none';
+/* TOC search across handbook + supplements */
+let tocSearchTimeout = null;
+const tocSearchResults = document.getElementById('tocSearchResults');
+const tocSections = document.getElementById('tocSections');
+
+function loadVisitedSearches() {
+  try {
+    const raw = localStorage.getItem('tocSearchVisited') || '[]';
+    tocSearchVisited = new Set(JSON.parse(raw));
+  } catch (e) {
+    tocSearchVisited = new Set();
+  }
+}
+
+function saveVisitedSearches() {
+  localStorage.setItem('tocSearchVisited', JSON.stringify(Array.from(tocSearchVisited)));
+}
+
+function renderSearchResults(results, query) {
+  if (!results.length) {
+    tocSearchResults.innerHTML = `<div class="toc-search-item"><div class="result-title">No matches found</div><div class="result-meta">Try a different keyword</div></div>`;
+    return;
+  }
+  tocSearchResults.innerHTML = results.map(r => {
+    const id = `${r.docType}-${r.page}`;
+    const visited = tocSearchVisited.has(id) ? 'visited' : '';
+    const highlighted = r.snippet.replace(new RegExp(`(${escapeRegex(query)})`, 'gi'), '<mark>$1</mark>');
+    return `<div class="toc-search-item ${visited}" data-id="${id}" onclick="openSearchResult('${r.docType}', ${r.page})">
+      <div class="result-title">${r.title}</div>
+      <div class="result-meta">${r.meta}</div>
+      <div class="result-snippet">${highlighted}</div>
+    </div>`;
+  }).join('');
+}
+
+async function performGlobalSearch(query) {
+  const q = query.trim().toLowerCase();
+  if (!q || q.length < 2) {
+    tocSearchResults.classList.remove('show');
+    tocSections.style.display = '';
+    tocSearchResults.innerHTML = '';
+    return;
+  }
+  tocSections.style.display = 'none';
+  tocSearchResults.classList.add('show');
+  tocSearchResults.innerHTML = `<div class="toc-search-item"><div class="result-title">Searching…</div><div class="result-meta">This can take a moment</div></div>`;
+
+  await ensureHandbookText();
+  await ensureSupplementText();
+
+  const results = [];
+  const addResults = (cache, docType) => {
+    const total = docType === 'handbook' ? handbookDoc.numPages : supplementDoc.numPages;
+    for (let i = 1; i <= total; i++) {
+      const text = (cache[i] || '').toLowerCase();
+      const idx = text.indexOf(q);
+      if (idx !== -1) {
+        const start = Math.max(0, idx - 60);
+        const end = Math.min(text.length, idx + q.length + 60);
+        let snippet = (cache[i] || '').substring(start, end);
+        if (start > 0) snippet = '…' + snippet;
+        if (end < text.length) snippet += '…';
+        results.push({
+          docType,
+          page: i,
+          title: docType === 'handbook' ? 'Handbook' : 'State Supplement',
+          meta: docType === 'handbook'
+            ? `Page ${i} of ${handbookDoc.numPages}`
+            : `Page ${Math.max(1, i - SUPPLEMENT_PAGE_OFFSET)} of ${supplementDoc.numPages - SUPPLEMENT_PAGE_OFFSET}`,
+          snippet
+        });
+      }
     }
-  });
+  };
+
+  addResults(handbookTextCache, 'handbook');
+  addResults(supplementTextCache, 'supplement');
+  renderSearchResults(results, q);
+}
+
+function openSearchResult(docType, page) {
+  const id = `${docType}-${page}`;
+  tocSearchVisited.add(id);
+  saveVisitedSearches();
+  const item = document.querySelector(`.toc-search-item[data-id="${id}"]`);
+  if (item) item.classList.add('visited');
+  if (docType === 'supplement') {
+    openSupplementPage(page);
+  } else {
+    openHandbookPage(page);
+  }
+}
+
+document.getElementById('tocSearchInput').addEventListener('input', (e) => {
+  clearTimeout(tocSearchTimeout);
+  tocSearchTimeout = setTimeout(() => performGlobalSearch(e.target.value), 250);
 });
+
+loadVisitedSearches();
 
 /* ═══════════════════════════════════════════════════════════
    STATE SUPPLEMENTS
