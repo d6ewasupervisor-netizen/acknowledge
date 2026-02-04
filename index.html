@@ -383,6 +383,18 @@
       touch-action: pan-y pinch-zoom;
     }
     .reader-canvas-area.swiping { touch-action: none; }
+    .reader-canvas-area::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: url('logo.png'), url('logo.png');
+      background-repeat: no-repeat, no-repeat;
+      background-position: left 5% center, right 5% center;
+      background-size: min(320px, 30vw), min(320px, 30vw);
+      opacity: 0.08;
+      pointer-events: none;
+      z-index: 0;
+    }
 
     #pdfCanvas {
       background: var(--white);
@@ -390,6 +402,8 @@
       border-radius: 4px;
       max-width: none;
       transition: transform 0.15s ease;
+      position: relative;
+      z-index: 1;
     }
 
     /* Bottom Nav */
