@@ -1440,34 +1440,39 @@
       const ct = 'The signee agreed that their digital signature is the legal equivalent of a handwritten signature and that they intend to be bound by this acknowledgement.';
       doc.text(doc.splitTextToSize(ct, contentW - 8), margin + 4, y + 5); y += 20;
 
-      doc.setFont('helvetica', 'bold'); doc.setFontSize(11); doc.setTextColor(13, 27, 42);
-      doc.text('Teammate Signature', margin, y); y += 8;
+      const colGap = 12;
+      const colW = (contentW - colGap) / 2;
+      const dateText = new Date(dateInput.value + 'T12:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
 
-      doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(107, 114, 128);
-      doc.text('PRINTED TEAMMATE NAME', margin, y); y += 5;
       doc.setFont('helvetica', 'bold'); doc.setFontSize(12); doc.setTextColor(31, 41, 55);
-      doc.text(nameInput.value.trim(), margin, y); y += 3;
-      doc.setDrawColor(209, 213, 219); doc.setLineWidth(0.4); doc.line(margin, y, margin + 80, y); y += 10;
-
+      doc.text(nameInput.value.trim(), margin, y);
+      doc.setDrawColor(209, 213, 219); doc.setLineWidth(0.4);
+      doc.line(margin, y + 3, margin + contentW, y + 3);
       doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(107, 114, 128);
-      doc.text('TEAMMATE SIGNATURE', margin, y); y += 3;
+      doc.text('PRINTED TEAMMATE NAME', margin, y + 8);
+      y += 16;
+
+      const sigY = y;
       if (signatureMode === 'fax') {
         const faxTarget = faxNumber.value.trim() || (faxStore.value ? `Store ${faxStore.value}` : 'N/A');
         doc.setFont('helvetica', 'italic'); doc.setFontSize(9); doc.setTextColor(100, 116, 139);
-        doc.text(`Signature pending via fax to ${faxTarget}`, margin, y + 10);
-        y += 27;
+        doc.text(`Signature pending via fax to ${faxTarget}`, margin, sigY + 6);
       } else if (signatureImage) {
-        doc.addImage(signatureImage, 'PNG', margin, y, 70, 25);
-        y += 27;
-      } else {
-        y += 27;
+        doc.addImage(signatureImage, 'PNG', margin, sigY - 2, colW * 0.85, 14);
       }
-      doc.line(margin, y, margin + 80, y); y += 10;
+      doc.setDrawColor(0, 0, 0); doc.setLineWidth(0.6);
+      doc.line(margin, sigY + 12, margin + colW, sigY + 12);
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(107, 114, 128);
+      doc.text('TEAMMATE SIGNATURE', margin, sigY + 17);
 
-      doc.setFontSize(8); doc.setTextColor(107, 114, 128); doc.text('DATE', margin, y); y += 5;
       doc.setFont('helvetica', 'normal'); doc.setFontSize(11); doc.setTextColor(31, 41, 55);
-      doc.text(new Date(dateInput.value + 'T12:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }), margin, y);
-      y += 3; doc.line(margin, y, margin + 50, y);
+      doc.text(dateText, margin + colW + colGap, sigY);
+      doc.setDrawColor(0, 0, 0); doc.setLineWidth(0.6);
+      doc.line(margin + colW + colGap, sigY + 12, margin + colW + colGap + colW, sigY + 12);
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(107, 114, 128);
+      doc.text('DATE', margin + colW + colGap, sigY + 17);
+
+      y = sigY + 24;
 
       const footerY = doc.internal.pageSize.getHeight() - 12;
       doc.setDrawColor(209, 213, 219); doc.setLineWidth(0.3); doc.line(margin, footerY - 4, pageW - margin, footerY - 4);
