@@ -2,7 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#0d1b2a">
   <title>Acknowledgement of Receipt — ADV Teammate Handbook</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=DM+Serif+Display&display=swap" rel="stylesheet">
@@ -355,6 +357,50 @@
       .card h2 { color: #0d1b2a; border-color: #ddd; }
       .ack-text { color: #334155; }
     }
+
+    /* ═══════ MOBILE ═══════ */
+    @media (max-width: 640px) {
+      body { -webkit-tap-highlight-color: transparent; }
+      .header { padding: 1.5rem 1rem; padding-top: max(1.5rem, env(safe-area-inset-top)); }
+      .header-logo { max-height: 44px; }
+      .header h1 { font-size: 1.25rem; }
+      .header-nav a { font-size: 0.8rem; padding: 0.55rem 0.85rem; }
+      .container { padding: 1.25rem 0.75rem 3rem; }
+
+      .download-card { padding: 1rem; gap: 0.75rem; flex-wrap: wrap; }
+      .download-icon { width: 42px; height: 42px; }
+      .download-info h3 { font-size: 0.85rem; }
+      .download-btn { font-size: 0.8rem; padding: 0.5rem 0.9rem; }
+
+      .card { padding: 1.25rem 1rem; }
+      .card h2 { font-size: 1.1rem; }
+      .ack-text { font-size: 0.84rem; line-height: 1.75; }
+
+      .form-row input[type="text"],
+      .form-row input[type="date"] {
+        padding: 0.8rem 0.9rem;
+        font-size: 1rem; /* 16px prevents iOS zoom on focus */
+      }
+      .sig-canvas { height: 140px; }
+      .consent-row label { font-size: 0.82rem; }
+      .submit-btn { padding: 0.9rem 1.5rem; font-size: 0.95rem; }
+
+      .save-card { padding: 2rem 1.25rem; width: 95%; }
+      .save-card h3 { font-size: 1.15rem; }
+      .save-btn { padding: 0.85rem 1rem; font-size: 0.88rem; }
+    }
+
+    @media (max-width: 380px) {
+      .header { padding: 1.25rem 0.75rem; }
+      .header-logo { max-height: 36px; }
+      .container { padding: 1rem 0.5rem 2.5rem; }
+      .card { padding: 1rem 0.75rem; }
+      .download-card { flex-direction: column; text-align: center; }
+      .download-info { text-align: left; width: 100%; }
+      .download-btn { align-self: stretch; justify-content: center; }
+    }
+
+    button, a, input[type="checkbox"] { touch-action: manipulation; }
   </style>
 </head>
 <body>
@@ -450,4 +496,187 @@
         </button>
         <div class="onedrive-status" id="onedriveStatus"></div>
         <button class="save-btn download" id="downloadBtn" onclick="downloadPDF()">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
+          Download PDF to Device
+        </button>
+        <button class="save-btn done" onclick="closeSaveOverlay()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const ONEDRIVE_CLIENT_ID = '';
+
+    /* ═══════════════════════════════════════════════════════════
+       SIGNATURE PAD
+       ═══════════════════════════════════════════════════════════ */
+    const canvas = document.getElementById('sigCanvas');
+    const ctx = canvas.getContext('2d');
+    const placeholder = document.getElementById('sigPlaceholder');
+    const clearBtn = document.getElementById('sigClear');
+    let drawing = false, hasSig = false;
+
+    function resizeCanvas() {
+      const rect = canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.lineWidth = 2; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.strokeStyle = '#e2e8f0';
+    }
+    resizeCanvas();
+    window.addEventListener('resize', () => {
+      resizeCanvas();
+      if (hasSig) { hasSig = false; placeholder.classList.remove('hidden'); clearBtn.classList.remove('visible'); canvas.classList.remove('has-signature'); checkForm(); }
+    });
+
+    function getPos(e) {
+      const rect = canvas.getBoundingClientRect();
+      const cx = e.touches ? e.touches[0].clientX : e.clientX;
+      const cy = e.touches ? e.touches[0].clientY : e.clientY;
+      return { x: cx - rect.left, y: cy - rect.top };
+    }
+    function startDraw(e) { e.preventDefault(); drawing = true; canvas.classList.add('active'); const p = getPos(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); }
+    function draw(e) {
+      if (!drawing) return; e.preventDefault(); const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke();
+      if (!hasSig) { hasSig = true; placeholder.classList.add('hidden'); clearBtn.classList.add('visible'); canvas.classList.add('has-signature'); checkForm(); }
+    }
+    function stopDraw() { drawing = false; canvas.classList.remove('active'); }
+    canvas.addEventListener('mousedown', startDraw); canvas.addEventListener('mousemove', draw);
+    canvas.addEventListener('mouseup', stopDraw); canvas.addEventListener('mouseleave', stopDraw);
+    canvas.addEventListener('touchstart', startDraw, { passive: false });
+    canvas.addEventListener('touchmove', draw, { passive: false });
+    canvas.addEventListener('touchend', stopDraw);
+
+    function clearSignature() { ctx.clearRect(0, 0, canvas.width, canvas.height); hasSig = false; placeholder.classList.remove('hidden'); clearBtn.classList.remove('visible'); canvas.classList.remove('has-signature'); checkForm(); }
+
+    /* ═══════════════════════════════════════════════════════════
+       FORM VALIDATION
+       ═══════════════════════════════════════════════════════════ */
+    const dateInput = document.getElementById('signDate');
+    const today = new Date();
+    dateInput.value = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+    const nameInput = document.getElementById('printedName');
+    const consentBox = document.getElementById('digiConsent');
+    const submitBtn = document.getElementById('submitBtn');
+    function checkForm() { submitBtn.disabled = !(nameInput.value.trim().length > 0 && hasSig && dateInput.value && consentBox.checked); }
+    nameInput.addEventListener('input', checkForm); dateInput.addEventListener('change', checkForm); consentBox.addEventListener('change', checkForm);
+
+    /* ═══════════════════════════════════════════════════════════
+       PDF GENERATION
+       ═══════════════════════════════════════════════════════════ */
+    let generatedPDF = null, pdfFileName = '';
+
+    function generatePDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'letter' });
+      const pageW = doc.internal.pageSize.getWidth(); const margin = 20; const contentW = pageW - margin * 2; let y = 20;
+
+      doc.setFillColor(13, 27, 42); doc.rect(0, 0, pageW, 30, 'F');
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(16); doc.setTextColor(255, 255, 255);
+      doc.text('ADV Teammate Handbook', margin, 14);
+      doc.setFontSize(10); doc.setFont('helvetica', 'normal'); doc.setTextColor(148, 163, 184);
+      doc.text('Acknowledgement of Receipt  |  Revised February 2025', margin, 23);
+      y = 40;
+
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(13); doc.setTextColor(13, 27, 42);
+      doc.text('Acknowledgement of Receipt', margin, y); y += 3;
+      doc.setDrawColor(74, 144, 196); doc.setLineWidth(0.8); doc.line(margin, y, margin + 60, y); y += 8;
+
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(9.5); doc.setTextColor(55, 65, 81);
+      const paras = [
+        'I have received a copy of the Company\'s Handbook and the applicable Supplement(s) for the locations in which I work. I agree to read it and to comply with the policies and procedures described in the Handbook and Supplement(s). If I have any questions regarding any of the Handbook\'s provisions, I will consult with my supervisor, manager or Human Resources. I understand that if I do not follow the policies and procedures contained herein that I may be subject to disciplinary action, up to and including termination of employment.',
+        'I also understand that this Handbook is the most up-to-date version of the Company\'s policies and procedures and replaces any prior written and oral communications about the subjects contained in it.',
+        'I acknowledge that my employment relationship with the Company is "at-will", meaning that, regardless of anything contained in this Handbook and regardless of any custom or practice, either I or the Company may terminate my employment at any time, for any reason or no reason, with or without cause, and with or without procedural requirements. I understand that no representatives of the Company, other than the CEO in a writing signed by him/her/them, may enter into any agreements, or make any representations, written or oral, to alter my at-will status or otherwise create any contractual obligation between me and the Company.',
+        'I further acknowledge that this handbook and the policies contained herein are not intended to create (and shall not be construed as creating) a contract (express or implied) for employment between the Company and any Teammate and that said policies can be modified by the Company at any time, with or without notice to me, in its sole and absolute discretion.',
+        'By signing below, I acknowledge that I have received and will abide by the Company\'s Handbook and all the policies within it, including those on harassment, discrimination, retaliation, and bringing complaints regarding the same.'
+      ];
+      paras.forEach(p => { const lines = doc.splitTextToSize(p, contentW); doc.text(lines, margin, y); y += lines.length * 4.2 + 4; });
+      y += 4;
+
+      doc.setFillColor(241, 245, 249); doc.roundedRect(margin, y, contentW, 14, 2, 2, 'F');
+      doc.setFont('helvetica', 'italic'); doc.setFontSize(8); doc.setTextColor(100, 116, 139);
+      const ct = 'The signee agreed that their digital signature is the legal equivalent of a handwritten signature and that they intend to be bound by this acknowledgement.';
+      doc.text(doc.splitTextToSize(ct, contentW - 8), margin + 4, y + 5); y += 20;
+
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(11); doc.setTextColor(13, 27, 42);
+      doc.text('Teammate Signature', margin, y); y += 8;
+
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(107, 114, 128);
+      doc.text('PRINTED TEAMMATE NAME', margin, y); y += 5;
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(12); doc.setTextColor(31, 41, 55);
+      doc.text(nameInput.value.trim(), margin, y); y += 3;
+      doc.setDrawColor(209, 213, 219); doc.setLineWidth(0.4); doc.line(margin, y, margin + 80, y); y += 10;
+
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(107, 114, 128);
+      doc.text('TEAMMATE SIGNATURE', margin, y); y += 3;
+      doc.addImage(canvas.toDataURL('image/png'), 'PNG', margin, y, 70, 25); y += 27;
+      doc.line(margin, y, margin + 80, y); y += 10;
+
+      doc.setFontSize(8); doc.setTextColor(107, 114, 128); doc.text('DATE', margin, y); y += 5;
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(11); doc.setTextColor(31, 41, 55);
+      doc.text(new Date(dateInput.value + 'T12:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }), margin, y);
+      y += 3; doc.line(margin, y, margin + 50, y);
+
+      const footerY = doc.internal.pageSize.getHeight() - 12;
+      doc.setDrawColor(209, 213, 219); doc.setLineWidth(0.3); doc.line(margin, footerY - 4, pageW - margin, footerY - 4);
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(7); doc.setTextColor(156, 163, 175);
+      doc.text('\u00A9 2025 Advantage Solutions Inc.  |  Confidential', margin, footerY);
+      doc.text('Page 55 of 56', pageW - margin, footerY, { align: 'right' });
+
+      const safeName = nameInput.value.trim().replace(/[^a-zA-Z0-9]/g, '_');
+      pdfFileName = `Handbook_Ack_${safeName}_${dateInput.value.replace(/-/g, '')}.pdf`;
+      generatedPDF = doc;
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       SUBMIT
+       ═══════════════════════════════════════════════════════════ */
+    function handleSubmit() {
+      let err = false;
+      if (!nameInput.value.trim()) { document.getElementById('nameRow').classList.add('error'); err = true; } else { document.getElementById('nameRow').classList.remove('error'); }
+      if (!hasSig) { document.getElementById('sigRow').classList.add('error'); err = true; } else { document.getElementById('sigRow').classList.remove('error'); }
+      if (!dateInput.value) { document.getElementById('dateRow').classList.add('error'); err = true; } else { document.getElementById('dateRow').classList.remove('error'); }
+      if (err) return;
+
+      generatePDF();
+      const fd = new Date(dateInput.value + 'T12:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+      document.getElementById('signerDetail').innerHTML = `<span><strong>Name:</strong> ${nameInput.value.trim()}</span><span><strong>Date:</strong> ${fd}</span><span><strong>File:</strong> ${pdfFileName}</span>`;
+
+      const odBtn = document.getElementById('onedriveSaveBtn');
+      const odSt = document.getElementById('onedriveStatus');
+      if (!ONEDRIVE_CLIENT_ID || typeof OneDrive === 'undefined') {
+        odBtn.style.opacity = '0.5'; odBtn.style.cursor = 'not-allowed';
+        odSt.textContent = 'OneDrive integration pending — app registration required';
+      } else { odBtn.style.opacity = '1'; odBtn.style.cursor = 'pointer'; odSt.textContent = ''; }
+
+      document.getElementById('saveOverlay').classList.add('show');
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       ONEDRIVE SAVE
+       ═══════════════════════════════════════════════════════════ */
+    function saveToOneDrive() {
+      if (!ONEDRIVE_CLIENT_ID) { alert('OneDrive integration is not configured yet.\n\nAn Azure AD App Registration (Client ID) is required.\nUse "Download PDF" for now.'); return; }
+      if (typeof OneDrive === 'undefined') { alert('OneDrive SDK not loaded.\n\nEnsure the OneDrive.js script tag is uncommented in the HTML head.'); return; }
+      const pdfBlob = generatedPDF.output('blob');
+      const file = new File([pdfBlob], pdfFileName, { type: 'application/pdf' });
+      const dt = new DataTransfer(); dt.items.add(file);
+      document.getElementById('hiddenFileInput').files = dt.files;
+      OneDrive.save({
+        clientId: ONEDRIVE_CLIENT_ID, action: 'save',
+        sourceInputElementId: 'hiddenFileInput', fileName: pdfFileName,
+        openInNewWindow: true,
+        advanced: { redirectUri: window.location.href },
+        success: function() { document.getElementById('onedriveStatus').textContent = '✅ Saved to OneDrive successfully.'; document.getElementById('onedriveStatus').style.color = '#22c55e'; },
+        cancel: function() { document.getElementById('onedriveStatus').textContent = 'Save cancelled.'; },
+        error: function(e) { console.error('OneDrive error:', e); document.getElementById('onedriveStatus').textContent = 'Error saving — try downloading instead.'; document.getElementById('onedriveStatus').style.color = '#ef4444'; }
+      });
+    }
+
+    function downloadPDF() { if (generatedPDF) generatedPDF.save(pdfFileName); }
+    function closeSaveOverlay() { document.getElementById('saveOverlay').classList.remove('show'); }
+    checkForm();
+  </script>
+</body>
+</html>
