@@ -35,6 +35,7 @@
       --white: #ffffff;
       --red-500: #ef4444;
       --green-500: #22c55e;
+      --bottom-nav-height: 68px;
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -66,34 +67,6 @@
       max-width: 720px; margin: 0 auto;
       position: relative; z-index: 1;
     }
-    .header-mark {
-      position: absolute;
-      top: 0.35rem;
-      right: 0.25rem;
-      width: min(160px, 28vw);
-      height: auto;
-      opacity: 0.9;
-      object-fit: contain;
-    }
-    .header-nav {
-      display: flex; align-items: center; justify-content: center;
-      gap: 0.75rem; margin-bottom: 1.5rem;
-    }
-    .header-nav a {
-      display: inline-flex; align-items: center; gap: 0.4rem;
-      padding: 0.5rem 1rem;
-      border-radius: 8px;
-      font-size: 0.82rem; font-weight: 600;
-      text-decoration: none;
-      transition: all 0.2s ease;
-    }
-    .header-nav a.back-link {
-      background: rgba(74,144,196,0.1);
-      color: var(--blue-300);
-      border: 1px solid rgba(74,144,196,0.2);
-    }
-    .header-nav a.back-link:hover { background: rgba(74,144,196,0.18); }
-    .header-nav a svg { width: 14px; height: 14px; }
     .header-logo {
       height: clamp(40px, 7vw, 56px);
       max-width: 70vw;
@@ -110,7 +83,7 @@
     .header p { color: var(--slate-400); font-size: 0.85rem; }
     .header p .header-sub { display: block; }
 
-    .container { max-width: 720px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+    .container { max-width: 720px; margin: 0 auto; padding: 2rem 1.5rem calc(4rem + var(--bottom-nav-height)); }
 
     .download-card,
     .option-card {
@@ -511,10 +484,46 @@
 
     .footer {
       text-align: center;
-      padding: 2rem 1rem;
+      padding: 2rem 1rem calc(2rem + var(--bottom-nav-height));
       font-size: 0.75rem;
       color: var(--slate-600);
     }
+
+    .toolbar-btn {
+      display: flex; align-items: center; justify-content: center; gap: 0.35rem;
+      padding: 0.4rem 0.6rem;
+      background: transparent;
+      border: 1px solid transparent;
+      border-radius: 6px;
+      color: var(--slate-400);
+      font-family: inherit; font-size: 0.75rem; font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+    }
+    .toolbar-btn:hover { background: rgba(74,144,196,0.1); color: var(--blue-300); }
+    .toolbar-btn svg { width: 16px; height: 16px; flex-shrink: 0; }
+    .toolbar-btn .btn-label { display: inline; }
+    @media (max-width: 640px) { .toolbar-btn .btn-label { display: none; } }
+    .toolbar-btn.ack-btn {
+      background: var(--blue-500);
+      color: var(--white);
+      border-color: var(--blue-500);
+    }
+
+    .home-bottom-nav {
+      display: flex;
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      padding: 0.5rem 0.75rem max(0.5rem, env(safe-area-inset-bottom));
+      background: rgba(6,14,26,0.98);
+      border-top: 1px solid rgba(74,144,196,0.15);
+      gap: 0.5rem;
+      z-index: 6;
+    }
+    .home-bottom-nav .toolbar-btn { flex: 1; justify-content: center; }
 
     /* Scrollbar */
     ::-webkit-scrollbar { width: 6px; }
@@ -535,9 +544,7 @@
       .header { padding: 1.5rem 1rem; padding-top: max(1.5rem, env(safe-area-inset-top)); }
       .header-logo { max-height: 44px; }
       .header h1 { font-size: 1.25rem; }
-      .header-nav a { font-size: 0.8rem; padding: 0.55rem 0.85rem; }
-      .header-mark { width: min(140px, 34vw); top: 0.25rem; right: 0.1rem; }
-      .container { padding: 1.25rem 0.75rem 3rem; }
+      .container { padding: 1.25rem 0.75rem calc(3rem + var(--bottom-nav-height)); }
 
       .download-card, .option-card { padding: 1rem; gap: 0.75rem; flex-wrap: wrap; }
       .download-icon { width: 42px; height: 42px; }
@@ -565,7 +572,7 @@
     @media (max-width: 380px) {
       .header { padding: 1.25rem 0.75rem; }
       .header-logo { max-height: 36px; }
-      .container { padding: 1rem 0.5rem 2.5rem; }
+      .container { padding: 1rem 0.5rem calc(2.5rem + var(--bottom-nav-height)); }
       .card { padding: 1rem 0.75rem; }
       .download-card, .option-card { flex-direction: column; text-align: left; }
     }
@@ -577,18 +584,11 @@
 
   <header class="header">
     <div class="header-inner">
-      <img src="logo.png" alt="Retail Odyssey" class="header-mark">
-      <nav class="header-nav">
-        <a href="index.html" class="back-link" onclick="returnToHandbook(event)">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg>
-          Back to Handbook
-        </a>
-      </nav>
-      <img src="logo.png" alt="The Retail Odyssey Company" class="header-logo">
+      <img src="home_header_logo.png" alt="The Retail Odyssey Company" class="header-logo">
       <h1>Teammate Handbook Acknowledgement</h1>
       <p>
         <span class="header-sub">This page revised February 2026</span>
-        <span class="header-sub">Review and sign.</span>
+        <span class="header-sub">Review, accept, and sign.</span>
       </p>
     </div>
   </header>
@@ -764,6 +764,25 @@
     </section>
   </main>
 
+  <div class="home-bottom-nav" aria-label="Handbook navigation">
+    <button class="toolbar-btn" type="button" onclick="goHome()">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/></svg>
+      <span class="btn-label">Search</span>
+    </button>
+    <button class="toolbar-btn" type="button" onclick="goHandbook()">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM3.75 12h.007v.008H3.75V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-.375 5.25h.007v.008H3.75v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"/></svg>
+      <span class="btn-label">Handbook</span>
+    </button>
+    <button class="toolbar-btn" type="button" onclick="goSupplements()">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25"/></svg>
+      <span class="btn-label">Supplements</span>
+    </button>
+    <button class="toolbar-btn ack-btn" type="button" onclick="goSign()">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"/></svg>
+      <span class="btn-label">Sign</span>
+    </button>
+  </div>
+
   <footer class="footer">&copy; 2025 Advantage Solutions Inc. &nbsp;·&nbsp; All rights reserved.</footer>
 
   <input type="file" id="hiddenFileInput" accept=".pdf">
@@ -816,6 +835,22 @@
       const lastView = localStorage.getItem('handbookLastView');
       const url = lastView === 'reader' && lastPage ? `index.html#page=${lastPage}` : 'index.html';
       window.location.href = url;
+    }
+
+    function goHome() {
+      window.location.href = 'index.html';
+    }
+
+    function goHandbook() {
+      returnToHandbook();
+    }
+
+    function goSupplements() {
+      window.location.href = 'index.html#supplements';
+    }
+
+    function goSign() {
+      window.location.href = 'acknowledgement.html';
     }
 
     /* ═══════════════════════════════════════════════════════════
