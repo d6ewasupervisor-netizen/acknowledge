@@ -121,7 +121,7 @@
     .toc-bg-logo {
       position: absolute;
       right: -40px;
-      top: -40px;
+      top: 40px;
       width: min(520px, 60vw);
       opacity: 0.12;
       transform: rotate(-45deg);
@@ -171,7 +171,8 @@
     .toc-action-btn.secondary:hover { background: rgba(74,144,196,0.2); }
     .toc-action-btn svg { width: 16px; height: 16px; }
 
-    .toc-body { max-width: 720px; margin: 0 auto; padding: 1.5rem 1.5rem 4rem; }
+    .toc-body { max-width: 720px; margin: 0 auto; padding: 1.5rem 1.5rem 4rem; position: relative; }
+    .toc-body .toc-bg-logo { top: 120px; }
 
     .toc-search-bar {
       position: relative; margin-bottom: 1.5rem;
@@ -387,11 +388,12 @@
       content: '';
       position: absolute;
       inset: 0;
-      background-image: url('logo.png'), url('logo.png');
-      background-repeat: no-repeat, no-repeat;
-      background-position: left 5% center, right 5% center;
-      background-size: min(320px, 30vw), min(320px, 30vw);
+      background-image: url('logo.png');
+      background-repeat: no-repeat;
+      background-position: right 10% center;
+      background-size: min(520px, 50vw);
       opacity: 0.08;
+      transform: rotate(-45deg);
       pointer-events: none;
       z-index: 0;
     }
@@ -922,7 +924,6 @@
   <!-- ═══════ TOC / LANDING VIEW ═══════ -->
   <div id="tocView" class="hidden">
     <header class="toc-header">
-      <img src="logo.png" alt="" class="toc-bg-logo" aria-hidden="true">
       <img src="logo.png" alt="Retail Odyssey" class="toc-logo">
       <h1 class="toc-title">Advantage Teammate Handbook</h1>
       <p class="toc-subtitle">This page revised February 2026 &nbsp;·&nbsp; 56 Pages</p>
@@ -943,6 +944,7 @@
     </header>
 
     <div class="toc-body">
+      <img src="logo.png" alt="" class="toc-bg-logo" aria-hidden="true">
       <div class="toc-search-bar">
         <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/></svg>
         <input type="text" id="tocSearchInput" placeholder="Search handbook and supplements…" autocomplete="off">
