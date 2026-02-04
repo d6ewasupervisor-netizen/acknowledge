@@ -90,10 +90,8 @@
     }
 
     .toc-header {
-      position: sticky;
-      top: 0;
-      z-index: 7;
-      padding: 3rem 2rem 2.5rem;
+      position: relative;
+      padding: 2.5rem 2rem 2.25rem;
       text-align: center;
       background: linear-gradient(180deg, var(--navy-950) 0%, var(--navy-900) 100%);
       overflow: hidden;
@@ -112,14 +110,20 @@
       background: radial-gradient(circle, rgba(106,173,219,0.06) 0%, transparent 70%);
       border-radius: 50%;
     }
+    .toc-header-content {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      max-width: 100%;
+      position: relative;
+      z-index: 2;
+    }
     .toc-logo {
-      width: 100%;
+      width: auto;
       max-width: 100%;
       height: auto;
       object-fit: contain;
       margin-bottom: 1.5rem;
-      position: relative;
-      z-index: 2;
       display: block;
     }
     .toc-title {
@@ -127,7 +131,7 @@
       font-size: clamp(1.6rem, 4vw, 2.2rem);
       color: var(--white);
       margin-bottom: 0.4rem;
-      position: relative; z-index: 1;
+      display: inline-block;
     }
     .toc-subtitle {
       color: var(--slate-400);
@@ -954,7 +958,7 @@
 
       /* TOC Landing */
       .toc-header { padding: 2rem 1.25rem 1.75rem; }
-      .toc-logo { height: 58px; }
+      .toc-logo { height: auto; }
       .toc-title { font-size: 1.5rem; }
       .toc-body { padding: 1rem 0.75rem calc(7rem + var(--bottom-nav-height)); }
       .toc-action-btn { justify-content: center; padding: 0.75rem 1.2rem; font-size: 0.9rem; }
@@ -1036,7 +1040,7 @@
        ═══════════════════════════════════════════════════ */
     @media (max-width: 380px) {
       .toc-header { padding: 1.5rem 1rem 1.5rem; }
-      .toc-logo { height: 48px; }
+      .toc-logo { height: auto; }
       .toc-title { font-size: 1.3rem; }
       .toolbar-logo { height: 20px; }
       .toolbar-page-info { font-size: 0.65rem; min-width: 50px; }
@@ -1077,9 +1081,11 @@
   <!-- ═══════ TOC / LANDING VIEW ═══════ -->
   <div id="tocView" class="hidden">
     <header class="toc-header">
-      <img src="home_header_logo.png" alt="Retail Odyssey" class="toc-logo">
-      <h1 class="toc-title">Advantage Teammate Handbook</h1>
-      <p class="toc-subtitle">This page revised February 2026 &nbsp;·&nbsp; 56 Pages</p>
+      <div class="toc-header-content">
+        <img src="home_header_logo.png" alt="Retail Odyssey" class="toc-logo">
+        <h1 class="toc-title">Advantage Teammate Handbook</h1>
+        <p class="toc-subtitle">This page revised February 2026 &nbsp;·&nbsp; 56 Pages</p>
+      </div>
     </header>
 
     <div class="toc-body">
@@ -1592,6 +1598,7 @@ async function init() {
     document.getElementById('pageSlider').max = totalPages;
     buildTocLanding();
     buildTocOverlay();
+    syncTocLogoWidth();
 
     // Compute base scale for good fit
     computeBaseScale();
@@ -1684,6 +1691,16 @@ function computeBaseScale() {
   }
   baseScale = Math.max(baseScale, 0.5);
   scale = baseScale * zoomFactor;
+}
+
+function syncTocLogoWidth() {
+  const title = document.querySelector('.toc-title');
+  const logo = document.querySelector('.toc-logo');
+  if (!title || !logo) return;
+  const width = Math.ceil(title.getBoundingClientRect().width);
+  if (width > 0) {
+    logo.style.width = `${width}px`;
+  }
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -2718,6 +2735,7 @@ let resizeTimeout;
 function handleResize() {
   clearTimeout(resizeTimeout);
   resizeTimeout = setTimeout(() => {
+    syncTocLogoWidth();
     computeBaseScale();
     if (!document.getElementById('readerView').classList.contains('hidden')) {
       renderPage(currentPage);
