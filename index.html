@@ -2,7 +2,11 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#0d1b2a">
   <title>ADV Teammate Handbook — The Retail Odyssey Company</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=DM+Serif+Display&display=swap" rel="stylesheet">
@@ -555,573 +559,1074 @@
       background: var(--navy-800);
       border: 1px solid rgba(74,144,196,0.2);
       color: var(--white);
-      pad
-    .toolbar-btn svg { width: 16px; height: 16px; flex-shrink: 0; }
-    .toolbar-btn .btn-label { display: inline; }
-    @media (max-width: 640px) { .toolbar-btn .btn-label { display: none; } }
-
-    .toolbar-btn.ack-btn {
-      background: var(--blue-500);
-      color: var(--white);
-      border-color: var(--blue-500);
-      text-decoration: none;
-    }
-    .toolbar-btn.ack-btn:hover { background: var(--blue-400); border-color: var(--blue-400); }
-
-    /* Zoom controls */
-    .zoom-controls {
-      display: flex; align-items: center; gap: 2px;
-      background: rgba(255,255,255,0.04);
-      border-radius: 6px;
-      padding: 2px;
-    }
-    .zoom-btn {
-      display: flex; align-items: center; justify-content: center;
-      width: 30px; height: 30px;
-      background: transparent; border: none; border-radius: 4px;
-      color: var(--slate-400); cursor: pointer;
-      transition: all 0.15s ease;
-    }
-    .zoom-btn:hover { background: rgba(74,144,196,0.15); color: var(--blue-300); }
-    .zoom-btn svg { width: 15px; height: 15px; }
-    .zoom-level {
-      font-size: 0.72rem; color: var(--slate-400); font-weight: 600;
-      min-width: 38px; text-align: center;
-      user-select: none;
-    }
-
-    /* Page Canvas Area */
-    .reader-canvas-area {
-      flex: 1; overflow: auto;
-      display: flex; align-items: flex-start; justify-content: center;
-      padding: 1rem;
-      position: relative;
-      touch-action: pan-y pinch-zoom;
-    }
-    .reader-canvas-area.swiping { touch-action: none; }
-
-    #pdfCanvas {
-      background: var(--white);
-      box-shadow: 0 4px 32px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.05);
-      border-radius: 4px;
-      max-width: 100%;
-      transition: transform 0.15s ease;
-    }
-
-    /* Bottom Nav */
-    .reader-bottom {
-      display: flex; align-items: center; gap: 0.5rem;
-      padding: 0.5rem 1rem;
-      background: var(--navy-900);
-      border-top: 1px solid rgba(74,144,196,0.12);
-      flex-shrink: 0;
-      z-index: 10;
-    }
-    .nav-btn {
-      display: flex; align-items: center; justify-content: center;
-      width: 40px; height: 40px;
-      background: rgba(74,144,196,0.08);
-      border: 1px solid rgba(74,144,196,0.15);
+      padding: 0.65rem 1.25rem;
       border-radius: 8px;
-      color: var(--slate-400);
-      cursor: pointer;
-      transition: all 0.15s ease;
-      flex-shrink: 0;
-    }
-    .nav-btn:hover { background: rgba(74,144,196,0.18); color: var(--blue-300); }
-    .nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
-    .nav-btn svg { width: 18px; height: 18px; }
-
-    .page-slider-container { flex: 1; display: flex; align-items: center; padding: 0 0.5rem; }
-    .page-slider {
-      width: 100%; height: 4px;
-      -webkit-appearance: none; appearance: none;
-      background: rgba(74,144,196,0.15);
-      border-radius: 4px; outline: none;
-      cursor: pointer;
-    }
-    .page-slider::-webkit-slider-thumb {
-      -webkit-appearance: none; appearance: none;
-      width: 16px; height: 16px;
-      background: var(--blue-500);
-      border-radius: 50%;
-      cursor: pointer;
-      box-shadow: 0 0 8px rgba(74,144,196,0.4);
-    }
-    .page-slider::-moz-range-thumb {
-      width: 16px; height: 16px;
-      background: var(--blue-500);
-      border-radius: 50%; border: none;
-      cursor: pointer;
-    }
-
-    /* ═══════════════════════════════════════════════════
-       TOC OVERLAY (in reader)
-       ═══════════════════════════════════════════════════ */
-    .overlay-backdrop {
-      position: fixed; inset: 0; z-index: 60;
-      background: rgba(6,14,26,0.7);
-      backdrop-filter: blur(4px);
+      font-size: 0.82rem; font-weight: 500;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.3);
       opacity: 0; visibility: hidden;
       transition: all 0.3s ease;
-    }
-    .overlay-backdrop.show { opacity: 1; visibility: visible; }
-
-    .toc-overlay {
-      position: fixed; top: 0; left: 0; bottom: 0;
-      width: min(380px, 85vw); z-index: 61;
-      background: var(--navy-900);
-      border-right: 1px solid rgba(74,144,196,0.15);
-      transform: translateX(-100%);
-      transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-      overflow-y: auto;
-      display: flex; flex-direction: column;
-    }
-    .toc-overlay.show { transform: translateX(0); }
-
-    .toc-overlay-header {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 1rem 1.25rem;
-      border-bottom: 1px solid rgba(74,144,196,0.12);
-      flex-shrink: 0;
-    }
-    .toc-overlay-header h3 {
-      font-family: 'DM Serif Display', serif;
-      font-size: 1.1rem; color: var(--white);
-    }
-    .toc-overlay-close {
-      width: 32px; height: 32px;
-      display: flex; align-items: center; justify-content: center;
-      background: rgba(255,255,255,0.06);
-      border: none; border-radius: 6px;
-      color: var(--slate-400); cursor: pointer;
-      transition: all 0.15s;
-    }
-    .toc-overlay-close:hover { background: rgba(255,255,255,0.1); color: var(--white); }
-    .toc-overlay-close svg { width: 16px; height: 16px; }
-
-    .toc-overlay-body { flex: 1; overflow-y: auto; padding: 0.75rem; }
-
-    .toc-ol-group { margin-bottom: 0.25rem; }
-    .toc-ol-section {
-      display: flex; align-items: center; gap: 0.5rem;
-      padding: 0.6rem 0.75rem;
-      border-radius: 8px; cursor: pointer;
-      transition: background 0.15s;
-    }
-    .toc-ol-section:hover { background: rgba(74,144,196,0.1); }
-    .toc-ol-section.current { background: rgba(74,144,196,0.15); }
-    .toc-ol-section .ol-dot {
-      width: 6px; height: 6px;
-      background: var(--blue-500);
-      border-radius: 50%; flex-shrink: 0;
-    }
-    .toc-ol-section.current .ol-dot { box-shadow: 0 0 6px var(--blue-400); }
-    .toc-ol-section .ol-title {
-      flex: 1; font-size: 0.82rem; font-weight: 600;
-      color: var(--white);
-      text-transform: uppercase;
-      letter-spacing: 0.03em;
-    }
-    .toc-ol-section .ol-page {
-      font-size: 0.7rem; color: var(--slate-500);
-      font-weight: 500;
-    }
-
-    .toc-ol-sub {
-      display: flex; align-items: center; gap: 0.5rem;
-      padding: 0.4rem 0.75rem 0.4rem 2rem;
-      border-radius: 6px; cursor: pointer;
-      transition: background 0.15s;
-    }
-    .toc-ol-sub:hover { background: rgba(74,144,196,0.08); }
-    .toc-ol-sub.current { background: rgba(74,144,196,0.1); }
-    .toc-ol-sub .ol-title {
-      flex: 1; font-size: 0.78rem; color: var(--slate-300);
-      font-weight: 400;
-    }
-    .toc-ol-sub .ol-page {
-      font-size: 0.68rem; color: var(--slate-500);
-      font-weight: 500;
-    }
-
-    /* ═══════════════════════════════════════════════════
-       SEARCH OVERLAY
-       ═══════════════════════════════════════════════════ */
-    .search-overlay {
-      position: fixed; top: 0; right: 0; bottom: 0;
-      width: min(420px, 90vw); z-index: 61;
-      background: var(--navy-900);
-      border-left: 1px solid rgba(74,144,196,0.15);
-      transform: translateX(100%);
-      transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-      display: flex; flex-direction: column;
-    }
-    .search-overlay.show { transform: translateX(0); }
-
-    .search-overlay-header {
-      padding: 1rem 1.25rem;
-      border-bottom: 1px solid rgba(74,144,196,0.12);
-      flex-shrink: 0;
-    }
-    .search-overlay-header .search-row {
+      z-index: 100;
       display: flex; align-items: center; gap: 0.5rem;
     }
-    .search-overlay-header input {
-      flex: 1; padding: 0.65rem 0.9rem;
-      background: rgba(255,255,255,0.06);
-      border: 1px solid rgba(74,144,196,0.2);
-      border-radius: 8px;
-      font-family: inherit; font-size: 0.88rem;
-      color: var(--white); outline: none;
-      transition: border-color 0.2s;
-    }
-    .search-overlay-header input:focus { border-color: var(--blue-500); }
-    .search-overlay-header input::placeholder { color: var(--slate-500); }
-    .search-count { font-size: 0.75rem; color: var(--slate-500); margin-top: 0.5rem; }
-
-    .search-results { flex: 1; overflow-y: auto; padding: 0.5rem; }
-    .search-result-item {
-      padding: 0.75rem; border-radius: 8px;
-      cursor: pointer; transition: background 0.15s;
-      margin-bottom: 2px;
-    }
-    .search-result-item:hover { background: rgba(74,144,196,0.08); }
-    .search-result-item .result-page {
-      font-size: 0.72rem; color: var(--blue-400);
-      font-weight: 600; margin-bottom: 0.25rem;
-    }
-    .search-result-item .result-context {
-      font-size: 0.8rem; color: var(--slate-300);
-      line-height: 1.5;
-    }
-    .search-result-item .result-context mark {
-      background: rgba(74,144,196,0.3);
-      color: var(--blue-200);
-      border-radius: 2px; padding: 0 2px;
-    }
+    .toast.show { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }
+    .toast svg { width: 16px; height: 16px; color: var(--green-500); }
 
     /* ═══════════════════════════════════════════════════
-       SECTION TOOLS POPOVER
+       UTILITY & ANIMATIONS
        ═══════════════════════════════════════════════════ */
-    .section-tools-pop {
-      position: fixed; z-index: 55;
-      background: var(--navy-800);
-      border: 1px solid rgba(74,144,196,0.2);
-      border-radius: 10px;
-      padding: 0.5rem;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
-      opacity: 0; visibility: hidden;
-      transform: translateY(4px);
-      transition: all 0.2s ease;
-    }
-    .section-tools-pop.show { opacity: 1; visibility: visible; transform: translateY(0); }
-    .section-tool-btn {
-      display: flex; align-items: center; gap: 0.6rem;
-      width: 100%; padding: 0.55rem 0.85rem;
-      background: transparent; border: none; border-radius: 6px;
-      color: var(--slate-300); font-family: inherit;
-      font-size: 0.8rem; cursor: pointer;
-      transition: background 0.15s;
-      white-space: nowrap;
-    }
-    .section-tool-btn:hover { background: rgba(74,144,196,0.12); color: var(--white); }
-    .section-tool-btn svg { width: 15px; height: 15px; flex-shrink: 0; color: var(--blue-400); }
+    .fade-in { animation: fadeIn 0.4s ease forwards; }
+    .stagger-1 { animation-delay: 0.05s; opacity: 0; }
+    .stagger-2 { animation-delay: 0.1s; opacity: 0; }
+    .stagger-3 { animation-delay: 0.15s; opacity: 0; }
+    .stagger-4 { animation-delay: 0.2s; opacity: 0; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 
-    /* ═══════════════════════════════════════════════════
-       TOAST NOTIFICATION
-       ═══════════════════════════════════════════════════ */
-    .toast {
-      position: fixed; bottom: 5rem; left: 50%; transform: translateX(-50%) translateY(20px);
-      background: var(--navy-800);
-      border: 1px solid rgba(74,144,196,0.2);
-      color: var(--white);
-      pad}
+    /* Scrollbar styling */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(74,144,196,0.2); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(74,144,196,0.35); }
 
-    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-    @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-
-    .footer { text-align: center; padding: 2rem 1rem; font-size: 0.78rem; color: var(--gray-400); }
-
+    /* Print styles */
     @media print {
-      body { background: white; }
-      .download-card, .submit-btn, .sig-clear, .consent-row { display: none !important; }
-      .ack-section, .form-section { box-shadow: none; border: 1px solid #ccc; }
+      body { overflow: visible; background: white; }
+      #tocView, .reader-toolbar, .reader-bottom, .overlay-backdrop,
+      .toc-overlay, .search-overlay, .toast, .section-tools-pop { display: none !important; }
+      #readerView { position: static; }
+      .reader-canvas-area { overflow: visible; padding: 0; }
+      #pdfCanvas { box-shadow: none; max-width: 100%; }
+    }
+
+    /* ═══════════════════════════════════════════════════
+       MOBILE: TABLET (≤768px)
+       ═══════════════════════════════════════════════════ */
+    @media (max-width: 768px) {
+      .toc-overlay { width: min(420px, 92vw); }
+      .search-overlay { width: min(420px, 92vw); }
+      .toc-group-header { padding: 0.95rem 1rem; }
+      .toc-subitem { padding: 0.65rem 1rem 0.65rem 3.25rem; }
+      .toc-ol-section { padding: 0.75rem 0.85rem; }
+      .toc-ol-sub { padding: 0.55rem 0.85rem 0.55rem 2rem; }
+      .search-result-item { padding: 0.85rem; }
+    }
+
+    /* ═══════════════════════════════════════════════════
+       MOBILE: PHONE (≤640px)
+       ═══════════════════════════════════════════════════ */
+    @media (max-width: 640px) {
+      body { -webkit-tap-highlight-color: transparent; }
+
+      /* Safe area for notched phones */
+      .reader-toolbar { padding: 0.4rem max(0.5rem, env(safe-area-inset-left)) 0.4rem max(0.5rem, env(safe-area-inset-right)); }
+      .reader-bottom { padding: 0.5rem max(0.75rem, env(safe-area-inset-left)) max(0.5rem, env(safe-area-inset-bottom)) max(0.75rem, env(safe-area-inset-right)); }
+
+      /* TOC Landing */
+      .toc-header { padding: 2rem 1.25rem 1.75rem; }
+      .toc-logo { height: 44px; }
+      .toc-title { font-size: 1.5rem; }
+      .toc-body { padding: 1rem 0.75rem 5rem; }
+      .toc-actions { flex-direction: column; align-items: stretch; gap: 0.6rem; }
+      .toc-action-btn { justify-content: center; padding: 0.75rem 1.2rem; font-size: 0.9rem; }
+      .toc-search-bar input { padding: 0.85rem 1rem 0.85rem 2.75rem; font-size: 1rem; }
+
+      /* TOC items — larger touch targets */
+      .toc-group-header { padding: 1rem; min-height: 52px; }
+      .toc-group-header .section-title { font-size: 0.85rem; }
+      .toc-subitem { padding: 0.7rem 1rem 0.7rem 3.25rem; min-height: 44px; }
+      .toc-subitem .sub-title { font-size: 0.85rem; }
+
+      /* Toolbar — compact icon-only row */
+      .reader-toolbar { gap: 0.2rem; }
+      .toolbar-logo { height: 24px; margin-right: 0.15rem; }
+      .toolbar-divider { display: none; }
+      .toolbar-page-info { font-size: 0.72rem; min-width: 58px; }
+      .toolbar-btn { padding: 0.45rem 0.5rem; min-width: 36px; min-height: 36px; }
+      .toolbar-btn .btn-label { display: none; }
+      .toolbar-btn.ack-btn { padding: 0.45rem 0.65rem; }
+
+      /* Zoom — move inline, smaller */
+      .zoom-controls { padding: 1px; gap: 1px; }
+      .zoom-btn { width: 28px; height: 28px; }
+      .zoom-btn svg { width: 14px; height: 14px; }
+      .zoom-level { font-size: 0.65rem; min-width: 32px; }
+
+      /* Canvas area — edge-to-edge */
+      .reader-canvas-area { padding: 0.5rem 0.25rem; }
+      #pdfCanvas { border-radius: 2px; }
+
+      /* Bottom nav — larger touch targets */
+      .nav-btn { width: 44px; height: 44px; }
+      .nav-btn svg { width: 20px; height: 20px; }
+      .page-slider { height: 6px; }
+      .page-slider::-webkit-slider-thumb { width: 22px; height: 22px; }
+      .page-slider::-moz-range-thumb { width: 22px; height: 22px; }
+
+      /* Overlays — full screen on mobile */
+      .toc-overlay { width: 100vw; border-right: none; }
+      .search-overlay { width: 100vw; border-left: none; }
+      .toc-overlay-header { padding: 0.85rem 1rem; padding-top: max(0.85rem, env(safe-area-inset-top)); }
+      .search-overlay-header { padding: 0.85rem 1rem; padding-top: max(0.85rem, env(safe-area-inset-top)); }
+      .search-overlay-header input { padding: 0.75rem 0.9rem; font-size: 1rem; }
+      .toc-overlay-close { width: 40px; height: 40px; }
+      .toc-overlay-close svg { width: 18px; height: 18px; }
+      .toc-ol-section { padding: 0.8rem 0.85rem; min-height: 48px; }
+      .toc-ol-sub { padding: 0.6rem 0.85rem 0.6rem 2rem; min-height: 44px; }
+      .search-result-item { padding: 0.9rem 0.85rem; min-height: 48px; }
+
+      /* Section tools — bottom sheet on mobile */
+      .section-tools-pop {
+        position: fixed !important;
+        top: auto !important; right: 0 !important; bottom: 0 !important; left: 0 !important;
+        width: 100vw;
+        border-radius: 16px 16px 0 0;
+        padding: 0.75rem 0.75rem max(0.75rem, env(safe-area-inset-bottom));
+        transform: translateY(100%);
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+      }
+      .section-tools-pop.show { transform: translateY(0); }
+      .section-tool-btn { padding: 0.85rem 1rem; font-size: 0.88rem; min-height: 48px; }
+      .section-tool-btn svg { width: 18px; height: 18px; }
+
+      /* Toast — above bottom bar */
+      .toast { bottom: 5.5rem; font-size: 0.85rem; padding: 0.7rem 1.2rem; }
+    }
+
+    /* ═══════════════════════════════════════════════════
+       MOBILE: SMALL PHONE (≤380px)
+       ═══════════════════════════════════════════════════ */
+    @media (max-width: 380px) {
+      .toc-header { padding: 1.5rem 1rem 1.5rem; }
+      .toc-logo { height: 38px; }
+      .toc-title { font-size: 1.3rem; }
+      .toolbar-logo { height: 20px; }
+      .toolbar-page-info { font-size: 0.65rem; min-width: 50px; }
+      .toolbar-btn { padding: 0.4rem; min-width: 32px; min-height: 32px; }
+      .zoom-controls { display: none; }
+      .reader-canvas-area { padding: 0.25rem 0; }
+    }
+
+    /* ═══════════════════════════════════════════════════
+       LANDSCAPE PHONE
+       ═══════════════════════════════════════════════════ */
+    @media (max-height: 500px) and (orientation: landscape) {
+      .reader-toolbar { padding: 0.25rem 0.5rem; }
+      .toolbar-logo { height: 22px; }
+      .toolbar-btn { padding: 0.3rem 0.4rem; min-height: 30px; }
+      .toolbar-btn .btn-label { display: none; }
+      .reader-bottom { padding: 0.3rem 0.75rem; }
+      .nav-btn { width: 34px; height: 34px; }
+      .reader-canvas-area { padding: 0.25rem; }
+    }
+
+    /* Touch-action on all interactive elements */
+    button, a, .toc-group-header, .toc-subitem, .toc-ol-section, .toc-ol-sub,
+    .search-result-item, .section-tool-btn, .nav-btn, .toolbar-btn, .zoom-btn {
+      touch-action: manipulation;
     }
   </style>
 </head>
 <body>
 
-  <header class="header">
-    <div class="header-inner">
-      <img src="ro_logo.png" alt="The Retail Odyssey Company" class="header-logo">
-      <h1>Teammate Handbook Acknowledgement</h1>
-      <p>Revised February 2025 &nbsp;·&nbsp; Please review, sign, and submit</p>
-    </div>
-  </header>
+  <!-- ═══════ LOADING SCREEN ═══════ -->
+  <div id="loadingScreen">
+    <img src="logo.png" alt="Retail Odyssey" class="loading-logo">
+    <div class="loading-bar-track"><div class="loading-bar-fill" id="loadingBar"></div></div>
+    <div class="loading-text" id="loadingText">Loading handbook…</div>
+  </div>
 
-  <main class="container">
-    <div class="download-card">
-      <div class="download-icon">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"/></svg>
-      </div>
-      <div class="download-info">
-        <h3>ADV Teammate Handbook</h3>
-        <p>PDF &nbsp;·&nbsp; 56 pages &nbsp;·&nbsp; Revised Feb 2025</p>
-      </div>
-      <a href="2025_Teammate_Handbook.pdf" target="_blank" class="download-btn" download>
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
-        Download
-      </a>
-    </div>
-
-    <section class="ack-section">
-      <h2>Acknowledgement of Receipt</h2>
-      <div class="ack-text">
-        <p>I have received a copy of the Company's Handbook and the applicable Supplement(s) for the locations in which I work. I agree to read it and to comply with the policies and procedures described in the Handbook and Supplement(s). If I have any questions regarding any of the Handbook's provisions, I will consult with my supervisor, manager or Human Resources. I understand that if I do not follow the policies and procedures contained herein that I may be subject to disciplinary action, up to and including termination of employment.</p>
-        <p>I also understand that this Handbook is the most up-to-date version of the Company's policies and procedures and replaces any prior written and oral communications about the subjects contained in it.</p>
-        <p>I acknowledge that my employment relationship with the Company is "at-will", meaning that, regardless of anything contained in this Handbook and regardless of any custom or practice, either I or the Company may terminate my employment at any time, for any reason or no reason, with or without cause, and with or without procedural requirements. I understand that no representatives of the Company, other than the CEO in a writing signed by him/her/them, may enter into any agreements, or make any representations, written or oral, to alter my at-will status or otherwise create any contractual obligation between me and the Company.</p>
-        <p>I further acknowledge that this handbook and the policies contained herein are not intended to create (and shall not be construed as creating) a contract (express or implied) for employment between the Company and any Teammate and that said policies can be modified by the Company at any time, with or without notice to me, in its sole and absolute discretion.</p>
-        <p>By signing below, I acknowledge that I have received and will abide by the Company's Handbook and all the policies within it, including those on harassment, discrimination, retaliation, and bringing complaints regarding the same.</p>
-      </div>
-    </section>
-
-    <section class="form-section">
-      <h2>Sign Below</h2>
-      <div class="form-row" id="nameRow">
-        <label for="printedName">Printed Teammate Name</label>
-        <input type="text" id="printedName" placeholder="Enter your full legal name" autocomplete="name">
-        <div class="error-msg">Please enter your full name.</div>
-      </div>
-      <div class="form-row" id="sigRow">
-        <label>Teammate Signature</label>
-        <div class="sig-container">
-          <canvas id="sigCanvas" class="sig-canvas"></canvas>
-          <div class="sig-line"></div>
-          <span id="sigPlaceholder" class="sig-placeholder">Sign here using your mouse or finger</span>
-          <button type="button" id="sigClear" class="sig-clear" onclick="clearSignature()">Clear</button>
-        </div>
-        <div class="error-msg">Please provide your signature above.</div>
-      </div>
-      <div class="form-grid">
-        <div class="form-row" id="dateRow">
-          <label for="signDate">Date</label>
-          <input type="date" id="signDate">
-          <div class="error-msg">Please select today's date.</div>
-        </div>
-      </div>
-      <div class="consent-row">
-        <input type="checkbox" id="digiConsent">
-        <label for="digiConsent">By checking this box, I agree that my digital signature above is the legal equivalent of my handwritten signature and that I intend to be bound by this acknowledgement. I confirm I have <strong>reviewed the ADV Teammate Handbook</strong> and understand the policies and procedures described within it.</label>
-      </div>
-      <button type="button" class="submit-btn" id="submitBtn" disabled onclick="handleSubmit()">Submit Acknowledgement</button>
-    </section>
-  </main>
-
-  <footer class="footer">&copy; 2025 Advantage Solutions Inc. &nbsp;·&nbsp; All rights reserved.</footer>
-
-  <input type="file" id="hiddenFileInput" accept=".pdf">
-
-  <div class="save-overlay" id="saveOverlay">
-    <div class="save-card">
-      <div class="save-icon">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
-      </div>
-      <h3>Acknowledgement Signed</h3>
-      <p>Your signed acknowledgement PDF is ready. Choose how to save it.</p>
-      <div class="signer-detail" id="signerDetail"></div>
-      <div class="save-buttons">
-        <button class="save-btn onedrive" id="onedriveSaveBtn" onclick="saveToOneDrive()">
-          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.39 4.19c1.66-.89 3.73-.78 5.28.32a5.17 5.17 0 0 1 2.2 3.54 4.38 4.38 0 0 1 2.67 1.81 4.34 4.34 0 0 1 .72 3.1 4.36 4.36 0 0 1-1.67 2.85 4.4 4.4 0 0 1-3.14.94H6.13a5.07 5.07 0 0 1-3.55-1.38A4.91 4.91 0 0 1 1.1 12a4.94 4.94 0 0 1 2.1-3.07 5.03 5.03 0 0 1 3.56-.85c.54-1.71 1.78-3.07 3.43-3.59a5.89 5.89 0 0 1 2.2-.3Z"/></svg>
-          Save to OneDrive
+  <!-- ═══════ TOC / LANDING VIEW ═══════ -->
+  <div id="tocView" class="hidden">
+    <header class="toc-header">
+      <img src="assets/logo.png" alt="Retail Odyssey" class="toc-logo">
+      <h1 class="toc-title">2025 Teammate Handbook</h1>
+      <p class="toc-subtitle">Revised February 2025 &nbsp;·&nbsp; 56 Pages</p>
+      <div class="toc-actions">
+        <button class="toc-action-btn primary" onclick="goToPage(1)">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25"/></svg>
+          Read Handbook
         </button>
-        <div class="onedrive-status" id="onedriveStatus"></div>
-        <button class="save-btn download" id="downloadBtn" onclick="downloadPDF()">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
-          Download PDF to Device
-        </button>
-        <button class="save-btn done" onclick="closeSaveOverlay()">Close</button>
+        <a href="acknowledgement.html" class="toc-action-btn secondary">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"/></svg>
+          Sign Acknowledgement
+        </a>
       </div>
+    </header>
+
+    <div class="toc-body">
+      <div class="toc-search-bar">
+        <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/></svg>
+        <input type="text" id="tocSearchInput" placeholder="Search handbook sections…" autocomplete="off">
+      </div>
+      <div id="tocSections"></div>
     </div>
   </div>
 
-  <script>
-    /* ═══════════════════════════════════════════════════════════
-       CONFIG — Replace with your Azure AD App (Client) ID
-       ═══════════════════════════════════════════════════════════ */
-    const ONEDRIVE_CLIENT_ID = ''; // e.g. 'a1b2c3d4-e5f6-7890-abcd-ef1234567890'
+  <!-- ═══════ PDF READER VIEW ═══════ -->
+  <div id="readerView" class="hidden">
+    <!-- Top Toolbar -->
+    <div class="reader-toolbar">
+      <img src="assets/logo.png" alt="RO" class="toolbar-logo" onclick="showTocView()" title="Back to Contents">
+      <div class="toolbar-divider"></div>
+      <div class="toolbar-page-info" id="pageInfo">Page <strong>1</strong> of 56</div>
+      <div class="toolbar-spacer"></div>
 
-    /* ═══════════════════════════════════════════════════════════
-       SIGNATURE PAD
-       ═══════════════════════════════════════════════════════════ */
-    const canvas = document.getElementById('sigCanvas');
-    const ctx = canvas.getContext('2d');
-    const placeholder = document.getElementById('sigPlaceholder');
-    const clearBtn = document.getElementById('sigClear');
-    let drawing = false, hasSig = false;
+      <div class="zoom-controls">
+        <button class="zoom-btn" onclick="zoomOut()" title="Zoom Out">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607zM13.5 10.5h-6"/></svg>
+        </button>
+        <span class="zoom-level" id="zoomLevel">100%</span>
+        <button class="zoom-btn" onclick="zoomIn()" title="Zoom In">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607zM10.5 7.5v6m3-3h-6"/></svg>
+        </button>
+      </div>
+      <div class="toolbar-divider"></div>
 
-    function resizeCanvas() {
-      const rect = canvas.getBoundingClientRect();
-      const dpr = window.devicePixelRatio || 1;
-      canvas.width = rect.width * dpr;
-      canvas.height = rect.height * dpr;
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      ctx.lineWidth = 2; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.strokeStyle = '#1f2937';
+      <button class="toolbar-btn" id="searchToggle" onclick="toggleSearch()">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/></svg>
+        <span class="btn-label">Search</span>
+      </button>
+      <button class="toolbar-btn" id="tocToggle" onclick="toggleTocOverlay()">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM3.75 12h.007v.008H3.75V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-.375 5.25h.007v.008H3.75v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"/></svg>
+        <span class="btn-label">Contents</span>
+      </button>
+      <button class="toolbar-btn" id="toolsToggle" onclick="toggleSectionTools(this)">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
+        <span class="btn-label">Tools</span>
+      </button>
+      <a href="acknowledgement.html" class="toolbar-btn ack-btn">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"/></svg>
+        <span class="btn-label">Sign</span>
+      </a>
+    </div>
+
+    <!-- Canvas Area -->
+    <div class="reader-canvas-area" id="canvasArea">
+      <canvas id="pdfCanvas"></canvas>
+    </div>
+
+    <!-- Bottom Nav -->
+    <div class="reader-bottom">
+      <button class="nav-btn" id="btnHome" onclick="showTocView()" title="Home">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"/></svg>
+      </button>
+      <button class="nav-btn" id="btnPrev" onclick="prevPage()" title="Previous Page">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg>
+      </button>
+      <div class="page-slider-container">
+        <input type="range" class="page-slider" id="pageSlider" min="1" max="56" value="1">
+      </div>
+      <button class="nav-btn" id="btnNext" onclick="nextPage()" title="Next Page">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- ═══════ OVERLAY BACKDROP ═══════ -->
+  <div class="overlay-backdrop" id="overlayBackdrop" onclick="closeAllOverlays()"></div>
+
+  <!-- ═══════ TOC OVERLAY (reader sidebar) ═══════ -->
+  <div class="toc-overlay" id="tocOverlay">
+    <div class="toc-overlay-header">
+      <h3>Contents</h3>
+      <button class="toc-overlay-close" onclick="closeTocOverlay()">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="toc-overlay-body" id="tocOverlayBody"></div>
+  </div>
+
+  <!-- ═══════ SEARCH OVERLAY ═══════ -->
+  <div class="search-overlay" id="searchOverlay">
+    <div class="search-overlay-header">
+      <div class="search-row">
+        <input type="text" id="searchInput" placeholder="Search handbook text…" autocomplete="off">
+        <button class="toc-overlay-close" onclick="closeSearch()">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="search-count" id="searchCount"></div>
+    </div>
+    <div class="search-results" id="searchResults"></div>
+  </div>
+
+  <!-- ═══════ SECTION TOOLS POPOVER ═══════ -->
+  <div class="section-tools-pop" id="sectionToolsPop">
+    <button class="section-tool-btn" onclick="printCurrentPage()">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0 1 10.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0 .229 2.523a1.125 1.125 0 0 1-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0 0 21 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 0 0-1.913-.247M6.34 18H5.25A2.25 2.25 0 0 1 3 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 0 1 1.913-.247m0 0a48.159 48.159 0 0 1 12.5 0m-12.5 0V4.875c0-.621.504-1.125 1.125-1.125h8.25c.621 0 1.125.504 1.125 1.125v2.234"/></svg>
+      Print Current Page
+    </button>
+    <button class="section-tool-btn" onclick="downloadHandbook()">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
+      Download Full PDF
+    </button>
+    <button class="section-tool-btn" onclick="copyPageLink()">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244"/></svg>
+      Copy Link to This Page
+    </button>
+    <button class="section-tool-btn" onclick="copySectionLink()">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M7.217 10.907a2.25 2.25 0 1 0 0 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186 9.566-5.314m-9.566 7.5 9.566 5.314m0 0a2.25 2.25 0 1 0 3.935 2.186 2.25 2.25 0 0 0-3.935-2.186Zm0-12.814a2.25 2.25 0 1 0 3.933-2.185 2.25 2.25 0 0 0-3.933 2.185Z"/></svg>
+      Copy Link to This Section
+    </button>
+  </div>
+
+  <!-- ═══════ TOAST ═══════ -->
+  <div class="toast" id="toast">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
+    <span id="toastMsg">Link copied!</span>
+  </div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════
+   TABLE OF CONTENTS DATA (from PDF bookmarks)
+   ═══════════════════════════════════════════════════════════ */
+const TOC = [
+  { title: 'Welcome', page: 6, subs: [] },
+  { title: 'Introduction', page: 7, subs: [
+    { title: 'Important Notice About the ADV Teammate Handbook', page: 7 }
+  ]},
+  { title: 'Employment', page: 8, subs: [
+    { title: 'At-Will Employment', page: 8 },
+    { title: 'Voluntary Open Door Policy', page: 8 },
+    { title: 'Equal Employment Opportunity', page: 9 },
+    { title: 'Anti-harassment and Anti-discrimination', page: 10 },
+    { title: 'Business Ethics and Conduct', page: 12 },
+    { title: 'Immigration Law Compliance', page: 13 },
+    { title: 'Disability and Accommodation', page: 13 },
+    { title: 'Religious Accommodation', page: 13 },
+    { title: 'Pregnancy Accommodation', page: 14 },
+    { title: 'References / Verification of Employment', page: 14 },
+    { title: 'Employment of Related Parties', page: 14 },
+    { title: 'Company Property and Teammate Privacy', page: 15 },
+    { title: 'Personal Information Protection Policy', page: 16 },
+    { title: 'Access to Personnel Records', page: 17 },
+    { title: 'Personal Data Changes', page: 18 },
+    { title: 'Additional Privacy Policies', page: 18 }
+  ]},
+  { title: 'Employment Status and Practices', page: 18, subs: [
+    { title: 'Employment Classifications', page: 18 },
+    { title: 'Employment of a Minor', page: 19 },
+    { title: 'Job Duties', page: 19 },
+    { title: 'Teammate Benefits', page: 19 },
+    { title: 'Background Check Policy', page: 20 },
+    { title: 'Introductory Period', page: 20 },
+    { title: 'Job Posting', page: 20 },
+    { title: 'Transfer Policy', page: 21 },
+    { title: 'Performance Reviews', page: 21 },
+    { title: 'Separation of Employment', page: 21 },
+    { title: 'Flex Schedule / Telework', page: 22 },
+    { title: 'Life Assistance and Work/Life Support Program', page: 22 },
+    { title: 'Outside Employment', page: 22 }
+  ]},
+  { title: 'Pay Practices', page: 23, subs: [
+    { title: 'Timekeeping / Payroll', page: 23 },
+    { title: 'Meal and Rest Periods', page: 24 },
+    { title: 'Lactation Policy', page: 25 },
+    { title: 'Paydays', page: 26 },
+    { title: 'Payroll Corrections', page: 26 },
+    { title: 'Payroll Deductions', page: 26 },
+    { title: 'Discussion of Wages', page: 27 },
+    { title: 'Overtime Compensation', page: 27 },
+    { title: 'Work Schedules', page: 28 },
+    { title: 'Business Travel and Reimbursement', page: 28 },
+    { title: 'Bonuses and Awards', page: 28 }
+  ]},
+  { title: 'Time Away from Work', page: 29, subs: [
+    { title: 'Company Holidays', page: 29 },
+    { title: 'Floating Holidays', page: 29 },
+    { title: 'Vacation', page: 30 },
+    { title: 'Sick Time', page: 32 },
+    { title: 'Family and Medical Leave of Absence', page: 33 },
+    { title: 'Medical Leave of Absence', page: 36 },
+    { title: 'Bereavement Leave', page: 37 },
+    { title: 'Military Leave', page: 37 },
+    { title: 'Jury Duty', page: 37 },
+    { title: 'Witness Duty', page: 37 },
+    { title: 'Parental Leave for School Visits', page: 38 },
+    { title: 'Time Off to Vote', page: 38 },
+    { title: 'State and Local Laws', page: 38 }
+  ]},
+  { title: 'Teammate Conduct and Working Conditions', page: 38, subs: [
+    { title: 'Teammate Conduct and Work Rules Policy', page: 38 },
+    { title: 'Drug and Alcohol Free Workplace Policy', page: 40 },
+    { title: "Company's Right to Search", page: 42 },
+    { title: 'Attendance and Punctuality', page: 42 },
+    { title: 'Dress and Presentation', page: 43 },
+    { title: 'Gifts, Meals, and Entertainment', page: 44 },
+    { title: 'Outside Contacts', page: 45 },
+    { title: 'Media Inquiries', page: 45 },
+    { title: 'Client / Customer Assignment Policy', page: 45 },
+    { title: 'Document Retention Policy', page: 46 },
+    { title: 'Document Disposal Policy', page: 46 },
+    { title: 'Social Media Policy', page: 46 }
+  ]},
+  { title: 'Safety and Security', page: 47, subs: [
+    { title: 'Workplace Safety', page: 48 },
+    { title: 'Workplace Violence Prevention', page: 48 },
+    { title: 'Foodborne Illness for Teammates Handling Food', page: 49 },
+    { title: 'Occupational Injury and Illness', page: 50 },
+    { title: 'Solicitation / Distribution', page: 50 },
+    { title: 'Parking', page: 51 },
+    { title: 'Visitors in The Workplace', page: 51 },
+    { title: 'Smoke-free Workplace', page: 51 },
+    { title: 'Hazardous and Toxic Materials', page: 52 },
+    { title: 'Inclement Weather / Office Closure', page: 52 },
+    { title: 'Technology Policy', page: 52 },
+    { title: 'Use of Mobile Phones and Devices While Driving', page: 54 },
+    { title: 'Unauthorized Recordings', page: 54 },
+    { title: 'Clean Workspace', page: 54 }
+  ]},
+  { title: 'Acknowledgement of Receipt', page: 55, subs: [] },
+  { title: 'Key Resources', page: 56, subs: [] }
+];
+
+/* ═══════════════════════════════════════════════════════════
+   STATE
+   ═══════════════════════════════════════════════════════════ */
+let pdfDoc = null;
+let currentPage = 1;
+let totalPages = 56;
+let scale = 1.5;
+let baseScale = 1.5;
+let zoomFactor = 1.0;
+let rendering = false;
+let pageTextCache = {};
+let touchStartX = 0;
+let touchStartY = 0;
+let touchStartTime = 0;
+
+const PDF_URL = '2025_Teammate_Handbook.pdf';
+
+/* ═══════════════════════════════════════════════════════════
+   INIT
+   ═══════════════════════════════════════════════════════════ */
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+async function init() {
+  const bar = document.getElementById('loadingBar');
+  const txt = document.getElementById('loadingText');
+
+  try {
+    txt.textContent = 'Loading handbook…';
+    bar.style.width = '20%';
+
+    const loadingTask = pdfjsLib.getDocument(PDF_URL);
+    loadingTask.onProgress = (p) => {
+      if (p.total > 0) {
+        const pct = Math.min(90, Math.round((p.loaded / p.total) * 80) + 10);
+        bar.style.width = pct + '%';
+      }
+    };
+
+    pdfDoc = await loadingTask.promise;
+    totalPages = pdfDoc.numPages;
+
+    bar.style.width = '95%';
+    txt.textContent = 'Preparing viewer…';
+
+    document.getElementById('pageSlider').max = totalPages;
+    buildTocLanding();
+    buildTocOverlay();
+
+    // Compute base scale for good fit
+    computeBaseScale();
+
+    bar.style.width = '100%';
+
+    setTimeout(() => {
+      document.getElementById('loadingScreen').classList.add('hidden');
+      handleHash();
+    }, 300);
+
+    // Start background text extraction for search
+    extractAllText();
+
+  } catch (err) {
+    txt.textContent = 'Error loading PDF. Please refresh.';
+    console.error(err);
+  }
+}
+
+function computeBaseScale() {
+  const area = document.getElementById('canvasArea');
+  const isMobile = window.innerWidth <= 640;
+  const padding = isMobile ? 8 : 32;
+  const areaW = area.clientWidth - padding;
+  const areaH = area.clientHeight - padding;
+  // Estimate based on letter size (612 x 792 pt)
+  const fitW = areaW / 612;
+  const fitH = areaH / 792;
+  // On mobile: prioritize width-fit so text is readable
+  if (isMobile) {
+    baseScale = fitW;
+  } else {
+    baseScale = Math.min(fitW, fitH, 2.0);
+  }
+  baseScale = Math.max(baseScale, 0.5);
+  scale = baseScale * zoomFactor;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   BUILD TOC LANDING
+   ═══════════════════════════════════════════════════════════ */
+function buildTocLanding() {
+  const container = document.getElementById('tocSections');
+  let html = '';
+  TOC.forEach((section, i) => {
+    const hasSubs = section.subs.length > 0;
+    html += `<div class="toc-group fade-in stagger-${(i % 4) + 1}" data-search="${section.title.toLowerCase()} ${section.subs.map(s=>s.title.toLowerCase()).join(' ')}">`;
+    html += `<div class="toc-group-header" onclick="${hasSubs ? `toggleTocGroup(this.parentElement)` : `goToPage(${section.page})`}">`;
+    html += `<span class="section-number">${section.page}</span>`;
+    html += `<span class="section-title">${section.title}</span>`;
+    html += `<span class="section-page">p. ${section.page}</span>`;
+    if (hasSubs) {
+      html += `<svg class="chevron" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg>`;
     }
-    resizeCanvas();
-    window.addEventListener('resize', () => { resizeCanvas(); if (hasSig) { hasSig = false; placeholder.classList.remove('hidden'); clearBtn.classList.remove('visible'); canvas.classList.remove('has-signature'); checkForm(); }});
-
-    function getPos(e) {
-      const rect = canvas.getBoundingClientRect();
-      const cx = e.touches ? e.touches[0].clientX : e.clientX;
-      const cy = e.touches ? e.touches[0].clientY : e.clientY;
-      return { x: cx - rect.left, y: cy - rect.top };
-    }
-    function startDraw(e) { e.preventDefault(); drawing = true; canvas.classList.add('active'); const p = getPos(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); }
-    function draw(e) {
-      if (!drawing) return; e.preventDefault(); const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke();
-      if (!hasSig) { hasSig = true; placeholder.classList.add('hidden'); clearBtn.classList.add('visible'); canvas.classList.add('has-signature'); checkForm(); }
-    }
-    function stopDraw() { drawing = false; canvas.classList.remove('active'); }
-    canvas.addEventListener('mousedown', startDraw); canvas.addEventListener('mousemove', draw);
-    canvas.addEventListener('mouseup', stopDraw); canvas.addEventListener('mouseleave', stopDraw);
-    canvas.addEventListener('touchstart', startDraw, { passive: false });
-    canvas.addEventListener('touchmove', draw, { passive: false });
-    canvas.addEventListener('touchend', stopDraw);
-
-    function clearSignature() { ctx.clearRect(0, 0, canvas.width, canvas.height); hasSig = false; placeholder.classList.remove('hidden'); clearBtn.classList.remove('visible'); canvas.classList.remove('has-signature'); checkForm(); }
-
-    /* ═══════════════════════════════════════════════════════════
-       FORM VALIDATION
-       ═══════════════════════════════════════════════════════════ */
-    const dateInput = document.getElementById('signDate');
-    const today = new Date();
-    dateInput.value = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
-    const nameInput = document.getElementById('printedName');
-    const consentBox = document.getElementById('digiConsent');
-    const submitBtn = document.getElementById('submitBtn');
-    function checkForm() { submitBtn.disabled = !(nameInput.value.trim().length > 0 && hasSig && dateInput.value && consentBox.checked); }
-    nameInput.addEventListener('input', checkForm); dateInput.addEventListener('change', checkForm); consentBox.addEventListener('change', checkForm);
-
-    /* ═══════════════════════════════════════════════════════════
-       PDF GENERATION (jsPDF)
-       ═══════════════════════════════════════════════════════════ */
-    let generatedPDF = null, pdfFileName = '';
-
-    function generatePDF() {
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'letter' });
-      const pageW = doc.internal.pageSize.getWidth(); const margin = 20; const contentW = pageW - margin * 2; let y = 20;
-
-      doc.setFillColor(13, 59, 59); doc.rect(0, 0, pageW, 30, 'F');
-      doc.setFont('helvetica', 'bold'); doc.setFontSize(16); doc.setTextColor(255, 255, 255);
-      doc.text('ADV Teammate Handbook', margin, 14);
-      doc.setFontSize(10); doc.setFont('helvetica', 'normal'); doc.setTextColor(200, 220, 210);
-      doc.text('Acknowledgement of Receipt  |  Revised February 2025', margin, 23);
-      y = 40;
-
-      doc.setFont('helvetica', 'bold'); doc.setFontSize(13); doc.setTextColor(13, 59, 59);
-      doc.text('Acknowledgement of Receipt', margin, y); y += 3;
-      doc.setDrawColor(209, 250, 229); doc.setLineWidth(0.8); doc.line(margin, y, margin + 60, y); y += 8;
-
-      doc.setFont('helvetica', 'normal'); doc.setFontSize(9.5); doc.setTextColor(55, 65, 81);
-      const paras = [
-        'I have received a copy of the Company\'s Handbook and the applicable Supplement(s) for the locations in which I work. I agree to read it and to comply with the policies and procedures described in the Handbook and Supplement(s). If I have any questions regarding any of the Handbook\'s provisions, I will consult with my supervisor, manager or Human Resources. I understand that if I do not follow the policies and procedures contained herein that I may be subject to disciplinary action, up to and including termination of employment.',
-        'I also understand that this Handbook is the most up-to-date version of the Company\'s policies and procedures and replaces any prior written and oral communications about the subjects contained in it.',
-        'I acknowledge that my employment relationship with the Company is "at-will", meaning that, regardless of anything contained in this Handbook and regardless of any custom or practice, either I or the Company may terminate my employment at any time, for any reason or no reason, with or without cause, and with or without procedural requirements. I understand that no representatives of the Company, other than the CEO in a writing signed by him/her/them, may enter into any agreements, or make any representations, written or oral, to alter my at-will status or otherwise create any contractual obligation between me and the Company.',
-        'I further acknowledge that this handbook and the policies contained herein are not intended to create (and shall not be construed as creating) a contract (express or implied) for employment between the Company and any Teammate and that said policies can be modified by the Company at any time, with or without notice to me, in its sole and absolute discretion.',
-        'By signing below, I acknowledge that I have received and will abide by the Company\'s Handbook and all the policies within it, including those on harassment, discrimination, retaliation, and bringing complaints regarding the same.'
-      ];
-      paras.forEach(p => { const lines = doc.splitTextToSize(p, contentW); doc.text(lines, margin, y); y += lines.length * 4.2 + 4; });
-      y += 4;
-
-      doc.setFillColor(241, 245, 249); doc.roundedRect(margin, y, contentW, 14, 2, 2, 'F');
-      doc.setFont('helvetica', 'italic'); doc.setFontSize(8); doc.setTextColor(100, 116, 139);
-      const ct = 'The signee agreed that their digital signature is the legal equivalent of a handwritten signature and that they intend to be bound by this acknowledgement.';
-      doc.text(doc.splitTextToSize(ct, contentW - 8), margin + 4, y + 5); y += 20;
-
-      doc.setFont('helvetica', 'bold'); doc.setFontSize(11); doc.setTextColor(13, 59, 59);
-      doc.text('Teammate Signature', margin, y); y += 8;
-
-      doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(107, 114, 128);
-      doc.text('PRINTED TEAMMATE NAME', margin, y); y += 5;
-      doc.setFont('helvetica', 'bold'); doc.setFontSize(12); doc.setTextColor(31, 41, 55);
-      doc.text(nameInput.value.trim(), margin, y); y += 3;
-      doc.setDrawColor(209, 213, 219); doc.setLineWidth(0.4); doc.line(margin, y, margin + 80, y); y += 10;
-
-      doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(107, 114, 128);
-      doc.text('TEAMMATE SIGNATURE', margin, y); y += 3;
-      doc.addImage(canvas.toDataURL('image/png'), 'PNG', margin, y, 70, 25); y += 27;
-      doc.line(margin, y, margin + 80, y); y += 10;
-
-      doc.setFontSize(8); doc.setTextColor(107, 114, 128); doc.text('DATE', margin, y); y += 5;
-      doc.setFont('helvetica', 'normal'); doc.setFontSize(11); doc.setTextColor(31, 41, 55);
-      doc.text(new Date(dateInput.value + 'T12:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }), margin, y);
-      y += 3; doc.line(margin, y, margin + 50, y);
-
-      const footerY = doc.internal.pageSize.getHeight() - 12;
-      doc.setDrawColor(209, 213, 219); doc.setLineWidth(0.3); doc.line(margin, footerY - 4, pageW - margin, footerY - 4);
-      doc.setFont('helvetica', 'normal'); doc.setFontSize(7); doc.setTextColor(156, 163, 175);
-      doc.text('\u00A9 2025 Advantage Solutions Inc.  |  Confidential', margin, footerY);
-      doc.text('Page 55 of 56', pageW - margin, footerY, { align: 'right' });
-
-      const safeName = nameInput.value.trim().replace(/[^a-zA-Z0-9]/g, '_');
-      pdfFileName = `Handbook_Ack_${safeName}_${dateInput.value.replace(/-/g, '')}.pdf`;
-      generatedPDF = doc;
-    }
-
-    /* ═══════════════════════════════════════════════════════════
-       SUBMIT
-       ═══════════════════════════════════════════════════════════ */
-    function handleSubmit() {
-      let err = false;
-      if (!nameInput.value.trim()) { document.getElementById('nameRow').classList.add('error'); err = true; } else { document.getElementById('nameRow').classList.remove('error'); }
-      if (!hasSig) { document.getElementById('sigRow').classList.add('error'); err = true; } else { document.getElementById('sigRow').classList.remove('error'); }
-      if (!dateInput.value) { document.getElementById('dateRow').classList.add('error'); err = true; } else { document.getElementById('dateRow').classList.remove('error'); }
-      if (err) return;
-
-      generatePDF();
-      const fd = new Date(dateInput.value + 'T12:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
-      document.getElementById('signerDetail').innerHTML = `<span><strong>Name:</strong> ${nameInput.value.trim()}</span><span><strong>Date:</strong> ${fd}</span><span><strong>File:</strong> ${pdfFileName}</span>`;
-
-      const odBtn = document.getElementById('onedriveSaveBtn');
-      const odSt = document.getElementById('onedriveStatus');
-      if (!ONEDRIVE_CLIENT_ID || typeof OneDrive === 'undefined') {
-        odBtn.style.opacity = '0.5'; odBtn.style.cursor = 'not-allowed';
-        odSt.textContent = 'OneDrive integration pending \u2014 app registration required';
-      } else { odBtn.style.opacity = '1'; odBtn.style.cursor = 'pointer'; odSt.textContent = ''; }
-
-      document.getElementById('saveOverlay').classList.add('show');
-    }
-
-    /* ═══════════════════════════════════════════════════════════
-       ONEDRIVE SAVE
-       ═══════════════════════════════════════════════════════════ */
-    function saveToOneDrive() {
-      if (!ONEDRIVE_CLIENT_ID) { alert('OneDrive integration is not configured yet.\n\nAn Azure AD App Registration (Client ID) is required.\nUse "Download PDF" for now.'); return; }
-      if (typeof OneDrive === 'undefined') { alert('OneDrive SDK not loaded.\n\nEnsure the OneDrive.js script tag is uncommented in the HTML head.'); return; }
-
-      const pdfBlob = generatedPDF.output('blob');
-      const file = new File([pdfBlob], pdfFileName, { type: 'application/pdf' });
-      const dt = new DataTransfer(); dt.items.add(file);
-      document.getElementById('hiddenFileInput').files = dt.files;
-
-      OneDrive.save({
-        clientId: ONEDRIVE_CLIENT_ID,
-        action: 'save',
-        sourceInputElementId: 'hiddenFileInput',
-        fileName: pdfFileName,
-        openInNewWindow: true,
-        advanced: { redirectUri: window.location.href },
-        success: function() { document.getElementById('onedriveStatus').textContent = '\u2705 Saved to OneDrive successfully.'; document.getElementById('onedriveStatus').style.color = '#16a34a'; },
-        cancel: function() { document.getElementById('onedriveStatus').textContent = 'Save cancelled.'; },
-        error: function(e) { console.error('OneDrive error:', e); document.getElementById('onedriveStatus').textContent = 'Error saving \u2014 try downloading instead.'; document.getElementById('onedriveStatus').style.color = '#ef4444'; }
+    html += `</div>`;
+    if (hasSubs) {
+      html += `<div class="toc-subitems">`;
+      section.subs.forEach(sub => {
+        html += `<div class="toc-subitem" onclick="goToPage(${sub.page})">`;
+        html += `<span class="sub-title">${sub.title}</span>`;
+        html += `<span class="sub-page">${sub.page}</span>`;
+        html += `</div>`;
       });
+      html += `</div>`;
     }
+    html += `</div>`;
+  });
+  container.innerHTML = html;
+}
 
-    function downloadPDF() { if (generatedPDF) generatedPDF.save(pdfFileName); }
-    function closeSaveOverlay() { document.getElementById('saveOverlay').classList.remove('show'); }
-    checkForm();
-  </script>
+function toggleTocGroup(el) {
+  el.classList.toggle('open');
+}
+
+/* ═══════════════════════════════════════════════════════════
+   BUILD TOC OVERLAY (reader sidebar)
+   ═══════════════════════════════════════════════════════════ */
+function buildTocOverlay() {
+  const body = document.getElementById('tocOverlayBody');
+  let html = '';
+  TOC.forEach(section => {
+    html += `<div class="toc-ol-group">`;
+    html += `<div class="toc-ol-section" data-page="${section.page}" onclick="goToPage(${section.page}); closeTocOverlay();">`;
+    html += `<span class="ol-dot"></span>`;
+    html += `<span class="ol-title">${section.title}</span>`;
+    html += `<span class="ol-page">${section.page}</span>`;
+    html += `</div>`;
+    section.subs.forEach(sub => {
+      html += `<div class="toc-ol-sub" data-page="${sub.page}" onclick="goToPage(${sub.page}); closeTocOverlay();">`;
+      html += `<span class="ol-title">${sub.title}</span>`;
+      html += `<span class="ol-page">${sub.page}</span>`;
+      html += `</div>`;
+    });
+    html += `</div>`;
+  });
+  body.innerHTML = html;
+}
+
+function highlightTocOverlay() {
+  document.querySelectorAll('#tocOverlayBody [data-page]').forEach(el => {
+    el.classList.remove('current');
+  });
+  // Find the current section
+  let currentSection = null;
+  for (let i = TOC.length - 1; i >= 0; i--) {
+    if (currentPage >= TOC[i].page) { currentSection = TOC[i]; break; }
+  }
+  if (currentSection) {
+    document.querySelectorAll(`#tocOverlayBody [data-page="${currentSection.page}"]`).forEach(el => {
+      if (el.classList.contains('toc-ol-section')) el.classList.add('current');
+    });
+  }
+  // Highlight sub
+  let currentSub = null;
+  for (const section of TOC) {
+    for (let i = section.subs.length - 1; i >= 0; i--) {
+      if (currentPage >= section.subs[i].page) { currentSub = section.subs[i]; break; }
+    }
+    if (currentSub) break;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   NAVIGATION
+   ═══════════════════════════════════════════════════════════ */
+function showTocView() {
+  document.getElementById('tocView').classList.remove('hidden');
+  document.getElementById('readerView').classList.add('hidden');
+  closeAllOverlays();
+  window.location.hash = '';
+}
+
+function showReaderView() {
+  document.getElementById('tocView').classList.add('hidden');
+  document.getElementById('readerView').classList.remove('hidden');
+}
+
+function goToPage(num) {
+  num = Math.max(1, Math.min(num, totalPages));
+  currentPage = num;
+  showReaderView();
+  renderPage(num);
+  updateUI();
+  window.location.hash = `page=${num}`;
+}
+
+function nextPage() {
+  if (currentPage < totalPages) goToPage(currentPage + 1);
+}
+
+function prevPage() {
+  if (currentPage > 1) goToPage(currentPage - 1);
+}
+
+function handleHash() {
+  const hash = window.location.hash.substring(1);
+  if (!hash) {
+    document.getElementById('tocView').classList.remove('hidden');
+    return;
+  }
+  const params = new URLSearchParams(hash);
+  if (params.has('page')) {
+    goToPage(parseInt(params.get('page')) || 1);
+  } else if (params.has('section')) {
+    const sname = params.get('section').toLowerCase();
+    for (const s of TOC) {
+      if (s.title.toLowerCase().includes(sname)) { goToPage(s.page); return; }
+      for (const sub of s.subs) {
+        if (sub.title.toLowerCase().includes(sname)) { goToPage(sub.page); return; }
+      }
+    }
+    goToPage(1);
+  } else {
+    document.getElementById('tocView').classList.remove('hidden');
+  }
+}
+
+window.addEventListener('hashchange', handleHash);
+
+function updateUI() {
+  document.getElementById('pageInfo').innerHTML = `Page <strong>${currentPage}</strong> of ${totalPages}`;
+  document.getElementById('pageSlider').value = currentPage;
+  document.getElementById('btnPrev').disabled = currentPage <= 1;
+  document.getElementById('btnNext').disabled = currentPage >= totalPages;
+  highlightTocOverlay();
+}
+
+/* ═══════════════════════════════════════════════════════════
+   PAGE RENDERING
+   ═══════════════════════════════════════════════════════════ */
+async function renderPage(num) {
+  if (rendering) return;
+  rendering = true;
+
+  try {
+    const page = await pdfDoc.getPage(num);
+    const viewport = page.getViewport({ scale: scale });
+    const canvas = document.getElementById('pdfCanvas');
+    const ctx = canvas.getContext('2d');
+
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = viewport.width * dpr;
+    canvas.height = viewport.height * dpr;
+    canvas.style.width = viewport.width + 'px';
+    canvas.style.height = viewport.height + 'px';
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    await page.render({ canvasContext: ctx, viewport: viewport }).promise;
+
+    // Scroll canvas area to top
+    document.getElementById('canvasArea').scrollTop = 0;
+  } catch (err) {
+    console.error('Render error:', err);
+  }
+
+  rendering = false;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   ZOOM
+   ═══════════════════════════════════════════════════════════ */
+function zoomIn() {
+  zoomFactor = Math.min(zoomFactor + 0.25, 3.0);
+  scale = baseScale * zoomFactor;
+  document.getElementById('zoomLevel').textContent = Math.round(zoomFactor * 100) + '%';
+  renderPage(currentPage);
+}
+
+function zoomOut() {
+  zoomFactor = Math.max(zoomFactor - 0.25, 0.5);
+  scale = baseScale * zoomFactor;
+  document.getElementById('zoomLevel').textContent = Math.round(zoomFactor * 100) + '%';
+  renderPage(currentPage);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SWIPE / TOUCH / PINCH / DOUBLE-TAP
+   ═══════════════════════════════════════════════════════════ */
+const canvasArea = document.getElementById('canvasArea');
+let lastTapTime = 0;
+let pinchStartDist = 0;
+let pinchStartZoom = 1;
+let isSwiping = false;
+
+function getTouchDist(touches) {
+  const dx = touches[0].clientX - touches[1].clientX;
+  const dy = touches[0].clientY - touches[1].clientY;
+  return Math.sqrt(dx * dx + dy * dy);
+}
+
+canvasArea.addEventListener('touchstart', (e) => {
+  // Pinch-to-zoom start
+  if (e.touches.length === 2) {
+    e.preventDefault();
+    pinchStartDist = getTouchDist(e.touches);
+    pinchStartZoom = zoomFactor;
+    return;
+  }
+  if (e.touches.length !== 1) return;
+
+  // Double-tap detection
+  const now = Date.now();
+  if (now - lastTapTime < 300) {
+    e.preventDefault();
+    handleDoubleTap();
+    lastTapTime = 0;
+    return;
+  }
+  lastTapTime = now;
+
+  // Single touch — swipe start
+  touchStartX = e.touches[0].clientX;
+  touchStartY = e.touches[0].clientY;
+  touchStartTime = now;
+  isSwiping = false;
+}, { passive: false });
+
+canvasArea.addEventListener('touchmove', (e) => {
+  // Pinch-to-zoom move
+  if (e.touches.length === 2) {
+    e.preventDefault();
+    const dist = getTouchDist(e.touches);
+    const ratio = dist / pinchStartDist;
+    const newZoom = Math.min(3.0, Math.max(0.5, pinchStartZoom * ratio));
+    if (Math.abs(newZoom - zoomFactor) > 0.02) {
+      zoomFactor = newZoom;
+      scale = baseScale * zoomFactor;
+      document.getElementById('zoomLevel').textContent = Math.round(zoomFactor * 100) + '%';
+      renderPage(currentPage);
+    }
+    return;
+  }
+
+  // Track horizontal movement for swipe
+  if (e.touches.length === 1) {
+    const dx = Math.abs(e.touches[0].clientX - touchStartX);
+    const dy = Math.abs(e.touches[0].clientY - touchStartY);
+    if (dx > 15 && dx > dy * 1.2) {
+      isSwiping = true;
+    }
+  }
+}, { passive: false });
+
+canvasArea.addEventListener('touchend', (e) => {
+  if (e.changedTouches.length !== 1) return;
+  const dx = e.changedTouches[0].clientX - touchStartX;
+  const dy = e.changedTouches[0].clientY - touchStartY;
+  const dt = Date.now() - touchStartTime;
+
+  // Swipe detection: primarily horizontal, fast enough, > 40px
+  if (dt < 500 && Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) * 1.3) {
+    if (dx < 0) nextPage();
+    else prevPage();
+  }
+}, { passive: true });
+
+function handleDoubleTap() {
+  if (zoomFactor > 1.1) {
+    // Zoomed in → reset to fit
+    zoomFactor = 1.0;
+  } else {
+    // Fit → zoom to 175%
+    zoomFactor = 1.75;
+  }
+  scale = baseScale * zoomFactor;
+  document.getElementById('zoomLevel').textContent = Math.round(zoomFactor * 100) + '%';
+  renderPage(currentPage);
+  showToast(zoomFactor > 1.1 ? `Zoomed to ${Math.round(zoomFactor * 100)}%` : 'Fit to width');
+}
+
+/* Keyboard navigation */
+document.addEventListener('keydown', (e) => {
+  if (document.getElementById('readerView').classList.contains('hidden')) return;
+  if (e.target.tagName === 'INPUT') return;
+
+  switch(e.key) {
+    case 'ArrowLeft': prevPage(); e.preventDefault(); break;
+    case 'ArrowRight': nextPage(); e.preventDefault(); break;
+    case 'Home': goToPage(1); e.preventDefault(); break;
+    case 'End': goToPage(totalPages); e.preventDefault(); break;
+    case '+': case '=': zoomIn(); e.preventDefault(); break;
+    case '-': zoomOut(); e.preventDefault(); break;
+    case 'Escape': closeAllOverlays(); break;
+    case 'f':
+      if (e.ctrlKey || e.metaKey) { e.preventDefault(); toggleSearch(); }
+      break;
+  }
+});
+
+/* Page slider */
+document.getElementById('pageSlider').addEventListener('input', (e) => {
+  goToPage(parseInt(e.target.value));
+});
+
+/* ═══════════════════════════════════════════════════════════
+   TEXT EXTRACTION (for search)
+   ═══════════════════════════════════════════════════════════ */
+async function extractAllText() {
+  for (let i = 1; i <= totalPages; i++) {
+    try {
+      const page = await pdfDoc.getPage(i);
+      const content = await page.getTextContent();
+      pageTextCache[i] = content.items.map(item => item.str).join(' ');
+    } catch (e) {
+      pageTextCache[i] = '';
+    }
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SEARCH
+   ═══════════════════════════════════════════════════════════ */
+let searchTimeout = null;
+
+function toggleSearch() {
+  const overlay = document.getElementById('searchOverlay');
+  const backdrop = document.getElementById('overlayBackdrop');
+  const isOpen = overlay.classList.contains('show');
+  if (isOpen) {
+    closeSearch();
+  } else {
+    closeAllOverlays();
+    overlay.classList.add('show');
+    backdrop.classList.add('show');
+    document.getElementById('searchToggle').classList.add('active');
+    setTimeout(() => document.getElementById('searchInput').focus(), 100);
+  }
+}
+
+function closeSearch() {
+  document.getElementById('searchOverlay').classList.remove('show');
+  document.getElementById('overlayBackdrop').classList.remove('show');
+  document.getElementById('searchToggle').classList.remove('active');
+}
+
+document.getElementById('searchInput').addEventListener('input', (e) => {
+  clearTimeout(searchTimeout);
+  searchTimeout = setTimeout(() => performSearch(e.target.value), 250);
+});
+
+function performSearch(query) {
+  const resultsDiv = document.getElementById('searchResults');
+  const countDiv = document.getElementById('searchCount');
+
+  if (!query || query.length < 2) {
+    resultsDiv.innerHTML = '';
+    countDiv.textContent = '';
+    return;
+  }
+
+  const q = query.toLowerCase();
+  const results = [];
+
+  for (let i = 1; i <= totalPages; i++) {
+    const text = (pageTextCache[i] || '').toLowerCase();
+    const idx = text.indexOf(q);
+    if (idx !== -1) {
+      const start = Math.max(0, idx - 60);
+      const end = Math.min(text.length, idx + q.length + 60);
+      let snippet = pageTextCache[i].substring(start, end);
+      if (start > 0) snippet = '…' + snippet;
+      if (end < text.length) snippet += '…';
+      results.push({ page: i, snippet, query });
+    }
+  }
+
+  countDiv.textContent = `${results.length} result${results.length !== 1 ? 's' : ''} found`;
+
+  resultsDiv.innerHTML = results.map(r => {
+    const highlighted = r.snippet.replace(
+      new RegExp(`(${escapeRegex(r.query)})`, 'gi'),
+      '<mark>$1</mark>'
+    );
+    return `<div class="search-result-item" onclick="goToPage(${r.page}); closeSearch();">
+      <div class="result-page">Page ${r.page}</div>
+      <div class="result-context">${highlighted}</div>
+    </div>`;
+  }).join('');
+}
+
+function escapeRegex(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+
+/* TOC search filter */
+document.getElementById('tocSearchInput').addEventListener('input', (e) => {
+  const q = e.target.value.toLowerCase();
+  document.querySelectorAll('#tocSections .toc-group').forEach(group => {
+    const searchText = group.dataset.search || '';
+    if (!q || searchText.includes(q)) {
+      group.style.display = '';
+      if (q) group.classList.add('open');
+    } else {
+      group.style.display = 'none';
+    }
+  });
+});
+
+/* ═══════════════════════════════════════════════════════════
+   OVERLAYS
+   ═══════════════════════════════════════════════════════════ */
+function toggleTocOverlay() {
+  const overlay = document.getElementById('tocOverlay');
+  const backdrop = document.getElementById('overlayBackdrop');
+  const isOpen = overlay.classList.contains('show');
+  if (isOpen) {
+    closeTocOverlay();
+  } else {
+    closeAllOverlays();
+    overlay.classList.add('show');
+    backdrop.classList.add('show');
+    document.getElementById('tocToggle').classList.add('active');
+    highlightTocOverlay();
+  }
+}
+
+function closeTocOverlay() {
+  document.getElementById('tocOverlay').classList.remove('show');
+  document.getElementById('overlayBackdrop').classList.remove('show');
+  document.getElementById('tocToggle').classList.remove('active');
+}
+
+function closeAllOverlays() {
+  closeTocOverlay();
+  closeSearch();
+  closeSectionTools();
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SECTION TOOLS
+   ═══════════════════════════════════════════════════════════ */
+function toggleSectionTools(btn) {
+  const pop = document.getElementById('sectionToolsPop');
+  const backdrop = document.getElementById('overlayBackdrop');
+  if (pop.classList.contains('show')) {
+    closeSectionTools();
+    return;
+  }
+  closeTocOverlay();
+  closeSearch();
+  const isMobile = window.innerWidth <= 640;
+  if (!isMobile) {
+    const rect = btn.getBoundingClientRect();
+    pop.style.top = (rect.bottom + 6) + 'px';
+    pop.style.right = (window.innerWidth - rect.right) + 'px';
+  }
+  pop.classList.add('show');
+  if (isMobile) backdrop.classList.add('show');
+  document.getElementById('toolsToggle').classList.add('active');
+}
+
+function closeSectionTools() {
+  document.getElementById('sectionToolsPop').classList.remove('show');
+  document.getElementById('toolsToggle').classList.remove('active');
+  if (window.innerWidth <= 640) {
+    // Only remove backdrop if TOC/search aren't open
+    const tocOpen = document.getElementById('tocOverlay').classList.contains('show');
+    const searchOpen = document.getElementById('searchOverlay').classList.contains('show');
+    if (!tocOpen && !searchOpen) {
+      document.getElementById('overlayBackdrop').classList.remove('show');
+    }
+  }
+}
+
+function printCurrentPage() {
+  closeSectionTools();
+  window.print();
+}
+
+function downloadHandbook() {
+  closeSectionTools();
+  const a = document.createElement('a');
+  a.href = PDF_URL;
+  a.download = '2025_Teammate_Handbook.pdf';
+  a.click();
+}
+
+function copyPageLink() {
+  closeSectionTools();
+  const url = window.location.origin + window.location.pathname + '#page=' + currentPage;
+  navigator.clipboard.writeText(url).then(() => showToast('Page link copied!')).catch(() => showToast('Could not copy link'));
+}
+
+function copySectionLink() {
+  closeSectionTools();
+  // Find current section
+  let sectionName = '';
+  for (let i = TOC.length - 1; i >= 0; i--) {
+    if (currentPage >= TOC[i].page) {
+      sectionName = TOC[i].title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+      break;
+    }
+  }
+  const url = window.location.origin + window.location.pathname + '#section=' + (sectionName || 'welcome');
+  navigator.clipboard.writeText(url).then(() => showToast('Section link copied!')).catch(() => showToast('Could not copy link'));
+}
+
+/* ═══════════════════════════════════════════════════════════
+   TOAST
+   ═══════════════════════════════════════════════════════════ */
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  document.getElementById('toastMsg').textContent = msg;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2500);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   RESIZE HANDLER
+   ═══════════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════════
+   RESIZE / ORIENTATION HANDLER
+   ═══════════════════════════════════════════════════════════ */
+let resizeTimeout;
+function handleResize() {
+  clearTimeout(resizeTimeout);
+  resizeTimeout = setTimeout(() => {
+    computeBaseScale();
+    if (!document.getElementById('readerView').classList.contains('hidden')) {
+      renderPage(currentPage);
+    }
+  }, 150);
+}
+window.addEventListener('resize', handleResize);
+window.addEventListener('orientationchange', () => {
+  // Delay slightly for orientation animation to complete
+  setTimeout(handleResize, 300);
+});
+
+/* Click outside popover */
+document.addEventListener('click', (e) => {
+  const pop = document.getElementById('sectionToolsPop');
+  const btn = document.getElementById('toolsToggle');
+  if (pop.classList.contains('show') && !pop.contains(e.target) && !btn.contains(e.target)) {
+    closeSectionTools();
+  }
+});
+
+/* ═══════════════════════════════════════════════════════════
+   BOOT
+   ═══════════════════════════════════════════════════════════ */
+init();
+</script>
 </body>
 </html>
