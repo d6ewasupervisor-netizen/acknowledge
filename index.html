@@ -141,12 +141,6 @@
       position: relative; z-index: 1;
       flex-wrap: wrap;
     }
-    .toc-top-actions {
-      padding: max(1.25rem, env(safe-area-inset-top)) 1.5rem 0.5rem;
-      background: var(--navy-900);
-      border-bottom: 1px solid rgba(74,144,196,0.12);
-    }
-    .toc-top-actions .toc-actions { margin-top: 0; }
     .toc-action-btn {
       display: inline-flex; align-items: center; gap: 0.5rem;
       padding: 0.65rem 1.4rem;
@@ -487,7 +481,7 @@
     .reader-actions .toolbar-btn { flex: 1; justify-content: center; }
 
     .home-bottom-nav {
-      display: none;
+      display: flex;
       position: fixed;
       left: 0;
       right: 0;
@@ -879,8 +873,6 @@
       .toc-logo { height: 58px; }
       .toc-title { font-size: 1.5rem; }
       .toc-body { padding: 1rem 0.75rem calc(7rem + var(--bottom-nav-height)); }
-      .toc-top-actions { padding: max(1rem, env(safe-area-inset-top)) 0.75rem 0.5rem; }
-      .toc-actions { display: grid; gap: 0.6rem; }
       .toc-action-btn { justify-content: center; padding: 0.75rem 1.2rem; font-size: 0.9rem; }
       .toc-search-bar input { padding: 0.85rem 1rem 0.85rem 2.75rem; font-size: 1rem; }
 
@@ -914,7 +906,6 @@
       .page-slider::-webkit-slider-thumb { width: 22px; height: 22px; }
       .page-slider::-moz-range-thumb { width: 22px; height: 22px; }
       .reader-actions { display: flex; }
-      .home-bottom-nav { display: flex; }
 
       /* Overlays — full screen on mobile */
       .toc-overlay { width: 100vw; border-right: none; }
@@ -1001,22 +992,6 @@
 
   <!-- ═══════ TOC / LANDING VIEW ═══════ -->
   <div id="tocView" class="hidden">
-    <div class="toc-top-actions">
-      <div class="toc-actions">
-        <button class="toc-action-btn primary" onclick="openHandbookPage(1)">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM3.75 12h.007v.008H3.75V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-.375 5.25h.007v.008H3.75v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"/></svg>
-          Read Handbook
-        </button>
-        <button class="toc-action-btn secondary" onclick="openSupplementOverlay()">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25"/></svg>
-          State Supplements
-        </button>
-        <button class="toc-action-btn secondary" onclick="goToAcknowledgement()">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"/></svg>
-          Sign Acknowledgement
-        </button>
-      </div>
-    </div>
     <header class="toc-header">
       <img src="logo.png" alt="Retail Odyssey" class="toc-logo">
       <h1 class="toc-title">Advantage Teammate Handbook</h1>
