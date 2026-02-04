@@ -383,6 +383,94 @@
       user-select: none;
     }
 
+    /* App Menu (hamburger) */
+    .app-menu-button {
+      position: fixed;
+      top: max(0.5rem, env(safe-area-inset-top));
+      left: max(0.5rem, env(safe-area-inset-left));
+      width: 40px; height: 40px;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(13,27,42,0.92);
+      border: 1px solid rgba(74,144,196,0.35);
+      border-radius: 10px;
+      color: var(--blue-200);
+      cursor: pointer;
+      z-index: 130;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.35);
+      transition: all 0.15s ease;
+      backdrop-filter: blur(4px);
+    }
+    .app-menu-button:hover { background: rgba(13,27,42,1); color: var(--blue-100); }
+    .app-menu-button.active { background: rgba(74,144,196,0.2); color: var(--blue-100); border-color: rgba(74,144,196,0.5); }
+    .app-menu-button svg { width: 20px; height: 20px; }
+
+    .app-menu-backdrop {
+      position: fixed; inset: 0; z-index: 120;
+      background: rgba(6,14,26,0.55);
+      opacity: 0; visibility: hidden;
+      transition: all 0.2s ease;
+    }
+    .app-menu-backdrop.show { opacity: 1; visibility: visible; }
+
+    .app-menu-panel {
+      position: fixed;
+      top: max(3.25rem, calc(env(safe-area-inset-top) + 3rem));
+      left: max(0.5rem, env(safe-area-inset-left));
+      width: min(320px, 92vw);
+      max-height: calc(100vh - 5rem);
+      overflow: auto;
+      background: var(--navy-900);
+      border: 1px solid rgba(74,144,196,0.2);
+      border-radius: 12px;
+      box-shadow: 0 14px 40px rgba(0,0,0,0.45);
+      opacity: 0; visibility: hidden; transform: translateY(-6px);
+      transition: all 0.2s ease;
+      z-index: 130;
+    }
+    .app-menu-panel.show { opacity: 1; visibility: visible; transform: translateY(0); }
+    .app-menu-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0.85rem 1rem; border-bottom: 1px solid rgba(74,144,196,0.12);
+      color: var(--white); font-weight: 600; font-size: 0.9rem;
+    }
+    .app-menu-close {
+      width: 32px; height: 32px; border-radius: 8px;
+      border: 1px solid transparent; background: transparent; color: var(--slate-300);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+    }
+    .app-menu-close:hover { background: rgba(74,144,196,0.15); color: var(--white); }
+    .app-menu-section { padding: 0.75rem 1rem 0.25rem; }
+    .app-menu-title { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--slate-400); margin-bottom: 0.5rem; }
+    .app-menu-item {
+      width: 100%;
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 0.5rem;
+      padding: 0.55rem 0.6rem;
+      margin-bottom: 0.35rem;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(74,144,196,0.15);
+      border-radius: 8px;
+      color: var(--slate-100);
+      font-size: 0.82rem; font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .app-menu-item:hover { background: rgba(74,144,196,0.16); color: var(--white); }
+    .app-menu-kbd {
+      font-size: 0.7rem; font-weight: 600; color: var(--slate-300);
+      border: 1px solid rgba(148,163,184,0.35);
+      border-radius: 6px; padding: 0.1rem 0.4rem; white-space: nowrap;
+      background: rgba(15,23,42,0.5);
+    }
+    .app-menu-shortcut {
+      display: flex; align-items: center; justify-content: space-between;
+      color: var(--slate-200); font-size: 0.78rem;
+      padding: 0.35rem 0.1rem;
+      border-bottom: 1px dashed rgba(74,144,196,0.12);
+    }
+    .app-menu-shortcut:last-child { border-bottom: none; }
+
     /* Page Canvas Area */
     .reader-canvas-area {
       flex: 1; overflow: auto;
@@ -916,7 +1004,8 @@
     @media print {
       body { overflow: visible; background: white; }
       #tocView, .reader-toolbar, .reader-bottom, .overlay-backdrop,
-      .toc-overlay, .search-overlay, .toast, .section-tools-pop { display: none !important; }
+      .toc-overlay, .search-overlay, .toast, .section-tools-pop,
+      .app-menu-button, .app-menu-panel, .app-menu-backdrop { display: none !important; }
       #readerView { position: static; }
       .reader-canvas-area { overflow: visible; padding: 0; }
       #pdfCanvas { box-shadow: none; max-width: 100%; }
@@ -1065,6 +1154,79 @@
     <img src="logo.png" alt="Retail Odyssey" class="loading-logo">
     <div class="loading-bar-track"><div class="loading-bar-fill" id="loadingBar"></div></div>
     <div class="loading-text" id="loadingText">Loading handbook…</div>
+  </div>
+
+  <!-- ═══════ APP MENU (ALWAYS AVAILABLE) ═══════ -->
+  <button class="app-menu-button" id="appMenuButton" onclick="toggleAppMenu()" aria-label="Open app menu" title="Menu">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5M3.75 17.25h16.5"/></svg>
+  </button>
+  <div class="app-menu-backdrop" id="appMenuBackdrop" onclick="closeAppMenu()"></div>
+  <div class="app-menu-panel" id="appMenuPanel" role="dialog" aria-label="App menu">
+    <div class="app-menu-header">
+      Quick Menu
+      <button class="app-menu-close" onclick="closeAppMenu()" title="Close menu">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="app-menu-section">
+      <div class="app-menu-title">Navigation</div>
+      <button class="app-menu-item" onclick="showTocView(); closeAppMenu();">
+        Home / Contents <span class="app-menu-kbd">Home</span>
+      </button>
+      <button class="app-menu-item" onclick="focusHomeSearch(); closeAppMenu();">
+        Search (Home)
+      </button>
+      <button class="app-menu-item" onclick="toggleSearch(); closeAppMenu();">
+        Search (Reader) <span class="app-menu-kbd">Ctrl/⌘+F</span>
+      </button>
+      <button class="app-menu-item" onclick="toggleTocOverlay(); closeAppMenu();">
+        Handbook Contents
+      </button>
+      <button class="app-menu-item" onclick="openSupplementOverlay(); closeAppMenu();">
+        State Supplements
+      </button>
+      <button class="app-menu-item" onclick="goToAcknowledgement(); closeAppMenu();">
+        Sign Acknowledgement
+      </button>
+    </div>
+    <div class="app-menu-section">
+      <div class="app-menu-title">Reader Tools</div>
+      <button class="app-menu-item" onclick="prevPage(); closeAppMenu();">
+        Previous Page <span class="app-menu-kbd">←</span>
+      </button>
+      <button class="app-menu-item" onclick="nextPage(); closeAppMenu();">
+        Next Page <span class="app-menu-kbd">→</span>
+      </button>
+      <button class="app-menu-item" onclick="zoomIn(); closeAppMenu();">
+        Zoom In <span class="app-menu-kbd">+</span>
+      </button>
+      <button class="app-menu-item" onclick="zoomOut(); closeAppMenu();">
+        Zoom Out <span class="app-menu-kbd">−</span>
+      </button>
+      <button class="app-menu-item" onclick="toggleSectionTools(document.getElementById('toolsToggle')); closeAppMenu();">
+        Section Tools
+      </button>
+      <button class="app-menu-item" onclick="printCurrentPage(); closeAppMenu();">
+        Print Current Page
+      </button>
+      <button class="app-menu-item" onclick="downloadHandbook(); closeAppMenu();">
+        Download PDF
+      </button>
+      <button class="app-menu-item" onclick="copyPageLink(); closeAppMenu();">
+        Copy Page Link
+      </button>
+      <button class="app-menu-item" onclick="copySectionLink(); closeAppMenu();">
+        Copy Section Link
+      </button>
+    </div>
+    <div class="app-menu-section">
+      <div class="app-menu-title">Shortcuts</div>
+      <div class="app-menu-shortcut">Previous / Next page <span class="app-menu-kbd">← / →</span></div>
+      <div class="app-menu-shortcut">First / Last page <span class="app-menu-kbd">Home / End</span></div>
+      <div class="app-menu-shortcut">Zoom In / Out <span class="app-menu-kbd">+ / −</span></div>
+      <div class="app-menu-shortcut">Search <span class="app-menu-kbd">Ctrl/⌘+F</span></div>
+      <div class="app-menu-shortcut">Close overlays <span class="app-menu-kbd">Esc</span></div>
+    </div>
   </div>
 
   <!-- ═══════ TOC / LANDING VIEW ═══════ -->
@@ -2558,6 +2720,31 @@ document.getElementById('supplementSearch').addEventListener('input', (e) => {
 });
 
 /* ═══════════════════════════════════════════════════════════
+   APP MENU
+   ═══════════════════════════════════════════════════════════ */
+function toggleAppMenu() {
+  const panel = document.getElementById('appMenuPanel');
+  if (panel.classList.contains('show')) {
+    closeAppMenu();
+  } else {
+    openAppMenu();
+  }
+}
+
+function openAppMenu() {
+  closeAllOverlays();
+  document.getElementById('appMenuBackdrop').classList.add('show');
+  document.getElementById('appMenuPanel').classList.add('show');
+  document.getElementById('appMenuButton').classList.add('active');
+}
+
+function closeAppMenu() {
+  document.getElementById('appMenuBackdrop').classList.remove('show');
+  document.getElementById('appMenuPanel').classList.remove('show');
+  document.getElementById('appMenuButton').classList.remove('active');
+}
+
+/* ═══════════════════════════════════════════════════════════
    OVERLAYS
    ═══════════════════════════════════════════════════════════ */
 function toggleTocOverlay() {
@@ -2586,6 +2773,7 @@ function closeAllOverlays() {
   closeSearch();
   closeSupplementOverlay();
   closeSectionTools();
+  closeAppMenu();
 }
 
 /* ═══════════════════════════════════════════════════════════
