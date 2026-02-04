@@ -39,6 +39,8 @@
       --green-500: #22c55e;
       --amber-500: #f59e0b;
       --bottom-nav-height: 68px;
+      --menu-btn-size: 40px;
+      --menu-btn-gap: 12px;
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -320,14 +322,16 @@
     .reader-toolbar {
       display: flex; align-items: center; gap: 0.5rem;
       padding: 0.5rem 0.75rem;
+      padding-left: calc(max(0.75rem, env(safe-area-inset-left)) + var(--menu-btn-size) + var(--menu-btn-gap));
       background: var(--navy-900);
       border-bottom: 1px solid rgba(74,144,196,0.12);
       flex-shrink: 0;
       z-index: 10;
     }
     .toolbar-logo {
-      height: clamp(20px, 3vw, 28px);
-      max-width: 120px;
+      height: clamp(18px, 4vw, 32px);
+      width: auto;
+      max-width: min(220px, 45vw);
       object-fit: contain;
       margin-right: 0.25rem;
       cursor: pointer;
@@ -389,7 +393,7 @@
       position: fixed;
       top: max(0.5rem, env(safe-area-inset-top));
       left: max(0.5rem, env(safe-area-inset-left));
-      width: 40px; height: 40px;
+      width: var(--menu-btn-size); height: var(--menu-btn-size);
       display: flex; align-items: center; justify-content: center;
       background: rgba(13,27,42,0.92);
       border: 1px solid rgba(74,144,196,0.35);
@@ -1033,6 +1037,7 @@
 
       /* Safe area for notched phones */
       .reader-toolbar { padding: 0.4rem max(0.5rem, env(safe-area-inset-left)) 0.4rem max(0.5rem, env(safe-area-inset-right)); }
+      .reader-toolbar { padding-left: calc(max(0.5rem, env(safe-area-inset-left)) + var(--menu-btn-size) + 8px); }
       .reader-bottom { padding: 0.5rem max(0.75rem, env(safe-area-inset-left)) max(0.5rem, env(safe-area-inset-bottom)) max(0.75rem, env(safe-area-inset-right)); }
 
       /* TOC Landing */
@@ -1133,6 +1138,7 @@
        ═══════════════════════════════════════════════════ */
     @media (max-height: 500px) and (orientation: landscape) {
       .reader-toolbar { padding: 0.25rem 0.5rem; }
+      .reader-toolbar { padding-left: calc(0.5rem + var(--menu-btn-size) + 8px); }
       .toolbar-logo { height: 22px; }
       .toolbar-btn { padding: 0.3rem 0.4rem; min-height: 30px; }
       .toolbar-btn .btn-label { display: none; }
@@ -1255,7 +1261,7 @@
   <div id="readerView" class="hidden">
     <!-- Top Toolbar -->
     <div class="reader-toolbar">
-      <img src="logo.png" alt="RO" class="toolbar-logo" onclick="showTocView()" title="Back to Contents">
+      <img src="headliner_logo.png" alt="Retail Odyssey" class="toolbar-logo" onclick="showTocView()" title="Back to Contents">
       <div class="toolbar-divider"></div>
       <div class="toolbar-page-info" id="pageInfo">Page <strong>1</strong> of 56</div>
       <div class="toolbar-spacer"></div>
