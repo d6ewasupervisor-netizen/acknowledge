@@ -1654,6 +1654,7 @@
       if (!target) { alert('Please select a store or enter a fax number.'); return; }
       alert(`Signed copy will be faxed to ${target}. Backend integration pending.`);
     }
+    document.querySelectorAll('.option-dropdown').forEach(dropdown => dropdown.removeAttribute('open'));
     resizeScanCanvas();
     setSignatureMode('draw');
     checkForm();
