@@ -7,7 +7,7 @@
   <meta name="theme-color" content="#0d1b2a">
   <title>Acknowledgement of Receipt — ADV Teammate Handbook</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=DM+Serif+Display&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=DM+Serif+Display&family=Dancing+Script:wght@400;600&family=Great+Vibes&family=Pacifico&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
     :root {
@@ -85,7 +85,12 @@
     }
     .header-nav a.back-link:hover { background: rgba(74,144,196,0.18); }
     .header-nav a svg { width: 14px; height: 14px; }
-    .header-logo { max-height: 56px; width: auto; margin-bottom: 1rem; }
+    .header-logo {
+      height: clamp(40px, 7vw, 56px);
+      max-width: 70vw;
+      object-fit: contain;
+      margin-bottom: 1rem;
+    }
     .header h1 {
       font-family: 'DM Serif Display', serif;
       font-size: clamp(1.3rem, 3.5vw, 1.75rem);
@@ -192,6 +197,8 @@
       cursor: crosshair; touch-action: none;
       transition: border-color 0.2s;
     }
+    .sig-canvas.disabled { cursor: not-allowed; pointer-events: none; opacity: 0.7; }
+    .sig-canvas.locked { pointer-events: none; }
     .sig-canvas.active { border-color: var(--blue-500); box-shadow: 0 0 0 3px rgba(74,144,196,0.15); }
     .sig-canvas.has-signature { border-color: var(--blue-500); }
     .sig-placeholder {
@@ -220,6 +227,62 @@
     }
     .sig-clear.visible { opacity: 1; }
     .sig-clear:hover { color: var(--red-500); }
+
+    .sig-controls {
+      display: grid; gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+    .sig-toggle {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 0.6rem;
+    }
+    .sig-option {
+      background: rgba(74,144,196,0.08);
+      border: 1px solid rgba(74,144,196,0.2);
+      border-radius: 10px;
+      padding: 0.6rem 0.75rem;
+      display: flex; align-items: center; justify-content: space-between;
+      font-size: 0.8rem; font-weight: 600; color: var(--slate-300);
+      cursor: pointer; transition: all 0.15s ease;
+    }
+    .sig-option.active { background: rgba(74,144,196,0.2); color: var(--white); border-color: rgba(74,144,196,0.4); }
+    .sig-row {
+      display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(74,144,196,0.15);
+      border-radius: 10px;
+      padding: 0.75rem;
+    }
+    .sig-row label { font-size: 0.72rem; letter-spacing: 0.05em; text-transform: uppercase; color: var(--slate-500); }
+    .sig-ink {
+      display: flex; align-items: center; gap: 0.5rem;
+    }
+    .sig-color {
+      width: 30px; height: 30px; border-radius: 50%;
+      border: 2px solid rgba(255,255,255,0.3);
+      cursor: pointer; transition: transform 0.15s ease, border-color 0.15s ease;
+    }
+    .sig-color.active { border-color: var(--white); transform: scale(1.05); }
+    .sig-size input[type="range"] { width: 140px; }
+    .sig-action-btn {
+      padding: 0.5rem 0.9rem; border-radius: 8px; border: 1px solid rgba(74,144,196,0.25);
+      background: rgba(74,144,196,0.15); color: var(--white); font-weight: 600;
+      cursor: pointer; transition: background 0.15s ease;
+    }
+    .sig-action-btn.secondary { background: rgba(255,255,255,0.05); color: var(--slate-300); }
+    .sig-action-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .sig-typed-controls { display: grid; gap: 0.5rem; width: 100%; }
+    .sig-typed-controls input, .sig-typed-controls select {
+      width: 100%; padding: 0.6rem 0.75rem;
+      border-radius: 8px; border: 1px solid rgba(74,144,196,0.2);
+      background: rgba(255,255,255,0.04); color: var(--white);
+      font-family: inherit; font-size: 0.9rem;
+    }
+    .sig-hint {
+      font-size: 0.75rem; color: var(--slate-500);
+      margin-top: 0.4rem;
+    }
+    .sig-hidden { display: none !important; }
 
     .consent-row {
       margin: 1.5rem 0 1.25rem;
@@ -408,7 +471,7 @@
   <header class="header">
     <div class="header-inner">
       <nav class="header-nav">
-        <a href="index.html" class="back-link">
+        <a href="index.html" class="back-link" onclick="returnToHandbook(event)">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg>
           Back to Handbook
         </a>
@@ -454,13 +517,87 @@
       </div>
       <div class="form-row" id="sigRow">
         <label>Teammate Signature</label>
+        <div class="sig-controls">
+          <div class="sig-toggle">
+            <button type="button" class="sig-option active" data-mode="draw" onclick="setSignatureMode('draw')">Draw</button>
+            <button type="button" class="sig-option" data-mode="type" onclick="setSignatureMode('type')">Type</button>
+            <button type="button" class="sig-option" data-mode="upload" onclick="setSignatureMode('upload')">Upload</button>
+            <button type="button" class="sig-option" data-mode="fax" onclick="setSignatureMode('fax')">Fax to Store</button>
+          </div>
+          <div class="sig-row" id="drawControls">
+            <button type="button" class="sig-action-btn" id="signNowBtn" onclick="enableSignaturePad()">Sign Now</button>
+            <div class="sig-ink">
+              <label>Ink</label>
+              <button type="button" class="sig-color active" id="inkBlack" title="Black ink" style="background:#0f172a;" onclick="setInkColor('#0f172a')"></button>
+              <button type="button" class="sig-color" id="inkBlue" title="Blue ink" style="background:#1d4ed8;" onclick="setInkColor('#1d4ed8')"></button>
+            </div>
+            <div class="sig-size">
+              <label for="penSize">Point</label>
+              <input type="range" id="penSize" min="1" max="6" step="0.5" value="2">
+            </div>
+          </div>
+          <div class="sig-row sig-hidden" id="typeControls">
+            <div class="sig-typed-controls">
+              <label for="typedSignature">Type Your Signature</label>
+              <input type="text" id="typedSignature" placeholder="Enter your full signature">
+            </div>
+            <div class="sig-typed-controls">
+              <label for="typedFont">Signature Font</label>
+              <select id="typedFont">
+                <option value="'Dancing Script', cursive">Dancing Script</option>
+                <option value="'Great Vibes', cursive">Great Vibes</option>
+                <option value="'Pacifico', cursive">Pacifico</option>
+              </select>
+            </div>
+            <button type="button" class="sig-action-btn secondary" onclick="applyTypedSignature()">Apply Signature</button>
+          </div>
+          <div class="sig-row sig-hidden" id="uploadControls">
+            <div>
+              <label>Upload Signature Image</label>
+              <div class="sig-hint">PNG or JPG works best with a transparent or light background.</div>
+            </div>
+            <button type="button" class="sig-action-btn" onclick="triggerSignatureUpload()">Choose Image</button>
+          </div>
+          <div class="sig-row sig-hidden" id="faxControls">
+            <div class="sig-typed-controls">
+              <label for="faxStore">Select Fred Meyer Store</label>
+              <select id="faxStore">
+                <option value="">Choose a store number</option>
+                <option>5</option><option>11</option><option>13</option><option>17</option><option>18</option><option>19</option>
+                <option>21</option><option>23</option><option>24</option><option>25</option><option>28</option><option>30</option>
+                <option>31</option><option>35</option><option>40</option><option>41</option><option>49</option><option>50</option>
+                <option>53</option><option>60</option><option>63</option><option>70</option><option>71</option><option>75</option>
+                <option>90</option><option>93</option><option>111</option><option>122</option><option>125</option><option>126</option>
+                <option>127</option><option>135</option><option>140</option><option>143</option><option>150</option><option>153</option>
+                <option>156</option><option>158</option><option>163</option><option>165</option><option>171</option><option>180</option>
+                <option>185</option><option>186</option><option>195</option><option>196</option><option>198</option><option>208</option>
+                <option>209</option><option>210</option><option>214</option><option>215</option><option>218</option><option>220</option>
+                <option>224</option><option>225</option><option>226</option><option>227</option><option>236</option><option>240</option>
+                <option>242</option><option>253</option><option>255</option><option>260</option><option>265</option><option>281</option>
+                <option>285</option><option>286</option><option>325</option><option>328</option><option>351</option><option>355</option>
+                <option>360</option><option>372</option><option>375</option><option>377</option><option>383</option><option>390</option>
+                <option>391</option><option>393</option><option>417</option><option>424</option><option>439</option><option>449</option>
+                <option>457</option><option>458</option><option>459</option><option>460</option><option>462</option><option>464</option>
+                <option>482</option><option>485</option><option>486</option><option>516</option><option>600</option><option>603</option>
+                <option>604</option><option>605</option><option>608</option><option>613</option><option>614</option><option>615</option>
+                <option>649</option><option>650</option><option>651</option><option>652</option><option>653</option><option>654</option>
+                <option>655</option><option>656</option><option>657</option><option>658</option><option>659</option><option>660</option>
+                <option>661</option><option>662</option><option>663</option><option>665</option><option>667</option><option>668</option>
+                <option>681</option><option>682</option><option>683</option><option>685</option><option>688</option><option>691</option>
+                <option>694</option>
+              </select>
+            </div>
+            <div class="sig-hint">We will route a fax-ready acknowledgement to your selected store.</div>
+          </div>
+        </div>
         <div class="sig-container">
           <canvas id="sigCanvas" class="sig-canvas"></canvas>
           <div class="sig-line"></div>
           <span id="sigPlaceholder" class="sig-placeholder">Sign here using your mouse or finger</span>
           <button type="button" id="sigClear" class="sig-clear" onclick="clearSignature()">Clear</button>
         </div>
-        <div class="error-msg">Please provide your signature above.</div>
+        <div class="sig-hint" id="orientationHint">Tip: rotate your device for more signing space.</div>
+        <div class="error-msg" id="sigError">Please provide your signature above.</div>
       </div>
       <div class="form-grid">
         <div class="form-row" id="dateRow">
@@ -471,7 +608,7 @@
       </div>
       <div class="consent-row">
         <input type="checkbox" id="digiConsent">
-        <label for="digiConsent">By checking this box, I agree that my digital signature above is the legal equivalent of my handwritten signature and that I intend to be bound by this acknowledgement. I confirm I have <strong>reviewed the ADV Teammate Handbook</strong> and understand the policies and procedures described within it.</label>
+        <label for="digiConsent" id="consentLabel">By checking this box, I agree that my digital signature above (or uploaded signature image) is the legal equivalent of my handwritten signature and that I intend to be bound by this acknowledgement. I confirm I have <strong>reviewed the ADV Teammate Handbook and my State Supplement</strong> and understand the policies and procedures described within them.</label>
       </div>
       <button type="button" class="submit-btn" id="submitBtn" disabled onclick="handleSubmit()">Submit Acknowledgement</button>
     </section>
@@ -480,6 +617,7 @@
   <footer class="footer">&copy; 2025 Advantage Solutions Inc. &nbsp;·&nbsp; All rights reserved.</footer>
 
   <input type="file" id="hiddenFileInput" accept=".pdf">
+  <input type="file" id="sigFileInput" accept="image/*">
 
   <div class="save-overlay" id="saveOverlay">
     <div class="save-card">
@@ -507,6 +645,14 @@
   <script>
     const ONEDRIVE_CLIENT_ID = '';
 
+    function returnToHandbook(e) {
+      if (e) e.preventDefault();
+      const lastPage = localStorage.getItem('handbookLastPage');
+      const lastView = localStorage.getItem('handbookLastView');
+      const url = lastView === 'reader' && lastPage ? `index.html#page=${lastPage}` : 'index.html';
+      window.location.href = url;
+    }
+
     /* ═══════════════════════════════════════════════════════════
        SIGNATURE PAD
        ═══════════════════════════════════════════════════════════ */
@@ -514,21 +660,92 @@
     const ctx = canvas.getContext('2d');
     const placeholder = document.getElementById('sigPlaceholder');
     const clearBtn = document.getElementById('sigClear');
-    let drawing = false, hasSig = false;
+    const signNowBtn = document.getElementById('signNowBtn');
+    const orientationHint = document.getElementById('orientationHint');
+    const penSizeInput = document.getElementById('penSize');
+    const typedInput = document.getElementById('typedSignature');
+    const typedFont = document.getElementById('typedFont');
+    const sigFileInput = document.getElementById('sigFileInput');
+    const faxStore = document.getElementById('faxStore');
+    const consentLabel = document.getElementById('consentLabel');
 
-    function resizeCanvas() {
+    let drawing = false;
+    let hasSig = false;
+    let signatureMode = 'draw';
+    let signatureEnabled = false;
+    let signatureLocked = false;
+    let signatureColor = '#0f172a';
+    let signatureImage = '';
+
+    function resizeCanvas(preserve = true) {
       const rect = canvas.getBoundingClientRect();
       const dpr = window.devicePixelRatio || 1;
+      const previousImage = preserve ? signatureImage : '';
       canvas.width = rect.width * dpr;
       canvas.height = rect.height * dpr;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      ctx.lineWidth = 2; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.strokeStyle = '#e2e8f0';
+      ctx.lineWidth = parseFloat(penSizeInput.value);
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.strokeStyle = signatureColor;
+      if (previousImage) restoreSignatureImage(previousImage);
     }
-    resizeCanvas();
-    window.addEventListener('resize', () => {
-      resizeCanvas();
-      if (hasSig) { hasSig = false; placeholder.classList.remove('hidden'); clearBtn.classList.remove('visible'); canvas.classList.remove('has-signature'); checkForm(); }
-    });
+
+    function restoreSignatureImage(dataUrl) {
+      const img = new Image();
+      img.onload = () => {
+        const rect = canvas.getBoundingClientRect();
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0, rect.width, rect.height);
+      };
+      img.src = dataUrl;
+    }
+
+    function updateOrientationHint() {
+      const isPortrait = window.matchMedia('(orientation: portrait)').matches;
+      const showHint = signatureMode === 'draw' && !hasSig && window.innerWidth <= 900 && isPortrait;
+      orientationHint.classList.toggle('sig-hidden', !showHint);
+    }
+
+    function setSignatureMode(mode) {
+      if (signatureLocked) return;
+      signatureMode = mode;
+      document.querySelectorAll('.sig-option').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.mode === mode);
+      });
+      document.getElementById('drawControls').classList.toggle('sig-hidden', mode !== 'draw');
+      document.getElementById('typeControls').classList.toggle('sig-hidden', mode !== 'type');
+      document.getElementById('uploadControls').classList.toggle('sig-hidden', mode !== 'upload');
+      document.getElementById('faxControls').classList.toggle('sig-hidden', mode !== 'fax');
+      placeholder.textContent = mode === 'draw' ? 'Sign here using your mouse or finger' : 'Signature preview will appear here';
+      consentLabel.textContent = mode === 'fax'
+        ? 'By checking this box, I confirm I have reviewed the ADV Teammate Handbook and my State Supplement and request this acknowledgement be faxed to my selected store.'
+        : 'By checking this box, I agree that my digital signature above (or uploaded signature image) is the legal equivalent of my handwritten signature and that I intend to be bound by this acknowledgement. I confirm I have reviewed the ADV Teammate Handbook and my State Supplement and understand the policies and procedures described within them.';
+      signatureEnabled = mode !== 'draw';
+      signNowBtn.disabled = mode !== 'draw' || signatureEnabled;
+      canvas.classList.toggle('disabled', mode === 'fax' || (mode === 'draw' && !signatureEnabled));
+      if (mode === 'fax') {
+        clearSignature();
+      }
+      updateOrientationHint();
+      checkForm();
+    }
+
+    function setInkColor(color) {
+      signatureColor = color;
+      ctx.strokeStyle = signatureColor;
+      document.getElementById('inkBlack').classList.toggle('active', color === '#0f172a');
+      document.getElementById('inkBlue').classList.toggle('active', color === '#1d4ed8');
+      if (signatureMode === 'type' && typedInput.value.trim()) applyTypedSignature();
+    }
+
+    function enableSignaturePad() {
+      if (signatureLocked) return;
+      signatureEnabled = true;
+      canvas.classList.remove('disabled');
+      signNowBtn.disabled = true;
+      updateOrientationHint();
+    }
 
     function getPos(e) {
       const rect = canvas.getBoundingClientRect();
@@ -536,19 +753,158 @@
       const cy = e.touches ? e.touches[0].clientY : e.clientY;
       return { x: cx - rect.left, y: cy - rect.top };
     }
-    function startDraw(e) { e.preventDefault(); drawing = true; canvas.classList.add('active'); const p = getPos(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); }
-    function draw(e) {
-      if (!drawing) return; e.preventDefault(); const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke();
-      if (!hasSig) { hasSig = true; placeholder.classList.add('hidden'); clearBtn.classList.add('visible'); canvas.classList.add('has-signature'); checkForm(); }
+
+    function startDraw(e) {
+      if (signatureLocked || signatureMode !== 'draw' || !signatureEnabled) return;
+      e.preventDefault();
+      drawing = true;
+      canvas.classList.add('active');
+      const p = getPos(e);
+      ctx.beginPath();
+      ctx.moveTo(p.x, p.y);
     }
-    function stopDraw() { drawing = false; canvas.classList.remove('active'); }
-    canvas.addEventListener('mousedown', startDraw); canvas.addEventListener('mousemove', draw);
-    canvas.addEventListener('mouseup', stopDraw); canvas.addEventListener('mouseleave', stopDraw);
+
+    function draw(e) {
+      if (!drawing || signatureLocked) return;
+      e.preventDefault();
+      const p = getPos(e);
+      ctx.lineTo(p.x, p.y);
+      ctx.stroke();
+      if (!hasSig) {
+        hasSig = true;
+        placeholder.classList.add('hidden');
+        clearBtn.classList.add('visible');
+        canvas.classList.add('has-signature');
+        checkForm();
+      }
+    }
+
+    function stopDraw() {
+      if (!drawing) return;
+      drawing = false;
+      canvas.classList.remove('active');
+      if (hasSig) signatureImage = canvas.toDataURL('image/png');
+    }
+
+    canvas.addEventListener('mousedown', startDraw);
+    canvas.addEventListener('mousemove', draw);
+    canvas.addEventListener('mouseup', stopDraw);
+    canvas.addEventListener('mouseleave', stopDraw);
     canvas.addEventListener('touchstart', startDraw, { passive: false });
     canvas.addEventListener('touchmove', draw, { passive: false });
     canvas.addEventListener('touchend', stopDraw);
 
-    function clearSignature() { ctx.clearRect(0, 0, canvas.width, canvas.height); hasSig = false; placeholder.classList.remove('hidden'); clearBtn.classList.remove('visible'); canvas.classList.remove('has-signature'); checkForm(); }
+    function applyTypedSignature() {
+      if (signatureLocked) return;
+      const text = typedInput.value.trim();
+      if (!text) {
+        clearSignature();
+        return;
+      }
+      const rect = canvas.getBoundingClientRect();
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      let fontSize = Math.min(64, Math.max(28, rect.width * 0.18));
+      ctx.fillStyle = signatureColor;
+      ctx.textBaseline = 'middle';
+      ctx.textAlign = 'left';
+      ctx.font = `${fontSize}px ${typedFont.value}`;
+      while (ctx.measureText(text).width > rect.width - 30 && fontSize > 20) {
+        fontSize -= 2;
+        ctx.font = `${fontSize}px ${typedFont.value}`;
+      }
+      ctx.fillText(text, 18, rect.height / 2);
+      hasSig = true;
+      signatureImage = canvas.toDataURL('image/png');
+      placeholder.classList.add('hidden');
+      clearBtn.classList.add('visible');
+      canvas.classList.add('has-signature');
+      checkForm();
+    }
+
+    function triggerSignatureUpload() {
+      if (signatureLocked) return;
+      sigFileInput.click();
+    }
+
+    function drawImageToCanvas(dataUrl) {
+      const img = new Image();
+      img.onload = () => {
+        const rect = canvas.getBoundingClientRect();
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        const scale = Math.min(rect.width / img.width, rect.height / img.height);
+        const w = img.width * scale;
+        const h = img.height * scale;
+        const x = (rect.width - w) / 2;
+        const y = (rect.height - h) / 2;
+        ctx.drawImage(img, x, y, w, h);
+        hasSig = true;
+        signatureImage = canvas.toDataURL('image/png');
+        placeholder.classList.add('hidden');
+        clearBtn.classList.add('visible');
+        canvas.classList.add('has-signature');
+        checkForm();
+      };
+      img.src = dataUrl;
+    }
+
+    sigFileInput.addEventListener('change', (e) => {
+      if (signatureLocked) return;
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => drawImageToCanvas(reader.result);
+      reader.readAsDataURL(file);
+      e.target.value = '';
+    });
+
+    function clearSignature() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      hasSig = false;
+      signatureImage = '';
+      placeholder.classList.remove('hidden');
+      clearBtn.classList.remove('visible');
+      canvas.classList.remove('has-signature');
+      checkForm();
+    }
+
+    function lockSignatureControls() {
+      signatureLocked = true;
+      canvas.classList.add('locked');
+      signNowBtn.disabled = true;
+      penSizeInput.disabled = true;
+      typedInput.disabled = true;
+      typedFont.disabled = true;
+      faxStore.disabled = true;
+      clearBtn.disabled = true;
+      document.querySelectorAll('.sig-option, .sig-color, #penSize, #typedSignature, #typedFont').forEach(el => {
+        if (el.tagName === 'BUTTON' || el.tagName === 'INPUT' || el.tagName === 'SELECT') {
+          el.disabled = true;
+        }
+      });
+    }
+
+    penSizeInput.addEventListener('input', (e) => {
+      ctx.lineWidth = parseFloat(e.target.value);
+    });
+    typedInput.addEventListener('input', () => {
+      if (signatureMode === 'type') applyTypedSignature();
+    });
+    typedFont.addEventListener('change', () => {
+      if (signatureMode === 'type') applyTypedSignature();
+    });
+    window.addEventListener('resize', () => {
+      resizeCanvas(true);
+      updateOrientationHint();
+    });
+    window.addEventListener('orientationchange', () => {
+      setTimeout(() => {
+        resizeCanvas(true);
+        updateOrientationHint();
+      }, 200);
+    });
+
+    resizeCanvas(true);
+    updateOrientationHint();
 
     /* ═══════════════════════════════════════════════════════════
        FORM VALIDATION
@@ -559,8 +915,16 @@
     const nameInput = document.getElementById('printedName');
     const consentBox = document.getElementById('digiConsent');
     const submitBtn = document.getElementById('submitBtn');
-    function checkForm() { submitBtn.disabled = !(nameInput.value.trim().length > 0 && hasSig && dateInput.value && consentBox.checked); }
-    nameInput.addEventListener('input', checkForm); dateInput.addEventListener('change', checkForm); consentBox.addEventListener('change', checkForm);
+    function checkForm() {
+      const signatureRequired = signatureMode !== 'fax';
+      const signatureOk = signatureRequired ? hasSig : true;
+      const faxOk = signatureMode === 'fax' ? !!faxStore.value : true;
+      submitBtn.disabled = !(nameInput.value.trim().length > 0 && dateInput.value && consentBox.checked && signatureOk && faxOk);
+    }
+    nameInput.addEventListener('input', checkForm);
+    dateInput.addEventListener('change', checkForm);
+    consentBox.addEventListener('change', checkForm);
+    faxStore.addEventListener('change', checkForm);
 
     /* ═══════════════════════════════════════════════════════════
        PDF GENERATION
@@ -610,7 +974,16 @@
 
       doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(107, 114, 128);
       doc.text('TEAMMATE SIGNATURE', margin, y); y += 3;
-      doc.addImage(canvas.toDataURL('image/png'), 'PNG', margin, y, 70, 25); y += 27;
+      if (signatureMode === 'fax') {
+        doc.setFont('helvetica', 'italic'); doc.setFontSize(9); doc.setTextColor(100, 116, 139);
+        doc.text(`Signature pending via fax to store ${faxStore.value || 'N/A'}`, margin, y + 10);
+        y += 27;
+      } else if (signatureImage) {
+        doc.addImage(signatureImage, 'PNG', margin, y, 70, 25);
+        y += 27;
+      } else {
+        y += 27;
+      }
       doc.line(margin, y, margin + 80, y); y += 10;
 
       doc.setFontSize(8); doc.setTextColor(107, 114, 128); doc.text('DATE', margin, y); y += 5;
@@ -635,13 +1008,30 @@
     function handleSubmit() {
       let err = false;
       if (!nameInput.value.trim()) { document.getElementById('nameRow').classList.add('error'); err = true; } else { document.getElementById('nameRow').classList.remove('error'); }
-      if (!hasSig) { document.getElementById('sigRow').classList.add('error'); err = true; } else { document.getElementById('sigRow').classList.remove('error'); }
+      const sigError = document.getElementById('sigError');
+      if (signatureMode === 'fax') {
+        if (!faxStore.value) {
+          sigError.textContent = 'Please select a store for fax delivery.';
+          document.getElementById('sigRow').classList.add('error');
+          err = true;
+        } else {
+          document.getElementById('sigRow').classList.remove('error');
+        }
+      } else if (!hasSig) {
+        sigError.textContent = 'Please provide your signature above.';
+        document.getElementById('sigRow').classList.add('error');
+        err = true;
+      } else {
+        document.getElementById('sigRow').classList.remove('error');
+      }
       if (!dateInput.value) { document.getElementById('dateRow').classList.add('error'); err = true; } else { document.getElementById('dateRow').classList.remove('error'); }
       if (err) return;
 
       generatePDF();
+      lockSignatureControls();
       const fd = new Date(dateInput.value + 'T12:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
-      document.getElementById('signerDetail').innerHTML = `<span><strong>Name:</strong> ${nameInput.value.trim()}</span><span><strong>Date:</strong> ${fd}</span><span><strong>File:</strong> ${pdfFileName}</span>`;
+      const delivery = signatureMode === 'fax' ? `Fax to store ${faxStore.value}` : 'Digital signature';
+      document.getElementById('signerDetail').innerHTML = `<span><strong>Name:</strong> ${nameInput.value.trim()}</span><span><strong>Date:</strong> ${fd}</span><span><strong>Delivery:</strong> ${delivery}</span><span><strong>File:</strong> ${pdfFileName}</span>`;
 
       const odBtn = document.getElementById('onedriveSaveBtn');
       const odSt = document.getElementById('onedriveStatus');
@@ -676,6 +1066,7 @@
 
     function downloadPDF() { if (generatedPDF) generatedPDF.save(pdfFileName); }
     function closeSaveOverlay() { document.getElementById('saveOverlay').classList.remove('show'); }
+    setSignatureMode('draw');
     checkForm();
   </script>
 </body>
