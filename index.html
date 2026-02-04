@@ -320,12 +320,7 @@
       cursor: pointer;
     }
     .toolbar-divider { width: 1px; height: 24px; background: rgba(74,144,196,0.15); margin: 0 0.25rem; }
-    .toolbar-page-info {
-      font-size: 0.78rem; color: var(--slate-400);
-      font-weight: 500; white-space: nowrap;
-      min-width: 80px; text-align: center;
-    }
-    .toolbar-page-info strong { color: var(--white); font-weight: 600; }
+    .toolbar-page-info { display: none; }
     .toolbar-spacer { flex: 1; }
     .toolbar-btn {
       display: flex; align-items: center; justify-content: center; gap: 0.35rem;
@@ -391,7 +386,7 @@
       background-image: url('logo.png');
       background-repeat: repeat;
       background-position: center top;
-      background-size: min(420px, 34vw);
+      background-size: min(420px, 34vw) calc(min(420px, 34vw) * 1.3);
       opacity: 0.22;
       transform: rotate(-45deg);
       pointer-events: none;
@@ -503,6 +498,7 @@
     .nav-btn svg { width: 18px; height: 18px; }
 
     .page-slider-container { flex: 1; display: flex; align-items: center; padding: 0 0.5rem; }
+    .page-slider-wrap { position: relative; width: 100%; }
     .page-slider {
       width: 100%; height: 4px;
       -webkit-appearance: none; appearance: none;
@@ -524,6 +520,22 @@
       border-radius: 50%; border: none;
       cursor: pointer;
     }
+    .page-bubble {
+      position: absolute;
+      top: -34px;
+      transform: translateX(-50%);
+      background: rgba(15, 23, 42, 0.92);
+      color: var(--white);
+      font-size: 0.72rem;
+      padding: 0.2rem 0.5rem;
+      border-radius: 6px;
+      border: 1px solid rgba(74,144,196,0.35);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.15s ease;
+      white-space: nowrap;
+    }
+    .page-bubble.show { opacity: 1; }
 
     /* ═══════════════════════════════════════════════════
        TOC OVERLAY (in reader)
@@ -1074,7 +1086,10 @@
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg>
       </button>
       <div class="page-slider-container">
-        <input type="range" class="page-slider" id="pageSlider" min="1" max="56" value="1">
+        <div class="page-slider-wrap">
+          <input type="range" class="page-slider" id="pageSlider" min="1" max="56" value="1">
+          <div class="page-bubble" id="pageBubble">Page 1</div>
+        </div>
       </div>
       <button class="nav-btn" id="btnNext" onclick="nextPage()" title="Next Page">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg>
@@ -1815,8 +1830,6 @@ function handleHash() {
 window.addEventListener('hashchange', handleHash);
 
 function updateUI() {
-  const label = currentDocType === 'supplement' ? 'State Supplement' : 'Handbook';
-  document.getElementById('pageInfo').innerHTML = `${label} · Page <strong>${currentPage}</strong> of ${totalPages}`;
   document.getElementById('pageSlider').value = currentPage;
   document.getElementById('btnPrev').disabled = currentPage <= 1;
   document.getElementById('btnNext').disabled = currentPage >= totalPages;
@@ -1987,8 +2000,66 @@ document.addEventListener('keydown', (e) => {
 });
 
 /* Page slider */
-document.getElementById('pageSlider').addEventListener('input', (e) => {
-  goToPage(parseInt(e.target.value));
+const pageSlider = document.getElementById('pageSlider');
+const pageBubble = document.getElementById('pageBubble');
+
+function updatePageBubble(value) {
+  const percent = (value - pageSlider.min) / (pageSlider.max - pageSlider.min);
+  const sliderWidth = pageSlider.offsetWidth;
+  const thumbOffset = 10;
+  const x = percent * (sliderWidth - thumbOffset * 2) + thumbOffset;
+  pageBubble.style.left = `${x}px`;
+  const label = currentDocType === 'supplement'
+    ? getSupplementStateLabel(value)
+    : getHandbookSectionLabel(value);
+  pageBubble.textContent = `${label} · Page ${value} of ${totalPages}`;
+}
+
+function getHandbookSectionLabel(page) {
+  let sectionTitle = 'Handbook';
+  let subTitle = '';
+  for (const section of TOC) {
+    if (page >= section.page) {
+      sectionTitle = section.title;
+      subTitle = '';
+      for (const sub of section.subs) {
+        if (page >= sub.page) subTitle = sub.title;
+      }
+    }
+  }
+  return subTitle || sectionTitle;
+}
+
+function getSupplementStateLabel(page) {
+  const entries = Object.entries(STATE_PAGES)
+    .map(([state, start]) => ({ state, start: start + SUPPLEMENT_PAGE_OFFSET }))
+    .sort((a, b) => a.start - b.start);
+  let stateLabel = currentSupplementState || 'State Supplement';
+  for (let i = 0; i < entries.length; i++) {
+    const curr = entries[i];
+    const next = entries[i + 1];
+    if (page >= curr.start && (!next || page < next.start)) {
+      stateLabel = curr.state;
+      break;
+    }
+  }
+  return `${stateLabel} Supplement`;
+}
+
+pageSlider.addEventListener('input', (e) => {
+  const value = parseInt(e.target.value, 10);
+  updatePageBubble(value);
+  goToPage(value);
+});
+
+['mousedown', 'touchstart'].forEach(evt => {
+  pageSlider.addEventListener(evt, () => {
+    updatePageBubble(parseInt(pageSlider.value, 10));
+    pageBubble.classList.add('show');
+  });
+});
+['mouseup', 'touchend', 'touchcancel', 'mouseleave'].forEach(evt => {
+  pageSlider.addEventListener(evt, () => pageBubble.classList.remove('show'));
 });
 
 /* ═══════════════════════════════════════════════════════════
