@@ -169,6 +169,37 @@
     .download-btn:hover { background: var(--blue-400); }
     .download-btn svg { width: 14px; height: 14px; }
 
+    .option-dropdown {
+      padding: 0;
+      display: block;
+    }
+    .option-dropdown summary {
+      list-style: none;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1.25rem 1.5rem;
+      cursor: pointer;
+    }
+    .option-dropdown summary::-webkit-details-marker { display: none; }
+    .option-dropdown .option-summary {
+      flex: 1;
+    }
+    .option-dropdown .option-summary h3 {
+      margin-bottom: 0.25rem;
+    }
+    .option-dropdown .option-chevron {
+      width: 18px;
+      height: 18px;
+      color: var(--slate-500);
+      transition: transform 0.2s ease;
+    }
+    .option-dropdown[open] .option-chevron { transform: rotate(180deg); }
+    .option-dropdown-body {
+      padding: 0 1.5rem 1.25rem;
+      border-top: 1px solid rgba(74,144,196,0.12);
+    }
+
     .card {
       background: var(--navy-900);
       border: 1px solid rgba(74,144,196,0.12);
@@ -248,7 +279,8 @@
       height: 1px; background: rgba(74,144,196,0.15);
       pointer-events: none;
     }
-    .sig-clear {
+    .sig-clear,
+    .sig-save {
       position: absolute; top: 8px; right: 8px;
       background: var(--navy-800);
       border: 1px solid rgba(74,144,196,0.2);
@@ -259,8 +291,11 @@
       cursor: pointer;
       opacity: 0; transition: opacity 0.2s, color 0.15s;
     }
+    .sig-save { right: 64px; }
     .sig-clear.visible { opacity: 1; }
+    .sig-save.visible { opacity: 1; }
     .sig-clear:hover { color: var(--red-500); }
+    .sig-save:hover { color: var(--blue-200); }
 
     .sig-controls {
       display: grid; gap: 0.75rem;
@@ -559,41 +594,6 @@
   </header>
 
   <main class="container">
-    <section class="option-card">
-      <div class="download-icon">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 12.75h12m-12 6h12M6 6.75h12M3.75 3h16.5c.621 0 1.125.504 1.125 1.125v15.75c0 .621-.504 1.125-1.125 1.125H3.75c-.621 0-1.125-.504-1.125-1.125V4.125C2.625 3.504 3.129 3 3.75 3Z"/></svg>
-      </div>
-      <div class="option-actions">
-        <h3>Fax Blank Signoff</h3>
-        <p>Send a blank acknowledgement to your store or any fax machine.</p>
-        <div class="sig-row">
-          <div class="sig-typed-controls">
-            <label for="blankFaxStore">Store Number</label>
-            <select id="blankFaxStore">
-              <option value="">Choose a store number</option>
-            </select>
-          </div>
-          <div class="sig-typed-controls">
-            <label for="blankFaxNumber">Fax Number</label>
-            <input type="text" id="blankFaxNumber" placeholder="+1 555 555 5555">
-          </div>
-        </div>
-        <div class="option-hint">To send to any fax machine, enter the full number including country code.</div>
-        <button type="button" class="option-btn" onclick="sendBlankFax()">Fax Blank Signoff</button>
-      </div>
-    </section>
-
-    <section class="option-card">
-      <div class="download-icon">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m6.827 6.175 1.1-1.1a1.5 1.5 0 0 1 2.122 0l1.1 1.1h2.851a1.5 1.5 0 0 1 1.5 1.5v8.85a1.5 1.5 0 0 1-1.5 1.5H6.55a1.5 1.5 0 0 1-1.5-1.5v-8.85a1.5 1.5 0 0 1 1.5-1.5h1.277Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5a3.75 3.75 0 1 0 0-7.5 3.75 3.75 0 0 0 0 7.5Z"/></svg>
-      </div>
-      <div class="option-actions">
-        <h3>Scan Signed Document</h3>
-        <p>Use your camera to scan the signed acknowledgement and submit the enhanced image.</p>
-        <button type="button" class="option-btn" onclick="setSignatureMode('scan'); document.getElementById('sigRow').scrollIntoView({ behavior: 'smooth' });">Start Scan</button>
-      </div>
-    </section>
-
     <section class="card">
       <h2>Acknowledgement of Receipt</h2>
       <div class="ack-text">
@@ -604,6 +604,55 @@
         <p>By signing below, I acknowledge that I have received and will abide by the Company's Handbook and all the policies within it, including those on harassment, discrimination, retaliation, and bringing complaints regarding the same.</p>
       </div>
     </section>
+
+    <details class="option-card option-dropdown">
+      <summary>
+        <div class="download-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 12.75h12m-12 6h12M6 6.75h12M3.75 3h16.5c.621 0 1.125.504 1.125 1.125v15.75c0 .621-.504 1.125-1.125 1.125H3.75c-.621 0-1.125-.504-1.125-1.125V4.125C2.625 3.504 3.129 3 3.75 3Z"/></svg>
+        </div>
+        <div class="option-summary">
+          <h3>Fax Blank Signoff</h3>
+          <p>Send a blank acknowledgement to your store or any fax machine.</p>
+        </div>
+        <svg class="option-chevron" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m6 9 6 6 6-6"/></svg>
+      </summary>
+      <div class="option-dropdown-body">
+        <div class="option-actions">
+          <div class="sig-row">
+            <div class="sig-typed-controls">
+              <label for="blankFaxStore">Store Number</label>
+              <select id="blankFaxStore">
+                <option value="">Choose a store number</option>
+              </select>
+            </div>
+            <div class="sig-typed-controls">
+              <label for="blankFaxNumber">Fax Number</label>
+              <input type="text" id="blankFaxNumber" placeholder="+1 555 555 5555">
+            </div>
+          </div>
+          <div class="option-hint">To send to any fax machine, enter the full number including country code.</div>
+          <button type="button" class="option-btn" onclick="sendBlankFax()">Fax Blank Signoff</button>
+        </div>
+      </div>
+    </details>
+
+    <details class="option-card option-dropdown">
+      <summary>
+        <div class="download-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m6.827 6.175 1.1-1.1a1.5 1.5 0 0 1 2.122 0l1.1 1.1h2.851a1.5 1.5 0 0 1 1.5 1.5v8.85a1.5 1.5 0 0 1-1.5 1.5H6.55a1.5 1.5 0 0 1-1.5-1.5v-8.85a1.5 1.5 0 0 1 1.5-1.5h1.277Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5a3.75 3.75 0 1 0 0-7.5 3.75 3.75 0 0 0 0 7.5Z"/></svg>
+        </div>
+        <div class="option-summary">
+          <h3>Scan Signed Document</h3>
+          <p>Use your camera to scan the signed acknowledgement and submit the enhanced image.</p>
+        </div>
+        <svg class="option-chevron" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m6 9 6 6 6-6"/></svg>
+      </summary>
+      <div class="option-dropdown-body">
+        <div class="option-actions">
+          <button type="button" class="option-btn" onclick="setSignatureMode('scan'); document.getElementById('sigRow').scrollIntoView({ behavior: 'smooth' });">Start Scan</button>
+        </div>
+      </div>
+    </details>
 
     <section class="card">
       <h2>Sign Below</h2>
@@ -694,6 +743,7 @@
           <canvas id="sigCanvas" class="sig-canvas"></canvas>
           <div class="sig-line"></div>
           <span id="sigPlaceholder" class="sig-placeholder">Sign here using your mouse or finger</span>
+          <button type="button" id="sigSave" class="sig-save" onclick="saveSignature()">Save</button>
           <button type="button" id="sigClear" class="sig-clear" onclick="clearSignature()">Clear</button>
         </div>
         <div class="sig-hint" id="orientationHint">Tip: rotate your device for more signing space.</div>
@@ -775,6 +825,7 @@
     const ctx = canvas.getContext('2d');
     const placeholder = document.getElementById('sigPlaceholder');
     const clearBtn = document.getElementById('sigClear');
+    const saveBtn = document.getElementById('sigSave');
     const signNowBtn = document.getElementById('signNowBtn');
     const orientationHint = document.getElementById('orientationHint');
     const penSizeInput = document.getElementById('penSize');
@@ -878,6 +929,7 @@
       document.getElementById('scanControls').classList.toggle('sig-hidden', mode !== 'scan');
       document.getElementById('faxControls').classList.toggle('sig-hidden', mode !== 'fax');
       placeholder.textContent = mode === 'draw' ? 'Sign here using your mouse or finger' : 'Signature preview will appear here';
+      saveBtn.classList.toggle('visible', mode === 'draw' && hasSig);
       consentLabel.textContent = mode === 'fax'
         ? 'By checking this box, I confirm I have reviewed the ADV Teammate Handbook and my State Supplement and request this acknowledgement be faxed to my selected store.'
         : mode === 'scan'
@@ -909,6 +961,7 @@
       signatureEnabled = true;
       canvas.classList.remove('disabled');
       signNowBtn.disabled = true;
+      saveBtn.classList.toggle('visible', hasSig);
       updateOrientationHint();
     }
 
@@ -939,6 +992,7 @@
         hasSig = true;
         placeholder.classList.add('hidden');
         clearBtn.classList.add('visible');
+        saveBtn.classList.add('visible');
         canvas.classList.add('has-signature');
         checkForm();
       }
@@ -982,6 +1036,7 @@
       signatureImage = canvas.toDataURL('image/png');
       placeholder.classList.add('hidden');
       clearBtn.classList.add('visible');
+      saveBtn.classList.add('visible');
       canvas.classList.add('has-signature');
       checkForm();
     }
@@ -1006,6 +1061,7 @@
         signatureImage = canvas.toDataURL('image/png');
         placeholder.classList.add('hidden');
         clearBtn.classList.add('visible');
+        saveBtn.classList.add('visible');
         canvas.classList.add('has-signature');
         checkForm();
       };
@@ -1028,8 +1084,18 @@
       signatureImage = '';
       placeholder.classList.remove('hidden');
       clearBtn.classList.remove('visible');
+      saveBtn.classList.remove('visible');
       canvas.classList.remove('has-signature');
       checkForm();
+    }
+
+    function saveSignature() {
+      if (signatureLocked || signatureMode !== 'draw' || !hasSig) return;
+      signatureImage = canvas.toDataURL('image/png');
+      signatureEnabled = false;
+      canvas.classList.add('disabled');
+      signNowBtn.disabled = false;
+      saveBtn.classList.remove('visible');
     }
 
     /* ═══════════════════════════════════════════════════════════
