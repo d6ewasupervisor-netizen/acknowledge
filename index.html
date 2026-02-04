@@ -388,14 +388,63 @@
       content: '';
       position: absolute;
       inset: 0;
-      background-image: url('logo.png');
-      background-repeat: no-repeat;
-      background-position: right 10% center;
-      background-size: min(520px, 50vw);
-      opacity: 0.08;
+      background-image: url('logo.png'), url('logo.png');
+      background-repeat: no-repeat, no-repeat;
+      background-position: left 22% center, right 78% center;
+      background-size: min(320px, 28vw), min(320px, 28vw);
+      opacity: 0.18;
       transform: rotate(-45deg);
       pointer-events: none;
       z-index: 0;
+    }
+    .resources-overlay {
+      position: absolute;
+      background: #ffffff;
+      color: #0f172a;
+      border-radius: 6px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.25);
+      padding: 1.5rem 1.75rem;
+      overflow: auto;
+      display: none;
+      z-index: 2;
+    }
+    .resources-overlay.show { display: block; }
+    .resources-title {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.4rem;
+      margin-bottom: 0.5rem;
+      color: #0d1b2a;
+    }
+    .resources-sub {
+      font-size: 0.78rem;
+      color: #64748b;
+      margin-bottom: 1.25rem;
+    }
+    .resources-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.86rem;
+    }
+    .resources-table td {
+      padding: 0.45rem 0;
+      vertical-align: top;
+    }
+    .resources-table td:first-child {
+      width: 34%;
+      font-weight: 600;
+      color: #0f172a;
+      padding-right: 1rem;
+    }
+    .resources-table a {
+      color: #1d4ed8;
+      text-decoration: none;
+      word-break: break-word;
+    }
+    .resources-table a:hover { text-decoration: underline; }
+    .resources-note {
+      color: #475569;
+      font-size: 0.78rem;
+      margin-top: 0.25rem;
     }
 
     #pdfCanvas {
@@ -1013,6 +1062,7 @@
     <!-- Canvas Area -->
     <div class="reader-canvas-area" id="canvasArea">
       <canvas id="pdfCanvas"></canvas>
+      <div class="resources-overlay" id="resourcesOverlay"></div>
     </div>
 
     <!-- Bottom Nav -->
@@ -1258,6 +1308,103 @@ let supplementTextCache = {};
 let handbookTextReady = false;
 let supplementTextReady = false;
 let tocSearchVisited = new Set();
+const KEY_RESOURCES = [
+  {
+    title: 'Anonymous Reporting Hotline',
+    lines: [
+      { label: 'adv.ethicspoint.com', href: 'http://adv.ethicspoint.com' },
+      { label: '(888) 325-7882', href: 'tel:8883257882' }
+    ]
+  },
+  {
+    title: 'HR Shared Services',
+    lines: [
+      { label: 'advantageprod.service-now.com/now/nav/ui/classic/params/target/esc', href: 'https://advantageprod.service-now.com/now/nav/ui/classic/params/target/esc' },
+      { label: '(888) 900-4276', href: 'tel:8889004276' }
+    ]
+  },
+  {
+    title: 'Teammate Resources',
+    lines: [
+      { label: 'advantagesolutionsnet.sharepoint.com/sites/ConnectsHub/SitePages/AssociateResources.aspx', href: 'https://advantagesolutionsnet.sharepoint.com/sites/ConnectsHub/SitePages/AssociateResources.aspx' }
+    ]
+  },
+  {
+    title: 'Benefits',
+    lines: [
+      { label: 'www.advantagebenefits.net/', href: 'https://www.advantagebenefits.net/' }
+    ]
+  },
+  {
+    title: 'Company Intranet',
+    lines: [
+      { label: 'advantagesolutionsnet.sharepoint.com/sites/ConnectsHub/SitePages/Welcome.aspx?wa=wsignin1.0', href: 'https://advantagesolutionsnet.sharepoint.com/sites/ConnectsHub/SitePages/Welcome.aspx?wa=wsignin1.0' }
+    ]
+  },
+  {
+    title: 'Expense Management',
+    lines: [
+      { label: 'advantagesolutionsnet.sharepoint.com/sites/ConnectsHub/SitePages/Travel%26Expenses.aspx?web=1', href: 'https://advantagesolutionsnet.sharepoint.com/sites/ConnectsHub/SitePages/Travel%26Expenses.aspx?web=1' }
+    ]
+  },
+  {
+    title: 'Human Resources',
+    lines: [
+      { label: 'advantagesolutionsnet.sharepoint.com/sites/ConnectsHub/SitePages/HumanResources.aspx', href: 'https://advantagesolutionsnet.sharepoint.com/sites/ConnectsHub/SitePages/HumanResources.aspx' }
+    ]
+  },
+  {
+    title: 'Leave of Absence',
+    lines: [
+      { label: 'Online Portal: abilityadvantage.thehartford.com', href: 'https://abilityadvantage.thehartford.com' },
+      { label: 'Dedicated Phone Line: 866-689-5707', href: 'tel:8666895707' }
+    ]
+  },
+  {
+    title: 'Legal Department',
+    lines: [
+      { label: 'advantagesolutionsnet.sharepoint.com/sites/ConnectsHub/SitePages/Legal.aspx', href: 'https://advantagesolutionsnet.sharepoint.com/sites/ConnectsHub/SitePages/Legal.aspx' }
+    ]
+  },
+  {
+    title: 'Military Leave',
+    lines: [
+      { label: 'www.advantagebenefits.net/', href: 'https://www.advantagebenefits.net/' },
+      { label: 'Refer to Work/Life, Leave of Absence', textOnly: true }
+    ]
+  },
+  {
+    title: 'Payroll Services',
+    lines: [
+      { label: 'advantagesolutionsnet.sharepoint.com/sites/ConnectsHub/SitePages/Payroll-Services.aspx', href: 'https://advantagesolutionsnet.sharepoint.com/sites/ConnectsHub/SitePages/Payroll-Services.aspx' }
+    ]
+  },
+  {
+    title: 'Policies & Procedures',
+    lines: [
+      { label: 'advantagesolutionsnet.sharepoint.com/sites/ConnectsHub/SitePages/Policies-&-Procedures.aspx?web=1', href: 'https://advantagesolutionsnet.sharepoint.com/sites/ConnectsHub/SitePages/Policies-&-Procedures.aspx?web=1' }
+    ]
+  },
+  {
+    title: 'Safety & Workers’ Compensation',
+    lines: [
+      { label: 'advantagesolutionsnet.sharepoint.com/sites/ConnectsHub/SitePages/Safety-WorkersCompensation.aspx', href: 'https://advantagesolutionsnet.sharepoint.com/sites/ConnectsHub/SitePages/Safety-WorkersCompensation.aspx' }
+    ]
+  },
+  {
+    title: 'State Supplements to the ADV Teammate Handbook',
+    lines: [
+      { label: 'advantagesolutionsnet.sharepoint.com/:b:/s/ConnectsHub/EbDZjA8iXNBPpLNA6TlK4hoBcASkyRqcleObFNuKmBx0hA?e=1SQd4k', href: 'https://advantagesolutionsnet.sharepoint.com/:b:/s/ConnectsHub/EbDZjA8iXNBPpLNA6TlK4hoBcASkyRqcleObFNuKmBx0hA?e=1SQd4k' }
+    ]
+  },
+  {
+    title: 'Workplace Accommodations',
+    lines: [
+      { label: 'www.advantagebenefits.net/', href: 'https://www.advantagebenefits.net/' },
+      { label: 'Refer to Work/Life, Workplace Accommodations', textOnly: true }
+    ]
+  }
+];
 
 const HANDBOOK_URL = '2025_Teammate_Handbook.pdf';
 const SUPPLEMENT_URL = 'State Supplement 2025.pdf';
@@ -1700,6 +1847,7 @@ async function renderPage(num) {
 
     // Scroll canvas area to top
     document.getElementById('canvasArea').scrollTop = 0;
+    updateResourcesOverlay();
   } catch (err) {
     console.error('Render error:', err);
   }
@@ -2178,6 +2326,36 @@ function showToast(msg) {
   setTimeout(() => toast.classList.remove('show'), 2500);
 }
 
+function updateResourcesOverlay() {
+  const overlay = document.getElementById('resourcesOverlay');
+  if (currentDocType !== 'handbook' || currentPage !== 56) {
+    overlay.classList.remove('show');
+    return;
+  }
+  const canvas = document.getElementById('pdfCanvas');
+  const rect = canvas.getBoundingClientRect();
+  const area = document.getElementById('canvasArea');
+  overlay.style.left = `${canvas.offsetLeft}px`;
+  overlay.style.top = `${canvas.offsetTop}px`;
+  overlay.style.width = `${rect.width}px`;
+  overlay.style.height = `${rect.height}px`;
+  const rows = KEY_RESOURCES.map(item => {
+    const lines = item.lines.map(line => {
+      if (line.textOnly) {
+        return `<div class="resources-note">${line.label}</div>`;
+      }
+      return `<div><a href="${line.href}" target="_blank" rel="noopener">${line.label}</a></div>`;
+    }).join('');
+    return `<tr><td>${item.title}</td><td>${lines}</td></tr>`;
+  }).join('');
+  overlay.innerHTML = `
+    <div class="resources-title">Key Resources</div>
+    <div class="resources-sub">Revised February 2026</div>
+    <table class="resources-table">${rows}</table>
+  `;
+  overlay.classList.add('show');
+}
+
 /* ═══════════════════════════════════════════════════════════
    RESIZE HANDLER
    ═══════════════════════════════════════════════════════════ */
@@ -2192,6 +2370,7 @@ function handleResize() {
     if (!document.getElementById('readerView').classList.contains('hidden')) {
       renderPage(currentPage);
     }
+    updateResourcesOverlay();
   }, 150);
 }
 window.addEventListener('resize', handleResize);
