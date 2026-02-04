@@ -144,6 +144,17 @@
       border: 1px solid rgba(74,144,196,0.25);
     }
     .toc-action-btn.secondary:hover { background: rgba(74,144,196,0.2); }
+    .toc-action-btn.accent {
+      background: linear-gradient(135deg, var(--blue-500), var(--blue-400));
+      color: var(--white);
+      border: none;
+      box-shadow: 0 4px 12px rgba(74,144,196,0.3);
+    }
+    .toc-action-btn.accent:hover {
+      background: linear-gradient(135deg, var(--blue-400), var(--blue-300));
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(74,144,196,0.4);
+    }
     .toc-action-btn svg { width: 16px; height: 16px; }
 
     .toc-body { max-width: 720px; margin: 0 auto; padding: 1.5rem 1.5rem 4rem; }
@@ -552,6 +563,206 @@
     .section-tool-btn svg { width: 15px; height: 15px; flex-shrink: 0; color: var(--blue-400); }
 
     /* ═══════════════════════════════════════════════════
+       STATE SUPPLEMENT MODAL
+       ═══════════════════════════════════════════════════ */
+    .state-modal {
+      position: fixed; inset: 0; z-index: 200;
+      background: rgba(6,14,26,0.85);
+      backdrop-filter: blur(8px);
+      display: none; align-items: center; justify-content: center;
+      padding: 1rem;
+      animation: fadeIn 0.3s ease;
+    }
+    .state-modal.show { display: flex; }
+    .state-modal-content {
+      background: var(--navy-900);
+      border: 1px solid rgba(74,144,196,0.2);
+      border-radius: 16px;
+      width: 100%;
+      max-width: 480px;
+      max-height: 85vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+      animation: slideUp 0.35s ease;
+    }
+    .state-modal-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.25rem 1.5rem;
+      border-bottom: 1px solid rgba(74,144,196,0.12);
+    }
+    .state-modal-header h3 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.15rem;
+      color: var(--white);
+      margin: 0;
+    }
+    .state-modal-close {
+      width: 36px; height: 36px;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(255,255,255,0.06);
+      border: none; border-radius: 8px;
+      color: var(--slate-400);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .state-modal-close:hover { background: rgba(255,255,255,0.1); color: var(--white); }
+    .state-modal-close svg { width: 18px; height: 18px; }
+    .state-modal-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1rem 1.5rem;
+    }
+    .state-modal-intro {
+      font-size: 0.88rem;
+      color: var(--slate-400);
+      margin-bottom: 1rem;
+      line-height: 1.6;
+    }
+    .state-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 0.5rem;
+    }
+    .state-btn {
+      display: flex; align-items: center; gap: 0.5rem;
+      padding: 0.75rem 1rem;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(74,144,196,0.15);
+      border-radius: 8px;
+      color: var(--slate-300);
+      font-family: inherit;
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .state-btn:hover {
+      background: rgba(74,144,196,0.15);
+      border-color: rgba(74,144,196,0.3);
+      color: var(--white);
+    }
+    .state-btn svg { width: 16px; height: 16px; color: var(--blue-400); flex-shrink: 0; }
+    .state-modal-footer {
+      padding: 1rem 1.5rem;
+      border-top: 1px solid rgba(74,144,196,0.12);
+      text-align: center;
+    }
+    .state-modal-footer p {
+      font-size: 0.75rem;
+      color: var(--slate-500);
+    }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* State Supplement PDF Viewer */
+    .supplement-viewer {
+      position: fixed; inset: 0; z-index: 210;
+      background: var(--navy-950);
+      display: none;
+      flex-direction: column;
+    }
+    .supplement-viewer.show { display: flex; }
+    .supplement-header {
+      display: flex; align-items: center; gap: 0.75rem;
+      padding: 0.75rem 1rem;
+      background: var(--navy-900);
+      border-bottom: 1px solid rgba(74,144,196,0.12);
+    }
+    .supplement-back-btn {
+      display: flex; align-items: center; gap: 0.4rem;
+      padding: 0.5rem 0.75rem;
+      background: rgba(74,144,196,0.1);
+      border: 1px solid rgba(74,144,196,0.2);
+      border-radius: 6px;
+      color: var(--blue-300);
+      font-family: inherit;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .supplement-back-btn:hover { background: rgba(74,144,196,0.18); }
+    .supplement-back-btn svg { width: 14px; height: 14px; }
+    .supplement-title {
+      flex: 1;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--white);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .supplement-download-btn {
+      display: flex; align-items: center; gap: 0.35rem;
+      padding: 0.5rem 0.75rem;
+      background: var(--blue-500);
+      border: none;
+      border-radius: 6px;
+      color: var(--white);
+      font-family: inherit;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .supplement-download-btn:hover { background: var(--blue-400); }
+    .supplement-download-btn svg { width: 14px; height: 14px; }
+    .supplement-embed-container {
+      flex: 1;
+      overflow: hidden;
+      position: relative;
+    }
+    .supplement-embed-container iframe,
+    .supplement-embed-container embed,
+    .supplement-embed-container object {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+    .supplement-canvas-area {
+      flex: 1;
+      overflow: auto;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 1rem;
+      touch-action: pan-x pan-y pinch-zoom;
+    }
+    #supplementCanvas {
+      background: var(--white);
+      box-shadow: 0 4px 32px rgba(0,0,0,0.4);
+      border-radius: 4px;
+      max-width: 100%;
+    }
+    .supplement-nav {
+      display: flex; align-items: center; gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      background: var(--navy-900);
+      border-top: 1px solid rgba(74,144,196,0.12);
+    }
+    .supplement-nav-btn {
+      display: flex; align-items: center; justify-content: center;
+      width: 40px; height: 40px;
+      background: rgba(74,144,196,0.08);
+      border: 1px solid rgba(74,144,196,0.15);
+      border-radius: 8px;
+      color: var(--slate-400);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .supplement-nav-btn:hover { background: rgba(74,144,196,0.18); color: var(--blue-300); }
+    .supplement-nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+    .supplement-nav-btn svg { width: 18px; height: 18px; }
+    .supplement-page-info {
+      flex: 1;
+      text-align: center;
+      font-size: 0.82rem;
+      color: var(--slate-400);
+    }
+    .supplement-page-info strong { color: var(--white); }
+
+    /* ═══════════════════════════════════════════════════
        TOAST NOTIFICATION
        ═══════════════════════════════════════════════════ */
     .toast {
@@ -745,7 +956,11 @@
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25"/></svg>
           Read Handbook
         </button>
-        <a href="acknowledgement.html" class="toc-action-btn secondary">
+        <button class="toc-action-btn secondary" onclick="openStateSupplementModal()">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z"/></svg>
+          State Supplement
+        </button>
+        <a href="acknowledgement.html" class="toc-action-btn accent">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"/></svg>
           Sign Acknowledgement
         </a>
@@ -873,6 +1088,52 @@
   <div class="toast" id="toast">
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
     <span id="toastMsg">Link copied!</span>
+  </div>
+
+  <!-- ═══════ STATE SUPPLEMENT MODAL ═══════ -->
+  <div class="state-modal" id="stateSupplementModal">
+    <div class="state-modal-content">
+      <div class="state-modal-header">
+        <h3>Select Your State</h3>
+        <button class="state-modal-close" onclick="closeStateSupplementModal()">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="state-modal-body">
+        <p class="state-modal-intro">State-specific employment law supplements provide additional policies and information that apply to teammates working in each state. Select your state below to view the applicable supplement.</p>
+        <div class="state-list" id="stateList"></div>
+      </div>
+      <div class="state-modal-footer">
+        <p>State Supplement 2025 &nbsp;·&nbsp; Employment Laws & Policies</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════ STATE SUPPLEMENT VIEWER ═══════ -->
+  <div class="supplement-viewer" id="supplementViewer">
+    <div class="supplement-header">
+      <button class="supplement-back-btn" onclick="closeSupplementViewer()">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg>
+        Back
+      </button>
+      <span class="supplement-title" id="supplementTitle">State Supplement</span>
+      <button class="supplement-download-btn" onclick="downloadSupplement()">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
+        <span class="btn-label">Download</span>
+      </button>
+    </div>
+    <div class="supplement-canvas-area" id="supplementCanvasArea">
+      <canvas id="supplementCanvas"></canvas>
+    </div>
+    <div class="supplement-nav">
+      <button class="supplement-nav-btn" id="suppPrevBtn" onclick="suppPrevPage()">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg>
+      </button>
+      <div class="supplement-page-info" id="suppPageInfo">Page <strong>1</strong> of 1</div>
+      <button class="supplement-nav-btn" id="suppNextBtn" onclick="suppNextPage()">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg>
+      </button>
+    </div>
   </div>
 
 <script>
@@ -1620,6 +1881,189 @@ document.addEventListener('click', (e) => {
   const btn = document.getElementById('toolsToggle');
   if (pop.classList.contains('show') && !pop.contains(e.target) && !btn.contains(e.target)) {
     closeSectionTools();
+  }
+});
+
+/* ═══════════════════════════════════════════════════════════
+   STATE SUPPLEMENT FUNCTIONALITY
+   ═══════════════════════════════════════════════════════════ */
+const STATES = [
+  { abbr: 'AL', name: 'Alabama' },
+  { abbr: 'AK', name: 'Alaska' },
+  { abbr: 'AZ', name: 'Arizona' },
+  { abbr: 'AR', name: 'Arkansas' },
+  { abbr: 'CA', name: 'California' },
+  { abbr: 'CO', name: 'Colorado' },
+  { abbr: 'CT', name: 'Connecticut' },
+  { abbr: 'DE', name: 'Delaware' },
+  { abbr: 'FL', name: 'Florida' },
+  { abbr: 'GA', name: 'Georgia' },
+  { abbr: 'HI', name: 'Hawaii' },
+  { abbr: 'ID', name: 'Idaho' },
+  { abbr: 'IL', name: 'Illinois' },
+  { abbr: 'IN', name: 'Indiana' },
+  { abbr: 'IA', name: 'Iowa' },
+  { abbr: 'KS', name: 'Kansas' },
+  { abbr: 'KY', name: 'Kentucky' },
+  { abbr: 'LA', name: 'Louisiana' },
+  { abbr: 'ME', name: 'Maine' },
+  { abbr: 'MD', name: 'Maryland' },
+  { abbr: 'MA', name: 'Massachusetts' },
+  { abbr: 'MI', name: 'Michigan' },
+  { abbr: 'MN', name: 'Minnesota' },
+  { abbr: 'MS', name: 'Mississippi' },
+  { abbr: 'MO', name: 'Missouri' },
+  { abbr: 'MT', name: 'Montana' },
+  { abbr: 'NE', name: 'Nebraska' },
+  { abbr: 'NV', name: 'Nevada' },
+  { abbr: 'NH', name: 'New Hampshire' },
+  { abbr: 'NJ', name: 'New Jersey' },
+  { abbr: 'NM', name: 'New Mexico' },
+  { abbr: 'NY', name: 'New York' },
+  { abbr: 'NC', name: 'North Carolina' },
+  { abbr: 'ND', name: 'North Dakota' },
+  { abbr: 'OH', name: 'Ohio' },
+  { abbr: 'OK', name: 'Oklahoma' },
+  { abbr: 'OR', name: 'Oregon' },
+  { abbr: 'PA', name: 'Pennsylvania' },
+  { abbr: 'RI', name: 'Rhode Island' },
+  { abbr: 'SC', name: 'South Carolina' },
+  { abbr: 'SD', name: 'South Dakota' },
+  { abbr: 'TN', name: 'Tennessee' },
+  { abbr: 'TX', name: 'Texas' },
+  { abbr: 'UT', name: 'Utah' },
+  { abbr: 'VT', name: 'Vermont' },
+  { abbr: 'VA', name: 'Virginia' },
+  { abbr: 'WA', name: 'Washington' },
+  { abbr: 'WV', name: 'West Virginia' },
+  { abbr: 'WI', name: 'Wisconsin' },
+  { abbr: 'WY', name: 'Wyoming' }
+];
+
+const SUPPLEMENT_PDF_URL = 'State Supplement 2025.pdf';
+let suppPdfDoc = null;
+let suppCurrentPage = 1;
+let suppTotalPages = 1;
+let suppScale = 1.5;
+let suppRendering = false;
+let selectedState = null;
+
+function buildStateList() {
+  const container = document.getElementById('stateList');
+  let html = '';
+  STATES.forEach(state => {
+    html += `<button class="state-btn" onclick="selectState('${state.abbr}', '${state.name}')">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z"/></svg>
+      ${state.name}
+    </button>`;
+  });
+  container.innerHTML = html;
+}
+
+function openStateSupplementModal() {
+  buildStateList();
+  document.getElementById('stateSupplementModal').classList.add('show');
+}
+
+function closeStateSupplementModal() {
+  document.getElementById('stateSupplementModal').classList.remove('show');
+}
+
+async function selectState(abbr, name) {
+  selectedState = { abbr, name };
+  closeStateSupplementModal();
+  document.getElementById('supplementTitle').textContent = `${name} State Supplement`;
+  document.getElementById('supplementViewer').classList.add('show');
+
+  // Load the supplement PDF
+  try {
+    if (!suppPdfDoc) {
+      suppPdfDoc = await pdfjsLib.getDocument(SUPPLEMENT_PDF_URL).promise;
+      suppTotalPages = suppPdfDoc.numPages;
+    }
+    suppCurrentPage = 1;
+    computeSuppScale();
+    renderSuppPage(suppCurrentPage);
+    updateSuppUI();
+  } catch (err) {
+    console.error('Error loading supplement:', err);
+    showToast('Error loading state supplement');
+  }
+}
+
+function computeSuppScale() {
+  const area = document.getElementById('supplementCanvasArea');
+  const isMobile = window.innerWidth <= 640;
+  const padding = isMobile ? 8 : 32;
+  const areaW = area.clientWidth - padding;
+  const fitW = areaW / 612;
+  suppScale = Math.max(fitW, 0.5);
+}
+
+async function renderSuppPage(num) {
+  if (suppRendering || !suppPdfDoc) return;
+  suppRendering = true;
+
+  try {
+    const page = await suppPdfDoc.getPage(num);
+    const viewport = page.getViewport({ scale: suppScale });
+    const canvas = document.getElementById('supplementCanvas');
+    const ctx = canvas.getContext('2d');
+
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = viewport.width * dpr;
+    canvas.height = viewport.height * dpr;
+    canvas.style.width = viewport.width + 'px';
+    canvas.style.height = viewport.height + 'px';
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    await page.render({ canvasContext: ctx, viewport: viewport }).promise;
+    document.getElementById('supplementCanvasArea').scrollTop = 0;
+  } catch (err) {
+    console.error('Supplement render error:', err);
+  }
+
+  suppRendering = false;
+}
+
+function updateSuppUI() {
+  document.getElementById('suppPageInfo').innerHTML = `Page <strong>${suppCurrentPage}</strong> of ${suppTotalPages}`;
+  document.getElementById('suppPrevBtn').disabled = suppCurrentPage <= 1;
+  document.getElementById('suppNextBtn').disabled = suppCurrentPage >= suppTotalPages;
+}
+
+function suppNextPage() {
+  if (suppCurrentPage < suppTotalPages) {
+    suppCurrentPage++;
+    renderSuppPage(suppCurrentPage);
+    updateSuppUI();
+  }
+}
+
+function suppPrevPage() {
+  if (suppCurrentPage > 1) {
+    suppCurrentPage--;
+    renderSuppPage(suppCurrentPage);
+    updateSuppUI();
+  }
+}
+
+function closeSupplementViewer() {
+  document.getElementById('supplementViewer').classList.remove('show');
+}
+
+function downloadSupplement() {
+  const a = document.createElement('a');
+  a.href = SUPPLEMENT_PDF_URL;
+  a.download = 'State_Supplement_2025.pdf';
+  a.click();
+}
+
+// Handle resize for supplement viewer
+window.addEventListener('resize', () => {
+  if (document.getElementById('supplementViewer').classList.contains('show')) {
+    computeSuppScale();
+    renderSuppPage(suppCurrentPage);
   }
 });
 
