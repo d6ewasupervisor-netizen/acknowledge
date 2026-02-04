@@ -848,7 +848,7 @@
       <h1 class="toc-title">Advantage Teammate Handbook</h1>
       <p class="toc-subtitle">This page revised February 2026 &nbsp;·&nbsp; 56 Pages</p>
       <div class="toc-actions">
-        <button class="toc-action-btn primary" onclick="goToPage(1)">
+        <button class="toc-action-btn primary" onclick="openHandbookPage(1)">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25"/></svg>
           Read Handbook
         </button>
@@ -1135,9 +1135,13 @@ let pageTextCache = {};
 let touchStartX = 0;
 let touchStartY = 0;
 let touchStartTime = 0;
+let handbookDoc = null;
+let supplementDoc = null;
+let currentDocType = 'handbook';
+let currentSupplementState = '';
 
-const PDF_URL = '2025_Teammate_Handbook.pdf';
-const STATE_SUPPLEMENT_URL = 'State Supplement 2025.pdf';
+const HANDBOOK_URL = '2025_Teammate_Handbook.pdf';
+const SUPPLEMENT_URL = 'State Supplement 2025.pdf';
 const STATE_PAGES = {
   'Alaska': 2,
   'Arizona': 3,
@@ -1186,7 +1190,7 @@ async function init() {
     txt.textContent = 'Loading handbook…';
     bar.style.width = '20%';
 
-    const loadingTask = pdfjsLib.getDocument(PDF_URL);
+    const loadingTask = pdfjsLib.getDocument(HANDBOOK_URL);
     loadingTask.onProgress = (p) => {
       if (p.total > 0) {
         const pct = Math.min(90, Math.round((p.loaded / p.total) * 80) + 10);
@@ -1194,7 +1198,8 @@ async function init() {
       }
     };
 
-    pdfDoc = await loadingTask.promise;
+    handbookDoc = await loadingTask.promise;
+    pdfDoc = handbookDoc;
     totalPages = pdfDoc.numPages;
 
     bar.style.width = '95%';
@@ -1221,6 +1226,28 @@ async function init() {
     txt.textContent = 'Error loading PDF. Please refresh.';
     console.error(err);
   }
+}
+
+function showLoading(message) {
+  const screen = document.getElementById('loadingScreen');
+  const txt = document.getElementById('loadingText');
+  const bar = document.getElementById('loadingBar');
+  txt.textContent = message || 'Loading…';
+  bar.style.width = '60%';
+  screen.classList.remove('hidden');
+}
+
+function hideLoading() {
+  document.getElementById('loadingScreen').classList.add('hidden');
+}
+
+async function ensureSupplementDoc() {
+  if (supplementDoc) return supplementDoc;
+  showLoading('Loading state supplements…');
+  const task = pdfjsLib.getDocument(SUPPLEMENT_URL);
+  supplementDoc = await task.promise;
+  hideLoading();
+  return supplementDoc;
 }
 
 function computeBaseScale() {
@@ -1251,7 +1278,7 @@ function buildTocLanding() {
   TOC.forEach((section, i) => {
     const hasSubs = section.subs.length > 0;
     html += `<div class="toc-group fade-in stagger-${(i % 4) + 1}" data-search="${section.title.toLowerCase()} ${section.subs.map(s=>s.title.toLowerCase()).join(' ')}">`;
-    html += `<div class="toc-group-header" onclick="${hasSubs ? `toggleTocGroup(this.parentElement)` : `goToPage(${section.page})`}">`;
+    html += `<div class="toc-group-header" onclick="${hasSubs ? `toggleTocGroup(this.parentElement)` : `openHandbookPage(${section.page})`}">`;
     html += `<span class="section-number">${section.page}</span>`;
     html += `<span class="section-title">${section.title}</span>`;
     html += `<span class="section-page">p. ${section.page}</span>`;
@@ -1262,7 +1289,7 @@ function buildTocLanding() {
     if (hasSubs) {
       html += `<div class="toc-subitems">`;
       section.subs.forEach(sub => {
-        html += `<div class="toc-subitem" onclick="goToPage(${sub.page})">`;
+        html += `<div class="toc-subitem" onclick="openHandbookPage(${sub.page})">`;
         html += `<span class="sub-title">${sub.title}</span>`;
         html += `<span class="sub-page">${sub.page}</span>`;
         html += `</div>`;
@@ -1271,6 +1298,23 @@ function buildTocLanding() {
     }
     html += `</div>`;
   });
+  const supplementIndex = (TOC.length % 4) + 1;
+  html += `<div class="toc-group open fade-in stagger-${supplementIndex}" data-search="state supplements ${STATE_LIST.map(s=>s.toLowerCase()).join(' ')}">`;
+  html += `<div class="toc-group-header" onclick="toggleTocGroup(this.parentElement)">`;
+  html += `<span class="section-number">SS</span>`;
+  html += `<span class="section-title">State Supplements</span>`;
+  html += `<span class="section-page">2025</span>`;
+  html += `<svg class="chevron" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg>`;
+  html += `</div>`;
+  html += `<div class="toc-subitems">`;
+  STATE_LIST.forEach(state => {
+    const page = STATE_PAGES[state];
+    html += `<div class="toc-subitem" onclick="openSupplementState('${state.replace(/'/g, "\\'")}')">`;
+    html += `<span class="sub-title">${state} Supplement</span>`;
+    html += `<span class="sub-page">${page}</span>`;
+    html += `</div>`;
+  });
+  html += `</div></div>`;
   container.innerHTML = html;
 }
 
@@ -1286,19 +1330,32 @@ function buildTocOverlay() {
   let html = '';
   TOC.forEach(section => {
     html += `<div class="toc-ol-group">`;
-    html += `<div class="toc-ol-section" data-page="${section.page}" onclick="goToPage(${section.page}); closeTocOverlay();">`;
+    html += `<div class="toc-ol-section" data-page="${section.page}" onclick="openHandbookPage(${section.page}); closeTocOverlay();">`;
     html += `<span class="ol-dot"></span>`;
     html += `<span class="ol-title">${section.title}</span>`;
     html += `<span class="ol-page">${section.page}</span>`;
     html += `</div>`;
     section.subs.forEach(sub => {
-      html += `<div class="toc-ol-sub" data-page="${sub.page}" onclick="goToPage(${sub.page}); closeTocOverlay();">`;
+      html += `<div class="toc-ol-sub" data-page="${sub.page}" onclick="openHandbookPage(${sub.page}); closeTocOverlay();">`;
       html += `<span class="ol-title">${sub.title}</span>`;
       html += `<span class="ol-page">${sub.page}</span>`;
       html += `</div>`;
     });
     html += `</div>`;
   });
+  html += `<div class="toc-ol-group">`;
+  html += `<div class="toc-ol-section" onclick="openSupplementOverlay()">`;
+  html += `<span class="ol-dot"></span>`;
+  html += `<span class="ol-title">State Supplements</span>`;
+  html += `<span class="ol-page">2025</span>`;
+  html += `</div>`;
+  STATE_LIST.forEach(state => {
+    html += `<div class="toc-ol-sub" onclick="openSupplementState('${state.replace(/'/g, "\\'")}')">`;
+    html += `<span class="ol-title">${state} Supplement</span>`;
+    html += `<span class="ol-page">${STATE_PAGES[state]}</span>`;
+    html += `</div>`;
+  });
+  html += `</div>`;
   body.innerHTML = html;
 }
 
@@ -1306,6 +1363,7 @@ function highlightTocOverlay() {
   document.querySelectorAll('#tocOverlayBody [data-page]').forEach(el => {
     el.classList.remove('current');
   });
+  if (currentDocType !== 'handbook') return;
   // Find the current section
   let currentSection = null;
   for (let i = TOC.length - 1; i >= 0; i--) {
@@ -1349,13 +1407,52 @@ function goToAcknowledgement() {
   window.location.href = 'acknowledgement.html';
 }
 
-function goToPage(num) {
+async function switchDocument(type) {
+  if (type === currentDocType) return;
+  if (type === 'supplement') {
+    await ensureSupplementDoc();
+    pdfDoc = supplementDoc;
+    currentDocType = 'supplement';
+  } else {
+    pdfDoc = handbookDoc;
+    currentDocType = 'handbook';
+  }
+  totalPages = pdfDoc.numPages;
+  document.getElementById('pageSlider').max = totalPages;
+  computeBaseScale();
+  renderPage(currentPage);
+  updateUI();
+}
+
+async function openHandbookPage(page) {
+  currentSupplementState = '';
+  await switchDocument('handbook');
+  goToPage(page);
+}
+
+function buildHash(page, state) {
+  const params = new URLSearchParams();
+  params.set('page', page);
+  params.set('pdf', currentDocType);
+  if (currentDocType === 'supplement' && state) params.set('state', state);
+  return params.toString();
+}
+
+function goToPage(num, state) {
   num = Math.max(1, Math.min(num, totalPages));
   currentPage = num;
   showReaderView();
   renderPage(num);
   updateUI();
-  window.location.hash = `page=${num}`;
+  window.location.hash = buildHash(num, state || currentSupplementState);
+}
+
+async function openSupplementState(state) {
+  currentSupplementState = state;
+  await switchDocument('supplement');
+  closeSupplementOverlay();
+  closeTocOverlay();
+  goToPage(STATE_PAGES[state], state);
 }
 
 function nextPage() {
@@ -1378,24 +1475,25 @@ function handleHash() {
     openSupplementOverlay();
     return;
   }
-  if (params.has('state')) {
-    document.getElementById('tocView').classList.remove('hidden');
-    openSupplementOverlay();
-    const state = params.get('state');
-    if (state) setTimeout(() => openStateSupplement(state), 200);
-    return;
-  }
   if (params.has('page')) {
-    goToPage(parseInt(params.get('page')) || 1);
+    const page = parseInt(params.get('page')) || 1;
+    const pdfType = params.get('pdf') || 'handbook';
+    if (pdfType === 'supplement') {
+      const state = params.get('state') || '';
+      currentSupplementState = state;
+      switchDocument('supplement').then(() => goToPage(page, state));
+    } else {
+      switchDocument('handbook').then(() => goToPage(page));
+    }
   } else if (params.has('section')) {
     const sname = params.get('section').toLowerCase();
     for (const s of TOC) {
-      if (s.title.toLowerCase().includes(sname)) { goToPage(s.page); return; }
+      if (s.title.toLowerCase().includes(sname)) { openHandbookPage(s.page); return; }
       for (const sub of s.subs) {
-        if (sub.title.toLowerCase().includes(sname)) { goToPage(sub.page); return; }
+        if (sub.title.toLowerCase().includes(sname)) { openHandbookPage(sub.page); return; }
       }
     }
-    goToPage(1);
+    openHandbookPage(1);
   } else {
     document.getElementById('tocView').classList.remove('hidden');
   }
@@ -1404,7 +1502,8 @@ function handleHash() {
 window.addEventListener('hashchange', handleHash);
 
 function updateUI() {
-  document.getElementById('pageInfo').innerHTML = `Page <strong>${currentPage}</strong> of ${totalPages}`;
+  const label = currentDocType === 'supplement' ? 'State Supplement' : 'Handbook';
+  document.getElementById('pageInfo').innerHTML = `${label} · Page <strong>${currentPage}</strong> of ${totalPages}`;
   document.getElementById('pageSlider').value = currentPage;
   document.getElementById('btnPrev').disabled = currentPage <= 1;
   document.getElementById('btnNext').disabled = currentPage >= totalPages;
@@ -1582,9 +1681,11 @@ document.getElementById('pageSlider').addEventListener('input', (e) => {
    TEXT EXTRACTION (for search)
    ═══════════════════════════════════════════════════════════ */
 async function extractAllText() {
-  for (let i = 1; i <= totalPages; i++) {
+  if (!handbookDoc) return;
+  const pages = handbookDoc.numPages;
+  for (let i = 1; i <= pages; i++) {
     try {
-      const page = await pdfDoc.getPage(i);
+      const page = await handbookDoc.getPage(i);
       const content = await page.getTextContent();
       pageTextCache[i] = content.items.map(item => item.str).join(' ');
     } catch (e) {
@@ -1657,7 +1758,7 @@ function performSearch(query) {
       new RegExp(`(${escapeRegex(r.query)})`, 'gi'),
       '<mark>$1</mark>'
     );
-    return `<div class="search-result-item" onclick="goToPage(${r.page}); closeSearch();">
+    return `<div class="search-result-item" onclick="openHandbookPage(${r.page}); closeSearch();">
       <div class="result-page">Page ${r.page}</div>
       <div class="result-context">${highlighted}</div>
     </div>`;
@@ -1690,7 +1791,7 @@ function buildSupplementList(filter = '') {
   grid.innerHTML = states.map(state => {
     const page = STATE_PAGES[state];
     const pageLabel = page ? `p. ${page}` : 'View';
-    return `<button class="supplement-state" type="button" onclick="openStateSupplement('${state.replace(/'/g, "\\'")}')">
+    return `<button class="supplement-state" type="button" onclick="openSupplementState('${state.replace(/'/g, "\\'")}')">
       <span>${state}</span>
       <small>${pageLabel}</small>
     </button>`;
@@ -1715,11 +1816,7 @@ function closeSupplementOverlayOnBackdrop(e) {
   if (e.target.id === 'supplementOverlay') closeSupplementOverlay();
 }
 
-function openStateSupplement(state) {
-  const page = STATE_PAGES[state];
-  const url = page ? `${STATE_SUPPLEMENT_URL}#page=${page}` : STATE_SUPPLEMENT_URL;
-  window.open(url, '_blank', 'noopener');
-}
+// openSupplementState defined in navigation section
 
 document.getElementById('supplementSearch').addEventListener('input', (e) => {
   buildSupplementList(e.target.value);
@@ -1800,20 +1897,23 @@ function printCurrentPage() {
 function downloadHandbook() {
   closeSectionTools();
   const a = document.createElement('a');
-  a.href = PDF_URL;
-  a.download = '2025_Teammate_Handbook.pdf';
+  a.href = currentDocType === 'supplement' ? SUPPLEMENT_URL : HANDBOOK_URL;
+  a.download = currentDocType === 'supplement' ? 'State Supplement 2025.pdf' : '2025_Teammate_Handbook.pdf';
   a.click();
 }
 
 function copyPageLink() {
   closeSectionTools();
-  const url = window.location.origin + window.location.pathname + '#page=' + currentPage;
+  const url = window.location.origin + window.location.pathname + '#' + buildHash(currentPage, currentSupplementState);
   navigator.clipboard.writeText(url).then(() => showToast('Page link copied!')).catch(() => showToast('Could not copy link'));
 }
 
 function copySectionLink() {
   closeSectionTools();
-  // Find current section
+  if (currentDocType !== 'handbook') {
+    copyPageLink();
+    return;
+  }
   let sectionName = '';
   for (let i = TOC.length - 1; i >= 0; i--) {
     if (currentPage >= TOC[i].page) {
