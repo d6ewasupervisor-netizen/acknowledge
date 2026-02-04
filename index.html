@@ -409,7 +409,7 @@
       padding: 1.5rem 1.75rem;
       overflow: auto;
       display: none;
-      z-index: 2;
+      z-index: 3;
     }
     .resources-overlay.show { display: block; }
     .resources-title {
@@ -459,6 +459,89 @@
       position: relative;
       z-index: 1;
     }
+
+    .search-highlight-layer {
+      position: absolute;
+      pointer-events: none;
+      z-index: 2;
+    }
+    .search-highlight {
+      position: absolute;
+      background: rgba(250,204,21,0.32);
+      border: 1px solid rgba(250,204,21,0.6);
+      border-radius: 2px;
+      box-shadow: 0 0 0 1px rgba(0,0,0,0.05);
+    }
+
+    .search-nav-overlay {
+      position: fixed;
+      right: 1rem;
+      bottom: calc(3.75rem + 1rem);
+      background: rgba(15, 23, 42, 0.92);
+      border: 1px solid rgba(74,144,196,0.2);
+      border-radius: 12px;
+      padding: 0.6rem 0.75rem;
+      color: var(--white);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+      display: flex;
+      flex-direction: column;
+      gap: 0.45rem;
+      opacity: 0;
+      transform: translateY(8px);
+      pointer-events: none;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+      z-index: 20;
+    }
+    .search-nav-overlay.show {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+    .search-nav-meta {
+      font-size: 0.78rem;
+      color: var(--slate-300);
+      line-height: 1.3;
+    }
+    .search-nav-section {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--white);
+    }
+    .search-nav-controls {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+    .search-nav-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.25rem;
+      padding: 0.35rem 0.55rem;
+      border-radius: 8px;
+      border: 1px solid rgba(74,144,196,0.2);
+      background: rgba(74,144,196,0.12);
+      color: var(--white);
+      cursor: pointer;
+      font-size: 0.75rem;
+      font-weight: 600;
+      transition: all 0.15s ease;
+    }
+    .search-nav-btn svg { width: 14px; height: 14px; }
+    .search-nav-btn:hover { background: rgba(74,144,196,0.2); }
+    .search-nav-btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+    .search-nav-close {
+      margin-left: auto;
+      background: transparent;
+      border: none;
+      color: var(--slate-400);
+      cursor: pointer;
+      padding: 0.2rem;
+    }
+    .search-nav-close:hover { color: var(--white); }
 
     /* Bottom Nav */
     .reader-bottom {
@@ -1074,6 +1157,7 @@
     <div class="reader-canvas-area" id="canvasArea">
       <canvas id="pdfCanvas"></canvas>
       <div class="resources-overlay" id="resourcesOverlay"></div>
+      <div class="search-highlight-layer" id="searchHighlightLayer"></div>
     </div>
 
     <!-- Bottom Nav -->
@@ -1111,6 +1195,25 @@
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"/></svg>
         <span class="btn-label">Sign</span>
       </button>
+    </div>
+
+    <!-- Search navigation overlay -->
+    <div class="search-nav-overlay" id="searchNavOverlay">
+      <div class="search-nav-meta" id="searchNavMeta">Result 0 of 0</div>
+      <div class="search-nav-section" id="searchNavSection">Search results</div>
+      <div class="search-nav-controls">
+        <button class="search-nav-btn" id="searchNavPrev" onclick="prevSearchResult()" title="Previous result">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg>
+          Prev
+        </button>
+        <button class="search-nav-btn" id="searchNavNext" onclick="nextSearchResult()" title="Next result">
+          Next
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg>
+        </button>
+        <button class="search-nav-close" onclick="clearSearchNavigation()" title="Close search navigation">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
     </div>
   </div>
 
@@ -1705,6 +1808,7 @@ function showTocView() {
   document.getElementById('tocView').classList.remove('hidden');
   document.getElementById('readerView').classList.add('hidden');
   closeAllOverlays();
+  clearSearchNavigation();
   window.location.hash = '';
 }
 
@@ -1868,6 +1972,7 @@ async function renderPage(num) {
     // Scroll canvas area to top
     document.getElementById('canvasArea').scrollTop = 0;
     updateResourcesOverlay();
+    await applySearchHighlight();
   } catch (err) {
     console.error('Render error:', err);
   }
@@ -2081,6 +2186,146 @@ async function extractAllText() {
    SEARCH
    ═══════════════════════════════════════════════════════════ */
 let searchTimeout = null;
+let lastReaderSearchResults = [];
+let lastTocSearchResults = [];
+let activeSearchResults = [];
+let activeSearchIndex = -1;
+let highlightRequestId = 0;
+
+function clearSearchHighlights() {
+  const layer = document.getElementById('searchHighlightLayer');
+  if (!layer) return;
+  layer.innerHTML = '';
+  layer.style.display = 'none';
+}
+
+function positionSearchHighlightLayer() {
+  const layer = document.getElementById('searchHighlightLayer');
+  const canvas = document.getElementById('pdfCanvas');
+  if (!layer || !canvas) return;
+  layer.style.left = canvas.offsetLeft + 'px';
+  layer.style.top = canvas.offsetTop + 'px';
+  layer.style.width = canvas.offsetWidth + 'px';
+  layer.style.height = canvas.offsetHeight + 'px';
+}
+
+function getSearchResultSection(result) {
+  if (!result) return '';
+  return result.docType === 'supplement'
+    ? getSupplementStateLabel(result.page)
+    : getHandbookSectionLabel(result.page);
+}
+
+function getSearchResultMeta(result, index, total) {
+  if (!result) return { meta: '', section: '' };
+  const label = result.docType === 'supplement' ? getSupplementStateLabel(result.page) : 'Handbook';
+  const displayPage = result.docType === 'supplement'
+    ? Math.max(1, result.page - SUPPLEMENT_PAGE_OFFSET)
+    : result.page;
+  const meta = `Result ${index + 1} of ${total} · ${label} · Page ${displayPage}`;
+  const section = getSearchResultSection(result);
+  return { meta, section };
+}
+
+function updateSearchNavOverlay() {
+  const overlay = document.getElementById('searchNavOverlay');
+  const meta = document.getElementById('searchNavMeta');
+  const section = document.getElementById('searchNavSection');
+  const prevBtn = document.getElementById('searchNavPrev');
+  const nextBtn = document.getElementById('searchNavNext');
+  if (!overlay || !meta || !section || !prevBtn || !nextBtn) return;
+  if (activeSearchResults.length === 0 || activeSearchIndex < 0) {
+    overlay.classList.remove('show');
+    return;
+  }
+  const result = activeSearchResults[activeSearchIndex];
+  const labels = getSearchResultMeta(result, activeSearchIndex, activeSearchResults.length);
+  meta.textContent = labels.meta;
+  section.textContent = labels.section || 'Search results';
+  prevBtn.disabled = activeSearchIndex <= 0;
+  nextBtn.disabled = activeSearchIndex >= activeSearchResults.length - 1;
+  overlay.classList.add('show');
+}
+
+function clearSearchNavigation() {
+  activeSearchResults = [];
+  activeSearchIndex = -1;
+  updateSearchNavOverlay();
+  clearSearchHighlights();
+}
+
+async function applySearchHighlight() {
+  const layer = document.getElementById('searchHighlightLayer');
+  if (!layer) return;
+  const result = activeSearchResults[activeSearchIndex];
+  if (!result || result.page !== currentPage || result.docType !== currentDocType) {
+    clearSearchHighlights();
+    return;
+  }
+  const query = (result.query || '').trim();
+  if (!query) {
+    clearSearchHighlights();
+    return;
+  }
+
+  const requestId = ++highlightRequestId;
+  positionSearchHighlightLayer();
+  const page = await pdfDoc.getPage(currentPage);
+  const viewport = page.getViewport({ scale: scale });
+  const textContent = await page.getTextContent();
+  if (requestId !== highlightRequestId) return;
+
+  layer.innerHTML = '';
+  const q = query.toLowerCase();
+  for (const item of textContent.items) {
+    const str = (item.str || '').toLowerCase();
+    if (!str.includes(q)) continue;
+    const tx = pdfjsLib.Util.transform(viewport.transform, item.transform);
+    const x = tx[4];
+    const y = tx[5];
+    const height = Math.hypot(tx[2], tx[3]);
+    const width = item.width * viewport.scale;
+    const top = viewport.height - y - height;
+    const highlight = document.createElement('div');
+    highlight.className = 'search-highlight';
+    highlight.style.left = `${x}px`;
+    highlight.style.top = `${top}px`;
+    highlight.style.width = `${Math.max(2, width)}px`;
+    highlight.style.height = `${Math.max(2, height)}px`;
+    layer.appendChild(highlight);
+  }
+  layer.style.display = layer.children.length ? 'block' : 'none';
+}
+
+async function navigateSearchResult(index, announce = false) {
+  if (index < 0 || index >= activeSearchResults.length) return;
+  const prevResult = activeSearchResults[activeSearchIndex];
+  const result = activeSearchResults[index];
+  activeSearchIndex = index;
+  updateSearchNavOverlay();
+  if (result.docType === 'supplement') {
+    await openSupplementPage(result.page);
+  } else {
+    await openHandbookPage(result.page);
+  }
+  if (announce && prevResult) {
+    const prevSection = getSearchResultSection(prevResult);
+    const nextSection = getSearchResultSection(result);
+    if (prevSection && nextSection && prevSection !== nextSection) {
+      showToast(`Now in ${nextSection}`);
+    }
+  }
+}
+
+function prevSearchResult() {
+  if (activeSearchIndex <= 0) return;
+  navigateSearchResult(activeSearchIndex - 1, true);
+}
+
+function nextSearchResult() {
+  if (activeSearchIndex >= activeSearchResults.length - 1) return;
+  navigateSearchResult(activeSearchIndex + 1, true);
+}
 
 function toggleSearch() {
   const overlay = document.getElementById('searchOverlay');
@@ -2115,20 +2360,22 @@ async function performSearch(query) {
   if (!query || query.length < 2) {
     resultsDiv.innerHTML = '';
     countDiv.textContent = '';
+    lastReaderSearchResults = [];
     return;
   }
 
   const results = await collectSearchResults(query);
+  lastReaderSearchResults = results;
 
   countDiv.textContent = `${results.length} result${results.length !== 1 ? 's' : ''} found`;
 
-  resultsDiv.innerHTML = results.map(r => {
+  resultsDiv.innerHTML = results.map((r, i) => {
     const highlighted = r.snippet.replace(new RegExp(`(${escapeRegex(r.query)})`, 'gi'), '<mark>$1</mark>');
     const label = r.docType === 'handbook' ? 'Handbook' : getSupplementStateLabel(r.page);
     const displayPage = r.docType === 'supplement'
       ? Math.max(1, r.page - SUPPLEMENT_PAGE_OFFSET)
       : r.page;
-    return `<div class="search-result-item" onclick="openReaderSearchResult('${r.docType}', ${r.page})">
+    return `<div class="search-result-item" onclick="openReaderSearchResult(${i})">
       <div class="result-page">${label} · Page ${displayPage}</div>
       <div class="result-context">${highlighted}</div>
     </div>`;
@@ -2159,12 +2406,13 @@ async function collectSearchResults(query) {
   return results;
 }
 
-function openReaderSearchResult(docType, page) {
-  if (docType === 'supplement') {
-    openSupplementPage(page);
-  } else {
-    openHandbookPage(page);
-  }
+function openReaderSearchResult(index) {
+  const result = lastReaderSearchResults[index];
+  if (!result) return;
+  activeSearchResults = lastReaderSearchResults.slice();
+  activeSearchIndex = index;
+  updateSearchNavOverlay();
+  navigateSearchResult(index, false);
   closeSearch();
 }
 
@@ -2190,14 +2438,16 @@ function saveVisitedSearches() {
 
 function renderSearchResults(results, query) {
   if (!results.length) {
+    lastTocSearchResults = [];
     tocSearchResults.innerHTML = `<div class="toc-search-item"><div class="result-title">No matches found</div><div class="result-meta">Try a different keyword</div></div>`;
     return;
   }
-  tocSearchResults.innerHTML = results.map(r => {
+  lastTocSearchResults = results;
+  tocSearchResults.innerHTML = results.map((r, i) => {
     const id = `${r.docType}-${r.page}`;
     const visited = tocSearchVisited.has(id) ? 'visited' : '';
     const highlighted = r.snippet.replace(new RegExp(`(${escapeRegex(query)})`, 'gi'), '<mark>$1</mark>');
-    return `<div class="toc-search-item ${visited}" data-id="${id}" onclick="openSearchResult('${r.docType}', ${r.page})">
+    return `<div class="toc-search-item ${visited}" data-id="${id}" onclick="openSearchResult(${i})">
       <div class="result-title">${r.title}</div>
       <div class="result-meta">${r.meta}</div>
       <div class="result-snippet">${highlighted}</div>
@@ -2211,6 +2461,7 @@ async function performGlobalSearch(query) {
     tocSearchResults.classList.remove('show');
     tocSections.style.display = '';
     tocSearchResults.innerHTML = '';
+    lastTocSearchResults = [];
     return;
   }
   tocSections.style.display = 'none';
@@ -2239,7 +2490,8 @@ async function performGlobalSearch(query) {
           meta: docType === 'handbook'
             ? `Page ${i} of ${handbookDoc.numPages}`
             : `Page ${Math.max(1, i - SUPPLEMENT_PAGE_OFFSET)} of ${supplementDoc.numPages - SUPPLEMENT_PAGE_OFFSET}`,
-          snippet
+          snippet,
+          query: q
         });
       }
     }
@@ -2250,17 +2502,19 @@ async function performGlobalSearch(query) {
   renderSearchResults(results, q);
 }
 
-function openSearchResult(docType, page) {
+function openSearchResult(index) {
+  const result = lastTocSearchResults[index];
+  if (!result) return;
+  const { docType, page } = result;
   const id = `${docType}-${page}`;
   tocSearchVisited.add(id);
   saveVisitedSearches();
   const item = document.querySelector(`.toc-search-item[data-id="${id}"]`);
   if (item) item.classList.add('visited');
-  if (docType === 'supplement') {
-    openSupplementPage(page);
-  } else {
-    openHandbookPage(page);
-  }
+  activeSearchResults = lastTocSearchResults.slice();
+  activeSearchIndex = index;
+  updateSearchNavOverlay();
+  navigateSearchResult(index, false);
 }
 
 document.getElementById('tocSearchInput').addEventListener('input', (e) => {
