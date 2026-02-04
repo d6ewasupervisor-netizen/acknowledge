@@ -347,6 +347,7 @@
       transition: all 0.15s ease;
       white-space: nowrap;
     }
+    .toolbar-btn:disabled { opacity: 0.35; cursor: not-allowed; }
     .toolbar-btn:hover { background: rgba(74,144,196,0.1); color: var(--blue-300); }
     .toolbar-btn.active { background: rgba(74,144,196,0.15); color: var(--blue-400); border-color: rgba(74,144,196,0.25); }
     .toolbar-btn svg { width: 16px; height: 16px; flex-shrink: 0; }
@@ -1279,14 +1280,14 @@
         <span class="btn-label">Handbook</span>
       </button>
       <button class="toolbar-btn" id="supplementToggle" onclick="openSupplementOverlay()">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10l2-2h3l2-2 4 1 3-1 3 2-1 3-2 1-2 2-3-1-3 1-3-1-2-1-1-2Z"/></svg>
         <span class="btn-label">Supplements</span>
       </button>
       <button class="toolbar-btn" id="toolsToggle" onclick="toggleSectionTools(this)">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
         <span class="btn-label">Tools</span>
       </button>
-      <button class="toolbar-btn ack-btn" onclick="goToAcknowledgement()">
+      <button class="toolbar-btn" onclick="goToAcknowledgement()">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"/></svg>
         <span class="btn-label">Sign</span>
       </button>
@@ -1417,6 +1418,10 @@
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg>
       </button>
     </div>
+    <button class="toolbar-btn" id="backNavBtn" onclick="goBackNav()" title="Back" disabled>
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12l7.5-7.5M3 12h18"/></svg>
+      <span class="btn-label">Back</span>
+    </button>
     <button class="toolbar-btn" onclick="showTocView()">
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"/></svg>
       <span class="btn-label">Home</span>
@@ -1430,10 +1435,10 @@
       <span class="btn-label">Handbook</span>
     </button>
     <button class="toolbar-btn" onclick="openSupplementOverlay()">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25"/></svg>
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10l2-2h3l2-2 4 1 3-1 3 2-1 3-2 1-2 2-3-1-3 1-3-1-2-1-1-2Z"/></svg>
       <span class="btn-label">Supplements</span>
     </button>
-    <button class="toolbar-btn ack-btn" onclick="goToAcknowledgement()">
+    <button class="toolbar-btn" onclick="goToAcknowledgement()">
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"/></svg>
       <span class="btn-label">Sign</span>
     </button>
@@ -1956,7 +1961,111 @@ function highlightTocOverlay() {
 /* ═══════════════════════════════════════════════════════════
    NAVIGATION
    ═══════════════════════════════════════════════════════════ */
+let navHistory = [];
+let isRestoringNavState = false;
+
+function getNavState() {
+  return {
+    view: document.getElementById('readerView').classList.contains('hidden') ? 'toc' : 'reader',
+    docType: currentDocType,
+    page: currentPage,
+    supplementState: currentSupplementState,
+    overlays: {
+      toc: document.getElementById('tocOverlay').classList.contains('show'),
+      search: document.getElementById('searchOverlay').classList.contains('show'),
+      supplement: document.getElementById('supplementOverlay').classList.contains('show'),
+      tools: document.getElementById('sectionToolsPop').classList.contains('show'),
+      appMenu: document.getElementById('appMenuPanel').classList.contains('show')
+    }
+  };
+}
+
+function updateBackButton() {
+  const btn = document.getElementById('backNavBtn');
+  if (!btn) return;
+  btn.disabled = navHistory.length === 0;
+}
+
+function pushNavState() {
+  if (isRestoringNavState) return;
+  navHistory.push(getNavState());
+  if (navHistory.length > 20) navHistory.shift();
+  updateBackButton();
+}
+
+function restoreOverlays(overlays) {
+  if (!overlays) return;
+  const backdrop = document.getElementById('overlayBackdrop');
+  const tocOverlay = document.getElementById('tocOverlay');
+  const searchOverlay = document.getElementById('searchOverlay');
+  const supplementOverlay = document.getElementById('supplementOverlay');
+  const toolsPop = document.getElementById('sectionToolsPop');
+  const toolsToggle = document.getElementById('toolsToggle');
+  const appMenuBackdrop = document.getElementById('appMenuBackdrop');
+  const appMenuPanel = document.getElementById('appMenuPanel');
+  const appMenuButton = document.getElementById('appMenuButton');
+
+  if (overlays.toc) {
+    tocOverlay.classList.add('show');
+    backdrop.classList.add('show');
+    document.getElementById('tocToggle').classList.add('active');
+    highlightTocOverlay();
+  }
+  if (overlays.search) {
+    searchOverlay.classList.add('show');
+    backdrop.classList.add('show');
+    document.getElementById('searchToggle').classList.add('active');
+  }
+  if (overlays.supplement) {
+    supplementOverlay.classList.add('show');
+  }
+  if (overlays.tools) {
+    const isMobile = window.innerWidth <= 640;
+    if (!isMobile) {
+      const rect = toolsToggle.getBoundingClientRect();
+      toolsPop.style.top = (rect.bottom + 6) + 'px';
+      toolsPop.style.right = (window.innerWidth - rect.right) + 'px';
+    }
+    toolsPop.classList.add('show');
+    toolsToggle.classList.add('active');
+    if (isMobile) backdrop.classList.add('show');
+  }
+  if (overlays.appMenu) {
+    appMenuBackdrop.classList.add('show');
+    appMenuPanel.classList.add('show');
+    appMenuButton.classList.add('active');
+  }
+}
+
+async function goBackNav() {
+  if (!navHistory.length) return;
+  const state = navHistory.pop();
+  updateBackButton();
+  isRestoringNavState = true;
+  closeAllOverlays();
+
+  if (state.view === 'toc') {
+    document.getElementById('tocView').classList.remove('hidden');
+    document.getElementById('readerView').classList.add('hidden');
+    document.body.classList.remove('reader-active');
+    clearSearchNavigation();
+    window.location.hash = '';
+  } else {
+    if (state.docType !== currentDocType) {
+      await switchDocument(state.docType);
+    }
+    currentSupplementState = state.supplementState || '';
+    goToPage(state.page, state.supplementState || currentSupplementState);
+  }
+
+  restoreOverlays(state.overlays);
+  isRestoringNavState = false;
+}
+
 function showTocView() {
+  if (!document.getElementById('readerView').classList.contains('hidden')) {
+    pushNavState();
+  }
   document.getElementById('tocView').classList.remove('hidden');
   document.getElementById('readerView').classList.add('hidden');
   document.body.classList.remove('reader-active');
@@ -2009,6 +2118,7 @@ async function switchDocument(type, targetPage) {
 }
 
 async function openHandbookPage(page) {
+  pushNavState();
   currentSupplementState = '';
   await switchDocument('handbook', page);
   goToPage(page);
@@ -2032,6 +2142,7 @@ function goToPage(num, state) {
 }
 
 async function openSupplementState(state) {
+  pushNavState();
   currentSupplementState = state;
   const targetPage = (STATE_PAGES[state] || 1) + SUPPLEMENT_PAGE_OFFSET;
   await switchDocument('supplement', targetPage);
@@ -2041,6 +2152,7 @@ async function openSupplementState(state) {
 }
 
 async function openSupplementPage(page) {
+  pushNavState();
   currentSupplementState = '';
   await switchDocument('supplement', page);
   closeSupplementOverlay();
@@ -2488,6 +2600,7 @@ function toggleSearch() {
   if (isOpen) {
     closeSearch();
   } else {
+    pushNavState();
     closeAllOverlays();
     overlay.classList.add('show');
     backdrop.classList.add('show');
@@ -2696,6 +2809,7 @@ function buildSupplementList(filter = '') {
 }
 
 function openSupplementOverlay() {
+  pushNavState();
   closeAllOverlays();
   buildSupplementList();
   document.getElementById('supplementSearch').value = '';
@@ -2754,6 +2868,7 @@ function toggleTocOverlay() {
   if (isOpen) {
     closeTocOverlay();
   } else {
+    pushNavState();
     closeAllOverlays();
     overlay.classList.add('show');
     backdrop.classList.add('show');
@@ -2786,6 +2901,7 @@ function toggleSectionTools(btn) {
     closeSectionTools();
     return;
   }
+  pushNavState();
   closeTocOverlay();
   closeSearch();
   const isMobile = window.innerWidth <= 640;
