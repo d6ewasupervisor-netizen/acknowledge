@@ -599,6 +599,10 @@
       pointer-events: auto;
     }
     .search-nav-overlay.dragging { cursor: grabbing; }
+    .search-nav-overlay.minimized .search-nav-meta,
+    .search-nav-overlay.minimized .search-nav-section {
+      display: none;
+    }
     .search-nav-meta {
       font-size: 0.78rem;
       color: var(--slate-300);
@@ -1325,6 +1329,10 @@
         <button class="search-nav-btn" id="searchNavNext" onclick="nextSearchResult()" title="Next result">
           Next
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg>
+        </button>
+        <button class="search-nav-btn" id="searchNavMinimize" onclick="toggleSearchNavMinimize()" title="Minimize search navigation">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14"/></svg>
+          Min
         </button>
         <button class="search-nav-close" onclick="clearSearchNavigation()" title="Close search navigation">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
@@ -2636,8 +2644,17 @@ function initSearchNavDrag() {
 function clearSearchNavigation() {
   activeSearchResults = [];
   activeSearchIndex = -1;
+  const overlay = document.getElementById('searchNavOverlay');
+  if (overlay) overlay.classList.remove('minimized');
   updateSearchNavOverlay();
   clearSearchHighlights();
+}
+
+function toggleSearchNavMinimize() {
+  const overlay = document.getElementById('searchNavOverlay');
+  if (!overlay) return;
+  overlay.classList.toggle('minimized');
+  positionSearchNavOverlay();
 }
 
 async function applySearchHighlight() {
