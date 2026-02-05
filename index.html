@@ -2200,6 +2200,7 @@ function showTocView() {
   closeAllOverlays();
   clearSearchNavigation();
   window.location.hash = '';
+  highlightBottomNav();
 }
 
 function focusHomeSearch() {
@@ -2214,6 +2215,7 @@ function showReaderView() {
   document.getElementById('tocView').classList.add('hidden');
   document.getElementById('readerView').classList.remove('hidden');
   document.body.classList.add('reader-active');
+  highlightBottomNav();
 }
 
 function goToAcknowledgement() {
@@ -2339,6 +2341,7 @@ function handleHash() {
   } else {
     document.getElementById('tocView').classList.remove('hidden');
   }
+  highlightBottomNav();
 }
 
 window.addEventListener('hashchange', handleHash);
@@ -2348,6 +2351,52 @@ function updateUI() {
   document.getElementById('btnPrev').disabled = currentPage <= 1;
   document.getElementById('btnNext').disabled = currentPage >= totalPages;
   highlightTocOverlay();
+  highlightBottomNav();
+}
+
+function highlightBottomNav() {
+  const bottomNav = document.querySelector('.home-bottom-nav');
+  if (!bottomNav) return;
+  
+  // Remove active class from all buttons
+  bottomNav.querySelectorAll('.toolbar-btn').forEach(btn => {
+    btn.classList.remove('active');
+  });
+  
+  const tocView = document.getElementById('tocView');
+  const readerView = document.getElementById('readerView');
+  const searchOverlay = document.getElementById('searchOverlay');
+  const supplementOverlay = document.getElementById('supplementOverlay');
+  const searchNavOverlay = document.getElementById('searchNavOverlay');
+  
+  const isTocVisible = tocView && !tocView.classList.contains('hidden');
+  const isReaderVisible = readerView && !readerView.classList.contains('hidden');
+  const isSearchOpen = searchOverlay && searchOverlay.classList.contains('show');
+  const isSearchNavOpen = searchNavOverlay && searchNavOverlay.classList.contains('show');
+  const isSupplementOpen = supplementOverlay && supplementOverlay.classList.contains('show');
+  
+  // Find and highlight the appropriate button
+  bottomNav.querySelectorAll('.toolbar-btn').forEach(btn => {
+    const onclickAttr = btn.getAttribute('onclick');
+    if (!onclickAttr) return;
+    
+    // Home button - when TOC view is visible and no overlays are open
+    if (onclickAttr.includes('showTocView') && isTocVisible && !isSearchOpen && !isSupplementOpen && !isSearchNavOpen) {
+      btn.classList.add('active');
+    }
+    // Search button - when search overlay or search nav is open
+    else if ((onclickAttr.includes('openSearchNavInput') || onclickAttr.includes('toggleSearch')) && (isSearchOpen || isSearchNavOpen)) {
+      btn.classList.add('active');
+    }
+    // Handbook button - when reader view is visible
+    else if (onclickAttr.includes('openHandbookPage') && isReaderVisible && !isSearchOpen && !isSupplementOpen) {
+      btn.classList.add('active');
+    }
+    // Supplements button - when supplement overlay is open
+    else if (onclickAttr.includes('openSupplementOverlay') && isSupplementOpen) {
+      btn.classList.add('active');
+    }
+  });
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -2986,6 +3035,7 @@ function clearSearchNavigation() {
   if (overlay) overlay.classList.remove('minimized');
   updateSearchNavOverlay();
   clearSearchHighlights();
+  highlightBottomNav();
 }
 
 function toggleSearchNavMinimize() {
@@ -3017,6 +3067,7 @@ function openSearchResultsFromNav() {
   input.value = query;
   if (query) performSearch(query);
   setTimeout(() => input.focus(), 50);
+  highlightBottomNav();
 }
 
 function openSearchNavInput() {
@@ -3029,6 +3080,7 @@ function openSearchNavInput() {
   if (input) {
     setTimeout(() => input.focus(), 50);
   }
+  highlightBottomNav();
 }
 
 async function applySearchHighlight() {
@@ -3103,6 +3155,7 @@ function toggleSearch() {
     document.getElementById('searchToggle').classList.add('active');
     setTimeout(() => document.getElementById('searchInput').focus(), 100);
   }
+  highlightBottomNav();
 }
 
 function openSearchWithQuery(query) {
@@ -3126,6 +3179,7 @@ function closeSearch() {
   document.getElementById('searchOverlay').classList.remove('show');
   document.getElementById('overlayBackdrop').classList.remove('show');
   document.getElementById('searchToggle').classList.remove('active');
+  highlightBottomNav();
 }
 
 document.getElementById('searchInput').addEventListener('input', (e) => {
@@ -3325,11 +3379,13 @@ function openSupplementOverlay() {
   document.getElementById('supplementOverlay').classList.add('show');
   document.getElementById('supplementToggle').classList.add('active');
   setTimeout(() => document.getElementById('supplementSearch').focus(), 100);
+  highlightBottomNav();
 }
 
 function closeSupplementOverlay() {
   document.getElementById('supplementOverlay').classList.remove('show');
   document.getElementById('supplementToggle').classList.remove('active');
+  highlightBottomNav();
 }
 
 function closeSupplementOverlayOnBackdrop(e) {
