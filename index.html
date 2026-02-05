@@ -590,12 +590,15 @@
       pointer-events: none;
       transition: opacity 0.2s ease, transform 0.2s ease;
       z-index: 70;
+      cursor: grab;
+      touch-action: none;
     }
     .search-nav-overlay.show {
       opacity: 1;
       transform: translateY(0);
       pointer-events: auto;
     }
+    .search-nav-overlay.dragging { cursor: grabbing; }
     .search-nav-meta {
       font-size: 0.78rem;
       color: var(--slate-300);
@@ -1758,6 +1761,8 @@ async function init() {
       handleHash();
     }, 300);
 
+    initSearchNavDrag();
+
     // Start background text extraction for search
     extractAllText();
 
@@ -2467,6 +2472,7 @@ let lastTocSearchResults = [];
 let activeSearchResults = [];
 let activeSearchIndex = -1;
 let highlightRequestId = 0;
+let searchNavDrag = { active: false, offsetX: 0, offsetY: 0 };
 
 function findMatchRanges(text, query) {
   const ranges = [];
@@ -2481,6 +2487,14 @@ function findMatchRanges(text, query) {
     start = idx + lowerQuery.length;
   }
   return ranges;
+}
+
+function getTextMeasureContext() {
+  if (!getTextMeasureContext.canvas) {
+    getTextMeasureContext.canvas = document.createElement('canvas');
+    getTextMeasureContext.ctx = getTextMeasureContext.canvas.getContext('2d');
+  }
+  return getTextMeasureContext.ctx;
 }
 
 function clearSearchHighlights() {
@@ -2542,6 +2556,7 @@ function updateSearchNavOverlay() {
 function positionSearchNavOverlay() {
   const overlay = document.getElementById('searchNavOverlay');
   if (!overlay || !overlay.classList.contains('show')) return;
+  if (overlay.dataset.userPositioned === 'true') return;
   const canvas = document.getElementById('pdfCanvas');
   const nav = document.querySelector('.home-bottom-nav');
   const padding = 12;
@@ -2574,6 +2589,50 @@ function positionSearchNavOverlay() {
   });
 }
 
+function clampSearchNavPosition(left, top, overlay) {
+  const nav = document.querySelector('.home-bottom-nav');
+  const padding = 12;
+  const viewportW = window.innerWidth;
+  const viewportH = window.innerHeight;
+  const navHeight = nav ? nav.getBoundingClientRect().height : 0;
+  const rect = overlay.getBoundingClientRect();
+  const maxLeft = viewportW - rect.width - padding;
+  const maxTop = viewportH - navHeight - rect.height - padding;
+  return {
+    left: Math.min(Math.max(left, padding), Math.max(padding, maxLeft)),
+    top: Math.min(Math.max(top, padding), Math.max(padding, maxTop))
+  };
+}
+
+function initSearchNavDrag() {
+  const overlay = document.getElementById('searchNavOverlay');
+  if (!overlay) return;
+  overlay.addEventListener('pointerdown', (e) => {
+    if (e.target.closest('button')) return;
+    searchNavDrag.active = true;
+    overlay.classList.add('dragging');
+    overlay.dataset.userPositioned = 'true';
+    const rect = overlay.getBoundingClientRect();
+    searchNavDrag.offsetX = e.clientX - rect.left;
+    searchNavDrag.offsetY = e.clientY - rect.top;
+    overlay.setPointerCapture(e.pointerId);
+  });
+  overlay.addEventListener('pointermove', (e) => {
+    if (!searchNavDrag.active) return;
+    const nextLeft = e.clientX - searchNavDrag.offsetX;
+    const nextTop = e.clientY - searchNavDrag.offsetY;
+    const clamped = clampSearchNavPosition(nextLeft, nextTop, overlay);
+    overlay.style.left = `${clamped.left}px`;
+    overlay.style.top = `${clamped.top}px`;
+  });
+  overlay.addEventListener('pointerup', (e) => {
+    if (!searchNavDrag.active) return;
+    searchNavDrag.active = false;
+    overlay.classList.remove('dragging');
+    overlay.releasePointerCapture(e.pointerId);
+  });
+}
+
 function clearSearchNavigation() {
   activeSearchResults = [];
   activeSearchIndex = -1;
@@ -2603,21 +2662,28 @@ async function applySearchHighlight() {
   if (requestId !== highlightRequestId) return;
 
   layer.innerHTML = '';
+  const ctx = getTextMeasureContext();
   for (const item of textContent.items) {
     const raw = item.str || '';
     if (!raw) continue;
     const ranges = findMatchRanges(raw, query);
     if (!ranges.length) continue;
+    const style = textContent.styles ? textContent.styles[item.fontName] : null;
     const tx = pdfjsLib.Util.transform(viewport.transform, item.transform);
     const x = tx[4];
     const y = tx[5];
     const height = Math.hypot(tx[2], tx[3]);
     const top = viewport.height - y - height;
     const totalWidth = item.width * viewport.scale;
-    const charWidth = raw.length ? (totalWidth / raw.length) : totalWidth;
+    const fontFamily = (style && style.fontFamily) ? style.fontFamily : 'sans-serif';
+    ctx.font = `${height}px ${fontFamily}`;
+    const measuredTotal = ctx.measureText(raw).width || totalWidth;
+    const scaleFix = measuredTotal ? (totalWidth / measuredTotal) : 1;
     ranges.forEach(range => {
-      const left = x + (charWidth * range.start);
-      const width = Math.max(2, charWidth * (range.end - range.start));
+      const prefix = raw.slice(0, range.start);
+      const match = raw.slice(range.start, range.end);
+      const left = x + (ctx.measureText(prefix).width * scaleFix);
+      const width = Math.max(2, ctx.measureText(match).width * scaleFix);
       const highlight = document.createElement('div');
       highlight.className = 'search-highlight';
       highlight.style.left = `${left}px`;
