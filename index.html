@@ -605,15 +605,18 @@
       justify-content: space-between;
       gap: 0.5rem;
     }
-    .search-nav-title {
-      font-size: 0.82rem;
-      font-weight: 600;
+    .search-nav-input {
+      flex: 1;
+      min-width: 0;
+      padding: 0.35rem 0.5rem;
+      border-radius: 8px;
+      border: 1px solid rgba(74,144,196,0.25);
+      background: rgba(255,255,255,0.08);
       color: var(--white);
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      max-width: 220px;
+      font-size: 0.8rem;
+      outline: none;
     }
+    .search-nav-input::placeholder { color: var(--slate-300); }
     .search-nav-actions {
       display: inline-flex;
       gap: 0.35rem;
@@ -1355,8 +1358,11 @@
     <!-- Search navigation overlay -->
     <div class="search-nav-overlay" id="searchNavOverlay">
       <div class="search-nav-header">
-        <div class="search-nav-title" id="searchNavQuery">Search</div>
+        <input class="search-nav-input" id="searchNavInput" type="text" placeholder="Search…" autocomplete="off">
         <div class="search-nav-actions">
+          <button class="search-nav-action" id="searchNavRun" onclick="runSearchFromNav()" title="Search">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-4.35-4.35m0 0A7.5 7.5 0 1 0 5.5 5.5a7.5 7.5 0 0 0 11.15 11.15Z"/></svg>
+          </button>
           <button class="search-nav-action" id="searchNavMinimize" onclick="toggleSearchNavMinimize()" title="Minimize search navigation">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14"/></svg>
           </button>
@@ -2619,7 +2625,7 @@ function updateSearchNavOverlay() {
   const section = document.getElementById('searchNavSection');
   const prevBtn = document.getElementById('searchNavPrev');
   const nextBtn = document.getElementById('searchNavNext');
-  const queryLabel = document.getElementById('searchNavQuery');
+  const queryInput = document.getElementById('searchNavInput');
   if (!overlay || !meta || !section || !prevBtn || !nextBtn) return;
   if (activeSearchResults.length === 0 || activeSearchIndex < 0) {
     overlay.classList.remove('show');
@@ -2629,7 +2635,9 @@ function updateSearchNavOverlay() {
   const labels = getSearchResultMeta(result, activeSearchIndex, activeSearchResults.length);
   meta.textContent = labels.meta;
   section.textContent = labels.section || 'Search results';
-  if (queryLabel) queryLabel.textContent = getQueryPreview(result.query);
+  if (queryInput && document.activeElement !== queryInput) {
+    queryInput.value = result.query || '';
+  }
   prevBtn.disabled = activeSearchIndex <= 0;
   nextBtn.disabled = activeSearchIndex >= activeSearchResults.length - 1;
   overlay.classList.add('show');
@@ -2695,6 +2703,15 @@ function clampSearchNavPosition(left, top, overlay) {
 function initSearchNavDrag() {
   const overlay = document.getElementById('searchNavOverlay');
   if (!overlay) return;
+  const input = document.getElementById('searchNavInput');
+  if (input) {
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        runSearchFromNav();
+      }
+    });
+  }
   overlay.addEventListener('pointerdown', (e) => {
     if (e.target.closest('button')) return;
     searchNavDrag.active = true;
@@ -2735,6 +2752,15 @@ function toggleSearchNavMinimize() {
   if (!overlay) return;
   overlay.classList.toggle('minimized');
   positionSearchNavOverlay();
+}
+
+function runSearchFromNav() {
+  const input = document.getElementById('searchNavInput');
+  if (!input) return;
+  const query = (input.value || '').trim();
+  if (!query) return;
+  performSearch(query);
+  performGlobalSearch(query);
 }
 
 async function applySearchHighlight() {
