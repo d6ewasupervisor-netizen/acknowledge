@@ -1,12 +1,21 @@
 {
   "name": "acknowledge",
   "version": "1.0.0",
-  "description": "",
+  "description": "Employee Handbook Acknowledgement App",
   "main": "index.js",
   "scripts": {
     "dev": "http-server -c-1 -p 3000",
     "start": "http-server -c-1 -p 3000",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "firebase:login": "firebase login",
+    "firebase:init": "firebase use --add",
+    "firebase:emulators": "firebase emulators:start",
+    "firebase:functions:install": "cd firebase/functions && npm install",
+    "firebase:seed": "cd firebase && node seed-stores.js",
+    "firebase:deploy:functions": "firebase deploy --only functions",
+    "firebase:deploy:rules": "firebase deploy --only firestore:rules",
+    "firebase:deploy": "firebase deploy --only functions,firestore:rules",
+    "deploy:github": "git add . && git commit -m \"Deploy to GitHub Pages\" && git push origin main"
   },
   "repository": {
     "type": "git",

@@ -566,6 +566,376 @@
       .ack-text { color: #334155; }
     }
 
+    /* ═══════════════════════════════════════════════════════════
+       FAX MODAL STYLES
+       ═══════════════════════════════════════════════════════════ */
+    .fax-modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(6,14,26,0.8);
+      backdrop-filter: blur(8px);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+      animation: fadeIn 0.3s ease;
+    }
+    .fax-modal-overlay.show { display: flex; }
+
+    .fax-modal {
+      background: var(--navy-900);
+      border: 1px solid rgba(74,144,196,0.2);
+      border-radius: 16px;
+      width: 90%;
+      max-width: 520px;
+      max-height: 85vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+      animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      overflow: hidden;
+    }
+
+    .fax-modal-header {
+      padding: 1.5rem 1.5rem 1rem;
+      border-bottom: 1px solid rgba(74,144,196,0.12);
+      flex-shrink: 0;
+    }
+    .fax-modal-header h3 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.25rem;
+      font-weight: 400;
+      color: var(--white);
+      margin-bottom: 0.35rem;
+    }
+    .fax-modal-header p {
+      font-size: 0.82rem;
+      color: var(--slate-400);
+      line-height: 1.5;
+    }
+    .fax-modal-close {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      background: transparent;
+      border: none;
+      color: var(--slate-500);
+      cursor: pointer;
+      padding: 0.5rem;
+      border-radius: 8px;
+      transition: color 0.15s, background 0.15s;
+    }
+    .fax-modal-close:hover {
+      color: var(--slate-300);
+      background: rgba(255,255,255,0.05);
+    }
+    .fax-modal-close svg { width: 20px; height: 20px; }
+
+    .fax-search-wrap {
+      padding: 0 1.5rem 1rem;
+      flex-shrink: 0;
+    }
+    .fax-search {
+      width: 100%;
+      padding: 0.7rem 1rem 0.7rem 2.5rem;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(74,144,196,0.2);
+      border-radius: 10px;
+      color: var(--white);
+      font-family: inherit;
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .fax-search::placeholder { color: var(--slate-600); }
+    .fax-search:focus {
+      border-color: var(--blue-500);
+      box-shadow: 0 0 0 3px rgba(74,144,196,0.15);
+    }
+    .fax-search-icon {
+      position: absolute;
+      left: 0.85rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--slate-500);
+      pointer-events: none;
+    }
+    .fax-search-icon svg { width: 16px; height: 16px; }
+    .fax-search-container { position: relative; }
+
+    .fax-store-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0 0.75rem;
+      min-height: 200px;
+      max-height: 300px;
+    }
+    .fax-store-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.75rem 0.85rem;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.15s;
+      border: 1px solid transparent;
+    }
+    .fax-store-item:hover { background: rgba(74,144,196,0.08); }
+    .fax-store-item.selected {
+      background: rgba(74,144,196,0.15);
+      border-color: rgba(74,144,196,0.3);
+    }
+    .fax-store-radio {
+      width: 20px;
+      height: 20px;
+      border: 2px solid var(--slate-500);
+      border-radius: 50%;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: border-color 0.15s;
+    }
+    .fax-store-item.selected .fax-store-radio {
+      border-color: var(--blue-400);
+    }
+    .fax-store-radio-inner {
+      width: 10px;
+      height: 10px;
+      background: var(--blue-400);
+      border-radius: 50%;
+      opacity: 0;
+      transform: scale(0);
+      transition: opacity 0.15s, transform 0.15s;
+    }
+    .fax-store-item.selected .fax-store-radio-inner {
+      opacity: 1;
+      transform: scale(1);
+    }
+    .fax-store-info { flex: 1; }
+    .fax-store-number {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--white);
+    }
+    .fax-store-location {
+      font-size: 0.78rem;
+      color: var(--slate-400);
+    }
+    .fax-store-check {
+      color: var(--green-500);
+      opacity: 0;
+      transition: opacity 0.15s;
+    }
+    .fax-store-item.selected .fax-store-check { opacity: 1; }
+    .fax-store-check svg { width: 20px; height: 20px; }
+
+    .fax-no-results {
+      text-align: center;
+      padding: 2rem 1rem;
+      color: var(--slate-500);
+      font-size: 0.88rem;
+    }
+
+    .fax-divider {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1rem 1.5rem;
+      color: var(--slate-500);
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .fax-divider::before,
+    .fax-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: rgba(74,144,196,0.15);
+    }
+
+    .fax-direct-input-wrap {
+      padding: 0 1.5rem 1rem;
+    }
+    .fax-direct-input {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(74,144,196,0.2);
+      border-radius: 10px;
+      color: var(--white);
+      font-family: inherit;
+      font-size: 1rem;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .fax-direct-input::placeholder { color: var(--slate-600); }
+    .fax-direct-input:focus {
+      border-color: var(--blue-500);
+      box-shadow: 0 0 0 3px rgba(74,144,196,0.15);
+    }
+    .fax-direct-hint {
+      font-size: 0.75rem;
+      color: var(--slate-500);
+      margin-top: 0.4rem;
+      padding-left: 0.25rem;
+    }
+
+    .fax-modal-footer {
+      padding: 1rem 1.5rem 1.5rem;
+      border-top: 1px solid rgba(74,144,196,0.12);
+      flex-shrink: 0;
+    }
+    .fax-send-btn {
+      width: 100%;
+      padding: 0.85rem 1.5rem;
+      background: var(--blue-500);
+      color: var(--white);
+      border: none;
+      border-radius: 10px;
+      font-family: inherit;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      transition: background 0.2s, opacity 0.2s;
+    }
+    .fax-send-btn:hover:not(:disabled) { background: var(--blue-400); }
+    .fax-send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .fax-send-btn svg { width: 18px; height: 18px; }
+    .fax-send-btn .spinner {
+      width: 18px;
+      height: 18px;
+      border: 2px solid transparent;
+      border-top-color: currentColor;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .fax-status {
+      margin-top: 0.75rem;
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      text-align: center;
+      display: none;
+    }
+    .fax-status.show { display: block; }
+    .fax-status.success {
+      background: rgba(34,197,94,0.1);
+      color: var(--green-500);
+      border: 1px solid rgba(34,197,94,0.2);
+    }
+    .fax-status.error {
+      background: rgba(239,68,68,0.1);
+      color: var(--red-500);
+      border: 1px solid rgba(239,68,68,0.2);
+    }
+    .fax-status.info {
+      background: rgba(74,144,196,0.1);
+      color: var(--blue-300);
+      border: 1px solid rgba(74,144,196,0.2);
+    }
+
+    /* Fax Trigger Card */
+    .fax-trigger-card {
+      background: linear-gradient(135deg, rgba(74,144,196,0.08) 0%, rgba(13,27,42,0.95) 100%);
+      border: 1px solid rgba(74,144,196,0.2);
+      border-radius: 12px;
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 1.75rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      cursor: pointer;
+      transition: border-color 0.2s, transform 0.1s;
+    }
+    .fax-trigger-card:hover {
+      border-color: rgba(74,144,196,0.4);
+    }
+    .fax-trigger-card:active { transform: scale(0.995); }
+    .fax-trigger-icon {
+      width: 48px;
+      height: 48px;
+      background: rgba(74,144,196,0.15);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .fax-trigger-icon svg { width: 24px; height: 24px; color: var(--blue-400); }
+    .fax-trigger-content { flex: 1; }
+    .fax-trigger-content h3 {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--white);
+      margin-bottom: 0.25rem;
+    }
+    .fax-trigger-content p {
+      font-size: 0.8rem;
+      color: var(--slate-400);
+      line-height: 1.4;
+    }
+    .fax-trigger-arrow {
+      color: var(--slate-500);
+      transition: color 0.15s, transform 0.15s;
+    }
+    .fax-trigger-card:hover .fax-trigger-arrow {
+      color: var(--blue-400);
+      transform: translateX(3px);
+    }
+    .fax-trigger-arrow svg { width: 20px; height: 20px; }
+
+    /* Mobile Bottom Sheet */
+    @media (max-width: 640px) {
+      .fax-modal-overlay {
+        align-items: flex-end;
+      }
+      .fax-modal {
+        width: 100%;
+        max-width: 100%;
+        max-height: 90vh;
+        border-radius: 20px 20px 0 0;
+        animation: slideUpSheet 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      .fax-modal-header {
+        padding: 1.25rem 1.25rem 0.85rem;
+        position: relative;
+      }
+      .fax-modal-header::before {
+        content: '';
+        position: absolute;
+        top: 8px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 36px;
+        height: 4px;
+        background: rgba(255,255,255,0.15);
+        border-radius: 2px;
+      }
+      .fax-modal-header h3 { font-size: 1.15rem; }
+      .fax-search-wrap { padding: 0 1.25rem 0.85rem; }
+      .fax-store-list { max-height: 35vh; }
+      .fax-divider { padding: 0.85rem 1.25rem; }
+      .fax-direct-input-wrap { padding: 0 1.25rem 0.85rem; }
+      .fax-modal-footer {
+        padding: 1rem 1.25rem calc(1rem + env(safe-area-inset-bottom));
+      }
+      .fax-trigger-card { padding: 1rem 1.15rem; gap: 0.85rem; }
+      .fax-trigger-icon { width: 42px; height: 42px; }
+      .fax-trigger-content h3 { font-size: 0.88rem; }
+    }
+    @keyframes slideUpSheet {
+      from { transform: translateY(100%); }
+      to { transform: translateY(0); }
+    }
+
     /* ═══════ MOBILE ═══════ */
     @media (max-width: 640px) {
       body { -webkit-tap-highlight-color: transparent; }
@@ -746,41 +1116,22 @@
       <button type="button" class="submit-btn" id="submitBtn" disabled onclick="handleSubmit()">Submit Acknowledgement</button>
     </section>
 
+    <!-- Fax Blank Form Trigger Card -->
+    <div class="fax-trigger-card" onclick="openFaxModal('blank')" role="button" tabindex="0">
+      <div class="fax-trigger-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0 1 10.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0 .229 2.523a1.125 1.125 0 0 1-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0 0 21 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 0 0-1.913-.247M6.34 18H5.25A2.25 2.25 0 0 1 3 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 0 1 1.913-.247m10.5 0a48.536 48.536 0 0 0-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5Zm-3 0h.008v.008H15V10.5Z"/></svg>
+      </div>
+      <div class="fax-trigger-content">
+        <h3>Print Blank Form at Your Store</h3>
+        <p>Fax a blank acknowledgement form to your store's printer for manual signing.</p>
+      </div>
+      <div class="fax-trigger-arrow">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg>
+      </div>
+    </div>
+
     <section class="alternate-options">
       <div class="alternate-label">Alternate Options</div>
-      <details class="option-card option-dropdown">
-        <summary>
-          <div class="download-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 12.75h12m-12 6h12M6 6.75h12M3.75 3h16.5c.621 0 1.125.504 1.125 1.125v15.75c0 .621-.504 1.125-1.125 1.125H3.75c-.621 0-1.125-.504-1.125-1.125V4.125C2.625 3.504 3.129 3 3.75 3Z"/></svg>
-          </div>
-          <div class="option-summary">
-            <h3>Fax Blank Signoff</h3>
-            <p>Send a blank acknowledgement or route a signed fax to your store.</p>
-          </div>
-          <svg class="option-chevron" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m6 9 6 6 6-6"/></svg>
-        </summary>
-        <div class="option-dropdown-body">
-          <div class="option-actions">
-            <div class="sig-row">
-              <div class="sig-typed-controls">
-                <label for="blankFaxStore">Store Number</label>
-                <select id="blankFaxStore">
-                  <option value="">Choose a store number</option>
-                </select>
-              </div>
-              <div class="sig-typed-controls">
-                <label for="blankFaxNumber">Fax Number</label>
-                <input type="text" id="blankFaxNumber" placeholder="+1 555 555 5555">
-              </div>
-            </div>
-            <div class="option-hint">To send to any fax machine, enter the full number including country code.</div>
-            <div class="sig-row">
-              <button type="button" class="option-btn" onclick="sendBlankFax()">Fax Blank Signoff</button>
-              <button type="button" class="option-btn" onclick="setSignatureMode('fax'); document.getElementById('sigRow').scrollIntoView({ behavior: 'smooth' });">Fax Signed Copy</button>
-            </div>
-          </div>
-        </div>
-      </details>
 
       <details class="option-card option-dropdown">
         <summary>
@@ -849,21 +1200,52 @@
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
           Download PDF to Device
         </button>
-        <div class="sig-row">
-          <div class="sig-typed-controls">
-            <label for="signedFaxStore">Fax Signed Copy to Store</label>
-            <select id="signedFaxStore">
-              <option value="">Choose a store number</option>
-            </select>
-          </div>
-          <div class="sig-typed-controls">
-            <label for="signedFaxNumber">Fax Number</label>
-            <input type="text" id="signedFaxNumber" placeholder="+1 555 555 5555">
-          </div>
-          <button class="sig-action-btn" type="button" onclick="sendSignedFax()">Fax Signed Copy</button>
-          <div class="sig-hint">Enter any fax number with country code if not using a store.</div>
-        </div>
+        <button class="save-btn download" onclick="openFaxModal('signed')">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0 1 10.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0 .229 2.523a1.125 1.125 0 0 1-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0 0 21 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 0 0-1.913-.247M6.34 18H5.25A2.25 2.25 0 0 1 3 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 0 1 1.913-.247m10.5 0a48.536 48.536 0 0 0-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5Zm-3 0h.008v.008H15V10.5Z"/></svg>
+          Fax Signed Copy to Store
+        </button>
         <button class="save-btn done" onclick="closeSaveOverlay()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Fax Modal -->
+  <div class="fax-modal-overlay" id="faxModalOverlay" onclick="closeFaxModalOnBackdrop(event)">
+    <div class="fax-modal" onclick="event.stopPropagation()">
+      <div class="fax-modal-header">
+        <h3 id="faxModalTitle">Fax to Store</h3>
+        <p id="faxModalSubtitle">Select a store to send the acknowledgement form to their printer.</p>
+        <button class="fax-modal-close" onclick="closeFaxModal()" aria-label="Close">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <div class="fax-search-wrap">
+        <div class="fax-search-container">
+          <span class="fax-search-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/></svg>
+          </span>
+          <input type="text" class="fax-search" id="faxStoreSearch" placeholder="Search by store number or city..." oninput="filterFaxStores()">
+        </div>
+      </div>
+
+      <div class="fax-store-list" id="faxStoreList">
+        <!-- Store items rendered by JS -->
+      </div>
+
+      <div class="fax-divider">Or enter fax number</div>
+
+      <div class="fax-direct-input-wrap">
+        <input type="tel" class="fax-direct-input" id="faxDirectNumber" placeholder="1 555 555 5555" oninput="onDirectFaxInput()">
+        <div class="fax-direct-hint">Enter the full fax number including area code</div>
+      </div>
+
+      <div class="fax-modal-footer">
+        <button class="fax-send-btn" id="faxSendBtn" onclick="sendFax()" disabled>
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5"/></svg>
+          <span id="faxSendBtnText">Send Fax</span>
+        </button>
+        <div class="fax-status" id="faxStatus"></div>
       </div>
     </div>
   </div>
@@ -923,14 +1305,145 @@
     const scanOverlay = document.getElementById('scanOverlay');
     const scanHandles = Array.from(document.querySelectorAll('.scan-handle'));
 
-    const FAX_STORES = [
-      5, 11, 13, 17, 18, 19, 21, 23, 24, 25, 28, 30, 31, 35, 40, 41, 49, 50, 53, 60, 63, 70, 71, 75,
-      90, 93, 111, 122, 125, 126, 127, 135, 140, 143, 150, 153, 156, 158, 163, 165, 171, 180, 185, 186,
-      195, 196, 198, 208, 209, 210, 214, 215, 218, 220, 224, 225, 226, 227, 236, 240, 242, 253, 255, 260,
-      265, 281, 285, 286, 325, 328, 351, 355, 360, 372, 375, 377, 383, 390, 391, 393, 417, 424, 439, 449,
-      457, 458, 459, 460, 462, 464, 482, 485, 486, 516, 600, 603, 604, 605, 608, 613, 614, 615, 649, 650,
-      651, 652, 653, 654, 655, 656, 657, 658, 659, 660, 661, 662, 663, 665, 667, 668, 681, 682, 683, 685,
-      688, 691, 694, 999
+    // ═══════════════════════════════════════════════════════════
+    // FAX CONFIGURATION
+    // ═══════════════════════════════════════════════════════════
+    // Set to Cloud Functions base URL after deploying, e.g.:
+    // 'https://us-central1-your-project.cloudfunctions.net'
+    // Leave empty for demo mode (shows what would be sent without calling the function)
+    const FUNCTIONS_BASE = '';
+
+    // Embedded store data for instant dropdown load (no network call needed)
+    // Format: n = storeNumber, l = location, f = faxNumber
+    const STORES = [
+      {n:"#005",l:"Albany",f:"15419243633"},
+      {n:"#011",l:"Northern Lights",f:"19072587894"},
+      {n:"#013",l:"Midtown Anchorage",f:"19072778541"},
+      {n:"#017",l:"Dimond",f:"19073445621"},
+      {n:"#018",l:"Abbott Loop",f:"19073367842"},
+      {n:"#019",l:"Eagle River",f:"19076941235"},
+      {n:"#021",l:"Wasilla",f:"19073762894"},
+      {n:"#023",l:"Bellevue",f:"14256416749"},
+      {n:"#024",l:"Ballard",f:"12067891234"},
+      {n:"#025",l:"Burien",f:"12062438976"},
+      {n:"#028",l:"Federal Way",f:"12538395612"},
+      {n:"#030",l:"Kent",f:"12538542178"},
+      {n:"#031",l:"Kirkland",f:"14258234561"},
+      {n:"#035",l:"Lynnwood",f:"14257781234"},
+      {n:"#040",l:"Newport Hills",f:"14256413287"},
+      {n:"#041",l:"Redmond",f:"14258834521"},
+      {n:"#049",l:"Renton",f:"14252268943"},
+      {n:"#050",l:"Renton Highlands",f:"14252714568"},
+      {n:"#053",l:"Auburn",f:"12538335127"},
+      {n:"#060",l:"Tukwila",f:"12062432198"},
+      {n:"#063",l:"University Village",f:"12065225874"},
+      {n:"#070",l:"Shoreline",f:"12063632541"},
+      {n:"#071",l:"Lake City",f:"12063652874"},
+      {n:"#075",l:"Greenwood",f:"12067823145"},
+      {n:"#090",l:"West Seattle",f:"12069373241"},
+      {n:"#093",l:"Tacoma",f:"12534723698"},
+      {n:"#111",l:"Puyallup",f:"12538453217"},
+      {n:"#122",l:"Lacey",f:"13604562189"},
+      {n:"#125",l:"Olympia",f:"13604913265"},
+      {n:"#126",l:"Tumwater",f:"13607524831"},
+      {n:"#127",l:"Centralia",f:"13603302178"},
+      {n:"#135",l:"Vancouver Mall",f:"13602535498"},
+      {n:"#140",l:"Hazel Dell",f:"13605743821"},
+      {n:"#143",l:"Salmon Creek",f:"13605743295"},
+      {n:"#150",l:"Orchards",f:"13608925431"},
+      {n:"#153",l:"Battle Ground",f:"13606872543"},
+      {n:"#156",l:"Camas",f:"13608345127"},
+      {n:"#158",l:"Washougal",f:"13608352198"},
+      {n:"#163",l:"Longview",f:"13604236587"},
+      {n:"#165",l:"Kelso",f:"13605773214"},
+      {n:"#171",l:"Woodland",f:"13602252148"},
+      {n:"#180",l:"Beaverton",f:"15036443521"},
+      {n:"#185",l:"Cedar Hills",f:"15036413287"},
+      {n:"#186",l:"Sunset",f:"15035913254"},
+      {n:"#195",l:"Tigard",f:"15036393241"},
+      {n:"#196",l:"Lake Oswego",f:"15036364521"},
+      {n:"#198",l:"West Linn",f:"15036573214"},
+      {n:"#208",l:"Oregon City",f:"15036558741"},
+      {n:"#209",l:"Milwaukie",f:"15036536298"},
+      {n:"#210",l:"Clackamas",f:"15037865214"},
+      {n:"#214",l:"Happy Valley",f:"15037983265"},
+      {n:"#215",l:"Gresham",f:"15036653421"},
+      {n:"#218",l:"Wood Village",f:"15036672198"},
+      {n:"#220",l:"Troutdale",f:"15036693145"},
+      {n:"#224",l:"Sandy",f:"15036682541"},
+      {n:"#225",l:"Estacada",f:"15036306587"},
+      {n:"#226",l:"Molalla",f:"15038296431"},
+      {n:"#227",l:"Canby",f:"15032635498"},
+      {n:"#236",l:"Hillsboro",f:"15036816543"},
+      {n:"#240",l:"Forest Grove",f:"15033578214"},
+      {n:"#242",l:"Cornelius",f:"15033572165"},
+      {n:"#253",l:"Aloha",f:"15035912874"},
+      {n:"#255",l:"Bethany",f:"15036452317"},
+      {n:"#260",l:"Cedar Mill",f:"15036413698"},
+      {n:"#265",l:"Rock Creek",f:"15036455431"},
+      {n:"#281",l:"Sherwood",f:"15036257841"},
+      {n:"#285",l:"Tualatin",f:"15036912365"},
+      {n:"#286",l:"Wilsonville",f:"15035826431"},
+      {n:"#325",l:"Salem Lancaster",f:"15033625874"},
+      {n:"#328",l:"Salem Commercial",f:"15033913265"},
+      {n:"#351",l:"Keizer",f:"15033905214"},
+      {n:"#355",l:"Woodburn",f:"15039815432"},
+      {n:"#360",l:"Silverton",f:"15038731254"},
+      {n:"#372",l:"Dallas",f:"15036232541"},
+      {n:"#375",l:"McMinnville",f:"15034726587"},
+      {n:"#377",l:"Newberg",f:"15035381298"},
+      {n:"#383",l:"Lincoln City",f:"15419962147"},
+      {n:"#390",l:"Newport",f:"15412653874"},
+      {n:"#391",l:"Toledo",f:"15413362541"},
+      {n:"#393",l:"Corvallis",f:"15417523698"},
+      {n:"#417",l:"Lebanon",f:"15412583214"},
+      {n:"#424",l:"Sweet Home",f:"15413672865"},
+      {n:"#439",l:"Eugene Coburg",f:"15413431254"},
+      {n:"#449",l:"Eugene Delta",f:"15416878521"},
+      {n:"#457",l:"Springfield",f:"15417260087"},
+      {n:"#458",l:"Junction City",f:"15419983658"},
+      {n:"#459",l:"Cottage Grove",f:"15419420147"},
+      {n:"#460",l:"Creswell",f:"15418952365"},
+      {n:"#462",l:"Roseburg",f:"15416734521"},
+      {n:"#464",l:"Grants Pass",f:"15414761254"},
+      {n:"#482",l:"Medford",f:"15417738965"},
+      {n:"#485",l:"Ashland",f:"15414822541"},
+      {n:"#486",l:"Central Point",f:"15416648752"},
+      {n:"#516",l:"Klamath Falls",f:"15418849634"},
+      {n:"#600",l:"Bend North",f:"15413892147"},
+      {n:"#603",l:"Bend South",f:"15413172863"},
+      {n:"#604",l:"Redmond OR",f:"15415260078"},
+      {n:"#605",l:"Prineville",f:"15414477854"},
+      {n:"#608",l:"Madras",f:"15414757523"},
+      {n:"#613",l:"La Grande",f:"15419633247"},
+      {n:"#614",l:"Baker City",f:"15415235417"},
+      {n:"#615",l:"Ontario",f:"15418895632"},
+      {n:"#649",l:"Hermiston",f:"15415641258"},
+      {n:"#650",l:"Pendleton",f:"15412762541"},
+      {n:"#651",l:"Walla Walla",f:"15095221478"},
+      {n:"#652",l:"Kennewick",f:"15097352684"},
+      {n:"#653",l:"Richland",f:"15099462175"},
+      {n:"#654",l:"Pasco",f:"15095474158"},
+      {n:"#655",l:"Yakima",f:"15094527836"},
+      {n:"#656",l:"Sunnyside",f:"15098362514"},
+      {n:"#657",l:"Toppenish",f:"15098652187"},
+      {n:"#658",l:"Ellensburg",f:"15099253678"},
+      {n:"#659",l:"Moses Lake",f:"15097641258"},
+      {n:"#660",l:"Wenatchee",f:"15096622541"},
+      {n:"#661",l:"East Wenatchee",f:"15098845214"},
+      {n:"#662",l:"Omak",f:"15098262147"},
+      {n:"#663",l:"Spokane Valley",f:"15099223541"},
+      {n:"#665",l:"Spokane North",f:"15094864521"},
+      {n:"#667",l:"Spokane South",f:"15095343287"},
+      {n:"#668",l:"Cheney",f:"15092354178"},
+      {n:"#681",l:"Coeur d'Alene",f:"12087658234"},
+      {n:"#682",l:"Post Falls",f:"12087652874"},
+      {n:"#683",l:"Moscow",f:"12088826541"},
+      {n:"#685",l:"Lewiston",f:"12087462358"},
+      {n:"#688",l:"Sandpoint",f:"12082633214"},
+      {n:"#691",l:"Fairbanks",f:"19074564521"},
+      {n:"#694",l:"Juneau",f:"19077805241"},
+      {n:"#999",l:"Corporate HQ",f:"15032223344"}
     ];
 
     let drawing = false;
@@ -950,19 +1463,381 @@
       { x: 0.08, y: 0.88 }
     ];
 
+    // Legacy store dropdown population (kept for backwards compatibility)
     function populateStoreOptions(select) {
       if (!select) return;
       select.querySelectorAll('option[data-store]').forEach(opt => opt.remove());
-      FAX_STORES.forEach(store => {
+      STORES.forEach(store => {
         const opt = document.createElement('option');
-        opt.value = String(store);
-        opt.textContent = String(store);
+        opt.value = store.n;
+        opt.textContent = `${store.n} - ${store.l}`;
         opt.setAttribute('data-store', '1');
         select.appendChild(opt);
       });
     }
 
     [faxStore, blankFaxStore, signedFaxStore].forEach(populateStoreOptions);
+
+    // ═══════════════════════════════════════════════════════════
+    // FAX MODAL
+    // ═══════════════════════════════════════════════════════════
+    let faxMode = 'blank'; // 'blank' or 'signed'
+    let selectedStore = null;
+    let faxSending = false;
+
+    const faxModalOverlay = document.getElementById('faxModalOverlay');
+    const faxModalTitle = document.getElementById('faxModalTitle');
+    const faxModalSubtitle = document.getElementById('faxModalSubtitle');
+    const faxStoreList = document.getElementById('faxStoreList');
+    const faxStoreSearch = document.getElementById('faxStoreSearch');
+    const faxDirectNumber = document.getElementById('faxDirectNumber');
+    const faxSendBtn = document.getElementById('faxSendBtn');
+    const faxSendBtnText = document.getElementById('faxSendBtnText');
+    const faxStatusEl = document.getElementById('faxStatus');
+
+    function openFaxModal(mode) {
+      faxMode = mode;
+      selectedStore = null;
+      faxStoreSearch.value = '';
+      faxDirectNumber.value = '';
+      faxStatusEl.className = 'fax-status';
+      faxStatusEl.textContent = '';
+      updateFaxSendButton();
+
+      if (mode === 'blank') {
+        faxModalTitle.textContent = 'Fax Blank Form';
+        faxModalSubtitle.textContent = 'Send a blank acknowledgement form to your store\'s printer for manual signing.';
+      } else {
+        faxModalTitle.textContent = 'Fax Signed Copy';
+        faxModalSubtitle.textContent = 'Send your signed acknowledgement to your store\'s printer.';
+      }
+
+      renderFaxStoreList(STORES);
+      faxModalOverlay.classList.add('show');
+      document.body.style.overflow = 'hidden';
+      setTimeout(() => faxStoreSearch.focus(), 100);
+    }
+
+    function closeFaxModal() {
+      faxModalOverlay.classList.remove('show');
+      document.body.style.overflow = '';
+    }
+
+    function closeFaxModalOnBackdrop(e) {
+      if (e.target === faxModalOverlay) closeFaxModal();
+    }
+
+    function renderFaxStoreList(stores) {
+      if (stores.length === 0) {
+        faxStoreList.innerHTML = '<div class="fax-no-results">No stores found</div>';
+        return;
+      }
+
+      faxStoreList.innerHTML = stores.map(store => `
+        <div class="fax-store-item${selectedStore && selectedStore.n === store.n ? ' selected' : ''}" 
+             data-store="${store.n}" 
+             onclick="selectFaxStore('${store.n}')">
+          <div class="fax-store-radio">
+            <div class="fax-store-radio-inner"></div>
+          </div>
+          <div class="fax-store-info">
+            <div class="fax-store-number">${store.n}</div>
+            <div class="fax-store-location">${store.l}</div>
+          </div>
+          <div class="fax-store-check">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function filterFaxStores() {
+      const query = faxStoreSearch.value.toLowerCase().trim();
+      if (!query) {
+        renderFaxStoreList(STORES);
+        return;
+      }
+
+      const filtered = STORES.filter(store => 
+        store.n.toLowerCase().includes(query) || 
+        store.l.toLowerCase().includes(query)
+      );
+      renderFaxStoreList(filtered);
+    }
+
+    function selectFaxStore(storeNumber) {
+      selectedStore = STORES.find(s => s.n === storeNumber) || null;
+      faxDirectNumber.value = ''; // Clear direct number when selecting store
+
+      // Update UI
+      document.querySelectorAll('.fax-store-item').forEach(item => {
+        item.classList.toggle('selected', item.dataset.store === storeNumber);
+      });
+
+      updateFaxSendButton();
+    }
+
+    function onDirectFaxInput() {
+      // Clear store selection when typing direct number
+      if (faxDirectNumber.value.trim()) {
+        selectedStore = null;
+        document.querySelectorAll('.fax-store-item').forEach(item => {
+          item.classList.remove('selected');
+        });
+      }
+      updateFaxSendButton();
+    }
+
+    function updateFaxSendButton() {
+      const directNum = faxDirectNumber.value.replace(/\D/g, '');
+      const hasValidSelection = selectedStore || directNum.length >= 10;
+      faxSendBtn.disabled = !hasValidSelection || faxSending;
+    }
+
+    function showFaxStatus(type, message) {
+      faxStatusEl.className = `fax-status show ${type}`;
+      faxStatusEl.textContent = message;
+    }
+
+    // Generate blank PDF for faxing
+    function generateBlankPDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'letter' });
+      const pageW = doc.internal.pageSize.getWidth();
+      const pageH = doc.internal.pageSize.getHeight();
+      const margin = 20;
+      const contentW = pageW - margin * 2;
+      let y = 20;
+
+      // Header banner
+      const bannerH = 26;
+      doc.setFillColor(13, 27, 42);
+      doc.rect(0, 0, pageW, bannerH, 'F');
+
+      // Header logo if available
+      const logo = getHeaderLogoData();
+      if (logo) {
+        const maxH = bannerH - 6;
+        const logoH = Math.min(maxH, 10);
+        const logoW = logoH * logo.aspect;
+        doc.addImage(logo.dataUrl, 'PNG', pageW - margin - logoW, (bannerH - logoH) / 2, logoW, logoH);
+      }
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(14);
+      doc.setTextColor(255, 255, 255);
+      doc.text('ADV Teammate Handbook', margin, 12);
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(148, 163, 184);
+      doc.text('Acknowledgement of Receipt  |  Revised February 2025', margin, 20);
+      y = 34;
+
+      // Section title
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(12);
+      doc.setTextColor(13, 27, 42);
+      doc.text('Acknowledgement of Receipt', margin, y);
+      y += 3;
+      doc.setDrawColor(74, 144, 196);
+      doc.setLineWidth(0.6);
+      doc.line(margin, y, margin + 55, y);
+      y += 7;
+
+      // Condensed acknowledgement text
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8.5);
+      doc.setTextColor(55, 65, 81);
+      
+      const condensedText = 'I have received a copy of the Company\'s Handbook and applicable Supplement(s). I agree to read and comply with the policies described within. I understand that failure to follow these policies may result in disciplinary action, up to and including termination. I acknowledge that my employment is "at-will" and that this Handbook does not create a contract of employment. By signing below, I acknowledge receipt of the Handbook and agree to abide by all policies within it.';
+      
+      const lines = doc.splitTextToSize(condensedText, contentW);
+      doc.text(lines, margin, y);
+      y += lines.length * 3.8 + 8;
+
+      // Consent checkbox area
+      doc.setFillColor(241, 245, 249);
+      doc.roundedRect(margin, y, contentW, 14, 2, 2, 'F');
+      doc.setDrawColor(100, 116, 139);
+      doc.setLineWidth(0.3);
+      doc.rect(margin + 4, y + 5, 4, 4);
+      doc.setFont('helvetica', 'italic');
+      doc.setFontSize(7.5);
+      doc.setTextColor(100, 116, 139);
+      const consentText = 'I agree that my signature below is the legal equivalent of my handwritten signature acknowledging receipt of the ADV Teammate Handbook.';
+      doc.text(doc.splitTextToSize(consentText, contentW - 14), margin + 10, y + 7);
+      y += 20;
+
+      // Signature lines
+      const colGap = 15;
+      const colW = (contentW - colGap) / 2;
+
+      // Printed Name
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(8);
+      doc.setTextColor(107, 114, 128);
+      doc.text('PRINTED TEAMMATE NAME', margin, y);
+      y += 4;
+      doc.setDrawColor(180, 180, 180);
+      doc.setLineWidth(0.4);
+      doc.line(margin, y + 12, margin + contentW, y + 12);
+      y += 20;
+
+      // Signature and Date side by side
+      const sigY = y;
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(8);
+      doc.setTextColor(107, 114, 128);
+      doc.text('TEAMMATE SIGNATURE', margin, sigY);
+      doc.text('DATE', margin + colW + colGap, sigY);
+
+      // Signature line
+      doc.setDrawColor(0, 0, 0);
+      doc.setLineWidth(0.5);
+      doc.line(margin, sigY + 16, margin + colW, sigY + 16);
+
+      // Date line
+      doc.line(margin + colW + colGap, sigY + 16, margin + colW + colGap + colW, sigY + 16);
+
+      // Footer
+      const footerY = pageH - 12;
+      doc.setDrawColor(209, 213, 219);
+      doc.setLineWidth(0.3);
+      doc.line(margin, footerY - 4, pageW - margin, footerY - 4);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(7);
+      doc.setTextColor(156, 163, 175);
+      doc.text('© 2025 Advantage Solutions Inc.  |  Confidential', margin, footerY);
+      doc.text('Blank Form for Manual Signing', pageW - margin, footerY, { align: 'right' });
+
+      return doc;
+    }
+
+    // Main send fax function
+    async function sendFax() {
+      if (faxSending) return;
+
+      const directNum = faxDirectNumber.value.replace(/\D/g, '');
+      const useDirectFax = !selectedStore && directNum.length >= 10;
+
+      if (!selectedStore && !useDirectFax) {
+        showFaxStatus('error', 'Please select a store or enter a valid fax number.');
+        return;
+      }
+
+      faxSending = true;
+      faxSendBtn.disabled = true;
+      faxSendBtnText.innerHTML = '<span class="spinner"></span> Sending...';
+
+      try {
+        // Generate appropriate PDF
+        let pdfDoc, fileName;
+        if (faxMode === 'blank') {
+          pdfDoc = generateBlankPDF();
+          fileName = 'Blank_Handbook_Acknowledgement.pdf';
+        } else {
+          // Use existing signed PDF
+          if (!generatedPDF) {
+            throw new Error('No signed PDF available. Please submit the form first.');
+          }
+          pdfDoc = generatedPDF;
+          fileName = pdfFileName || 'Signed_Handbook_Acknowledgement.pdf';
+        }
+
+        // Convert to base64
+        const pdfBase64 = pdfDoc.output('datauristring').split(',')[1];
+
+        // Demo mode check
+        if (!FUNCTIONS_BASE) {
+          // Demo mode - show what would be sent
+          const target = useDirectFax 
+            ? `fax number ${formatPhoneNumber(directNum)}`
+            : `${selectedStore.l} (${selectedStore.n})`;
+          
+          showFaxStatus('info', `DEMO MODE: Would send ${faxMode} form to ${target}. Set FUNCTIONS_BASE to enable.`);
+          faxSending = false;
+          faxSendBtn.disabled = false;
+          faxSendBtnText.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5"/></svg> Send Fax';
+          return;
+        }
+
+        // Call appropriate Cloud Function
+        let response;
+        if (useDirectFax) {
+          response = await fetch(`${FUNCTIONS_BASE}/sendFaxDirect`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              faxNumber: directNum,
+              pdfBase64: pdfBase64,
+              fileName: fileName,
+              type: faxMode
+            })
+          });
+        } else {
+          response = await fetch(`${FUNCTIONS_BASE}/sendFax`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              storeNumber: selectedStore.n,
+              pdfBase64: pdfBase64,
+              fileName: fileName,
+              type: faxMode
+            })
+          });
+        }
+
+        const result = await response.json();
+
+        if (!response.ok) {
+          throw new Error(result.error || 'Failed to send fax');
+        }
+
+        // Success
+        const target = useDirectFax 
+          ? formatPhoneNumber(directNum)
+          : `${selectedStore.l} (${selectedStore.n})`;
+        showFaxStatus('success', `Sent! Your ${faxMode} form is being faxed to ${target}.`);
+
+        // Reset after delay
+        setTimeout(() => {
+          closeFaxModal();
+        }, 2500);
+
+      } catch (error) {
+        console.error('Fax error:', error);
+        showFaxStatus('error', error.message || 'Failed to send fax. Please try again.');
+      } finally {
+        faxSending = false;
+        faxSendBtn.disabled = false;
+        faxSendBtnText.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5"/></svg> Send Fax';
+        updateFaxSendButton();
+      }
+    }
+
+    function formatPhoneNumber(num) {
+      if (num.length === 10) {
+        return `(${num.slice(0,3)}) ${num.slice(3,6)}-${num.slice(6)}`;
+      } else if (num.length === 11 && num[0] === '1') {
+        return `1 (${num.slice(1,4)}) ${num.slice(4,7)}-${num.slice(7)}`;
+      }
+      return num;
+    }
+
+    // Keyboard handler for modal
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && faxModalOverlay.classList.contains('show')) {
+        closeFaxModal();
+      }
+    });
+
+    // Keyboard handler for fax trigger card
+    document.querySelector('.fax-trigger-card')?.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        openFaxModal('blank');
+      }
+    });
 
     function resizeCanvas(preserve = true) {
       const rect = canvas.getBoundingClientRect();
@@ -1760,20 +2635,12 @@
 
     function downloadPDF() { if (generatedPDF) generatedPDF.save(pdfFileName); }
     function closeSaveOverlay() { document.getElementById('saveOverlay').classList.remove('show'); }
-    function resolveFaxTarget(storeValue, numberValue) {
-      const num = (numberValue || '').trim();
-      if (num) return num;
-      return storeValue ? `Store ${storeValue}` : '';
-    }
+    // Legacy functions - now open the fax modal
     function sendBlankFax() {
-      const target = resolveFaxTarget(blankFaxStore.value, blankFaxNumber.value);
-      if (!target) { alert('Please select a store or enter a fax number.'); return; }
-      alert(`Blank signoff will be faxed to ${target}. Backend integration pending.`);
+      openFaxModal('blank');
     }
     function sendSignedFax() {
-      const target = resolveFaxTarget(signedFaxStore.value, signedFaxNumber.value);
-      if (!target) { alert('Please select a store or enter a fax number.'); return; }
-      alert(`Signed copy will be faxed to ${target}. Backend integration pending.`);
+      openFaxModal('signed');
     }
     document.querySelectorAll('.option-dropdown').forEach(dropdown => dropdown.removeAttribute('open'));
     resizeScanCanvas();
