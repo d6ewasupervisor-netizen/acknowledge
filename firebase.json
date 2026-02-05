@@ -5,7 +5,7 @@
   },
   "functions": {
     "source": "firebase/functions",
-    "runtime": "nodejs18",
+    "runtime": "nodejs20",
     "predeploy": [
       "npm --prefix \"$RESOURCE_DIR\" run lint || true"
     ]
