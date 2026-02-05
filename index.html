@@ -599,8 +599,43 @@
       pointer-events: auto;
     }
     .search-nav-overlay.dragging { cursor: grabbing; }
+    .search-nav-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+    }
+    .search-nav-title {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--white);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      max-width: 220px;
+    }
+    .search-nav-actions {
+      display: inline-flex;
+      gap: 0.35rem;
+    }
+    .search-nav-action {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      border: 1px solid rgba(74,144,196,0.2);
+      background: rgba(74,144,196,0.12);
+      color: var(--white);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .search-nav-action svg { width: 14px; height: 14px; }
+    .search-nav-action:hover { background: rgba(74,144,196,0.2); }
     .search-nav-overlay.minimized .search-nav-meta,
-    .search-nav-overlay.minimized .search-nav-section {
+    .search-nav-overlay.minimized .search-nav-section,
+    .search-nav-overlay.minimized .search-nav-controls {
       display: none;
     }
     .search-nav-meta {
@@ -1319,6 +1354,17 @@
 
     <!-- Search navigation overlay -->
     <div class="search-nav-overlay" id="searchNavOverlay">
+      <div class="search-nav-header">
+        <div class="search-nav-title" id="searchNavQuery">Search</div>
+        <div class="search-nav-actions">
+          <button class="search-nav-action" id="searchNavMinimize" onclick="toggleSearchNavMinimize()" title="Minimize search navigation">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14"/></svg>
+          </button>
+          <button class="search-nav-action" onclick="clearSearchNavigation()" title="Close search navigation">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+      </div>
       <div class="search-nav-meta" id="searchNavMeta">Result 0 of 0</div>
       <div class="search-nav-section" id="searchNavSection">Search results</div>
       <div class="search-nav-controls">
@@ -1329,13 +1375,6 @@
         <button class="search-nav-btn" id="searchNavNext" onclick="nextSearchResult()" title="Next result">
           Next
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg>
-        </button>
-        <button class="search-nav-btn" id="searchNavMinimize" onclick="toggleSearchNavMinimize()" title="Minimize search navigation">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14"/></svg>
-          Min
-        </button>
-        <button class="search-nav-close" onclick="clearSearchNavigation()" title="Close search navigation">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
         </button>
       </div>
     </div>
@@ -2292,8 +2331,8 @@ let lastTapTime = 0;
 let pinchStartDist = 0;
 let pinchStartZoom = 1;
 let isSwiping = false;
-window.addEventListener('resize', positionSearchNavOverlay);
-canvasArea.addEventListener('scroll', positionSearchNavOverlay);
+window.addEventListener('resize', positionSearchOverlays);
+canvasArea.addEventListener('scroll', positionSearchOverlays);
 
 function getTouchDist(touches) {
   const dx = touches[0].clientX - touches[1].clientX;
@@ -2482,6 +2521,13 @@ let activeSearchIndex = -1;
 let highlightRequestId = 0;
 let searchNavDrag = { active: false, offsetX: 0, offsetY: 0 };
 
+function getQueryPreview(query) {
+  const clean = (query || '').trim();
+  if (!clean) return 'Search';
+  const preview = clean.length > 10 ? `${clean.slice(0, 10)}…` : clean;
+  return `Search: ${preview}`;
+}
+
 function findMatchRanges(text, query) {
   const ranges = [];
   if (!text || !query) return ranges;
@@ -2495,6 +2541,30 @@ function findMatchRanges(text, query) {
     start = idx + lowerQuery.length;
   }
   return ranges;
+}
+
+function getSearchTokens(query) {
+  const raw = (query || '').trim();
+  if (!raw) return [];
+  const tokens = raw.split(/\s+/).filter(Boolean);
+  const unique = new Set([raw, ...tokens]);
+  return Array.from(unique).sort((a, b) => b.length - a.length);
+}
+
+function mergeRanges(ranges) {
+  if (!ranges.length) return [];
+  const sorted = ranges.slice().sort((a, b) => a.start - b.start);
+  const merged = [sorted[0]];
+  for (let i = 1; i < sorted.length; i++) {
+    const curr = sorted[i];
+    const prev = merged[merged.length - 1];
+    if (curr.start <= prev.end) {
+      prev.end = Math.max(prev.end, curr.end);
+    } else {
+      merged.push({ start: curr.start, end: curr.end });
+    }
+  }
+  return merged;
 }
 
 function getTextMeasureContext() {
@@ -2515,9 +2585,12 @@ function clearSearchHighlights() {
 function positionSearchHighlightLayer() {
   const layer = document.getElementById('searchHighlightLayer');
   const canvas = document.getElementById('pdfCanvas');
-  if (!layer || !canvas) return;
-  layer.style.left = canvas.offsetLeft + 'px';
-  layer.style.top = canvas.offsetTop + 'px';
+  const canvasArea = document.getElementById('canvasArea');
+  if (!layer || !canvas || !canvasArea) return;
+  const scrollLeft = canvasArea.scrollLeft;
+  const scrollTop = canvasArea.scrollTop;
+  layer.style.left = (canvas.offsetLeft - scrollLeft) + 'px';
+  layer.style.top = (canvas.offsetTop - scrollTop) + 'px';
   layer.style.width = canvas.offsetWidth + 'px';
   layer.style.height = canvas.offsetHeight + 'px';
 }
@@ -2546,6 +2619,7 @@ function updateSearchNavOverlay() {
   const section = document.getElementById('searchNavSection');
   const prevBtn = document.getElementById('searchNavPrev');
   const nextBtn = document.getElementById('searchNavNext');
+  const queryLabel = document.getElementById('searchNavQuery');
   if (!overlay || !meta || !section || !prevBtn || !nextBtn) return;
   if (activeSearchResults.length === 0 || activeSearchIndex < 0) {
     overlay.classList.remove('show');
@@ -2555,6 +2629,7 @@ function updateSearchNavOverlay() {
   const labels = getSearchResultMeta(result, activeSearchIndex, activeSearchResults.length);
   meta.textContent = labels.meta;
   section.textContent = labels.section || 'Search results';
+  if (queryLabel) queryLabel.textContent = getQueryPreview(result.query);
   prevBtn.disabled = activeSearchIndex <= 0;
   nextBtn.disabled = activeSearchIndex >= activeSearchResults.length - 1;
   overlay.classList.add('show');
@@ -2595,6 +2670,11 @@ function positionSearchNavOverlay() {
     overlay.style.left = `${left}px`;
     overlay.style.top = `${top}px`;
   });
+}
+
+function positionSearchOverlays() {
+  positionSearchNavOverlay();
+  positionSearchHighlightLayer();
 }
 
 function clampSearchNavPosition(left, top, overlay) {
@@ -2679,11 +2759,16 @@ async function applySearchHighlight() {
   if (requestId !== highlightRequestId) return;
 
   layer.innerHTML = '';
+  const tokens = getSearchTokens(query);
   const ctx = getTextMeasureContext();
   for (const item of textContent.items) {
     const raw = item.str || '';
     if (!raw) continue;
-    const ranges = findMatchRanges(raw, query);
+    let ranges = [];
+    for (const token of tokens) {
+      ranges = ranges.concat(findMatchRanges(raw, token));
+    }
+    ranges = mergeRanges(ranges);
     if (!ranges.length) continue;
     const style = textContent.styles ? textContent.styles[item.fontName] : null;
     const tx = pdfjsLib.Util.transform(viewport.transform, item.transform);
