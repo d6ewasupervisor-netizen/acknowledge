@@ -922,6 +922,7 @@
       margin-bottom: 2px;
     }
     .search-result-item:hover { background: rgba(74,144,196,0.08); }
+    .search-result-item.visited { opacity: 0.6; }
     .search-result-item .result-page {
       font-size: 0.72rem; color: var(--blue-400);
       font-weight: 600; margin-bottom: 0.25rem;
@@ -3021,6 +3022,7 @@ async function navigateSearchResult(index, announce = false) {
   const prevResult = activeSearchResults[activeSearchIndex];
   const result = activeSearchResults[index];
   activeSearchIndex = index;
+  markSearchResultVisited(result);
   updateSearchNavOverlay();
   if (result.docType === 'supplement') {
     await openSupplementPage(result.page);
@@ -3091,11 +3093,13 @@ async function performSearch(query) {
   countDiv.textContent = `${results.length} result${results.length !== 1 ? 's' : ''} found`;
 
   resultsDiv.innerHTML = results.map((r, i) => {
+    const id = getSearchResultId(r);
+    const visited = tocSearchVisited.has(id) ? 'visited' : '';
     const highlighted = r.snippet.replace(new RegExp(`(${escapeRegex(r.query)})`, 'gi'), '<mark>$1</mark>');
     const label = r.docType === 'handbook'
       ? `Handbook - ${getHandbookSectionLabel(r.page)}`
       : `State Supplement - ${getSupplementStateName(r.page)}`;
-    return `<div class="search-result-item" onclick="openReaderSearchResult(${i})">
+    return `<div class="search-result-item ${visited}" data-search-id="${id}" onclick="openReaderSearchResult(${i})">
       <div class="result-page">${label}</div>
       <div class="result-context">${highlighted}</div>
     </div>`;
@@ -3137,6 +3141,7 @@ async function collectSearchResults(query, includeMeta = false) {
 function openReaderSearchResult(index) {
   const result = lastReaderSearchResults[index];
   if (!result) return;
+  markSearchResultVisited(result);
   activeSearchResults = lastReaderSearchResults.slice();
   activeSearchIndex = index;
   updateSearchNavOverlay();
@@ -3164,6 +3169,27 @@ function saveVisitedSearches() {
   localStorage.setItem('tocSearchVisited', JSON.stringify(Array.from(tocSearchVisited)));
 }
 
+function getSearchResultId(result) {
+  if (!result) return '';
+  return `${result.docType}-${result.page}`;
+}
+
+function markSearchResultVisitedById(id) {
+  if (!id) return;
+  if (!tocSearchVisited.has(id)) {
+    tocSearchVisited.add(id);
+    saveVisitedSearches();
+  }
+  document.querySelectorAll(`[data-search-id="${id}"]`).forEach((item) => {
+    item.classList.add('visited');
+  });
+}
+
+function markSearchResultVisited(result) {
+  const id = getSearchResultId(result);
+  markSearchResultVisitedById(id);
+}
+
 function renderSearchResults(results, query) {
   if (!results.length) {
     lastTocSearchResults = [];
@@ -3172,10 +3198,10 @@ function renderSearchResults(results, query) {
   }
   lastTocSearchResults = results;
   tocSearchResults.innerHTML = results.map((r, i) => {
-    const id = `${r.docType}-${r.page}`;
+    const id = getSearchResultId(r);
     const visited = tocSearchVisited.has(id) ? 'visited' : '';
     const highlighted = r.snippet.replace(new RegExp(`(${escapeRegex(query)})`, 'gi'), '<mark>$1</mark>');
-    return `<div class="toc-search-item ${visited}" data-id="${id}" onclick="openSearchResult(${i})">
+    return `<div class="toc-search-item ${visited}" data-id="${id}" data-search-id="${id}" onclick="openSearchResult(${i})">
       <div class="result-title">${r.title}</div>
       <div class="result-meta">${r.meta}</div>
       <div class="result-snippet">${highlighted}</div>
@@ -3202,12 +3228,7 @@ async function performGlobalSearch(query) {
 function openSearchResult(index) {
   const result = lastTocSearchResults[index];
   if (!result) return;
-  const { docType, page } = result;
-  const id = `${docType}-${page}`;
-  tocSearchVisited.add(id);
-  saveVisitedSearches();
-  const item = document.querySelector(`.toc-search-item[data-id="${id}"]`);
-  if (item) item.classList.add('visited');
+  markSearchResultVisited(result);
   activeSearchResults = lastTocSearchResults.slice();
   activeSearchIndex = index;
   updateSearchNavOverlay();
