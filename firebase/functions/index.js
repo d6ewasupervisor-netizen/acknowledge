@@ -101,7 +101,7 @@ exports.sendFax = functions.runWith({ memory: '512MB' }).https.onRequest((req, r
       // Create email with PDF attachment
       // Subject format: #023 - Power Automate extracts number after #
       const transporter = createTransporter();
-      const trackingId = `WEB-${new Date().toISOString().replace(/[-:T]/g, '').slice(0, 15)}`;
+      const trackingId = `WEB-${new Date().toISOString().replace(/[-:T.Z]/g, '').slice(0, 14)}`;
 
       // Create Pending doc for frontend to listen on
       await db.collection('faxJobs').doc(trackingId).set({
@@ -210,7 +210,7 @@ exports.sendFaxDirect = functions.runWith({ memory: '512MB' }).https.onRequest((
       // Create email with PDF attachment
       // Subject format: Fax#15553412222 - Power Automate extracts everything after #
       const transporter = createTransporter();
-      const trackingId = `WEB-${new Date().toISOString().replace(/[-:T]/g, '').slice(0, 15)}`;
+      const trackingId = `WEB-${new Date().toISOString().replace(/[-:T.Z]/g, '').slice(0, 14)}`;
 
       // Create Pending doc for frontend to listen on
       await db.collection('faxJobs').doc(trackingId).set({
