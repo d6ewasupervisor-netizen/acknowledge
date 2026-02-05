@@ -20,7 +20,9 @@ const path = require('path');
 
 // Initialize Firebase Admin
 // Uses GOOGLE_APPLICATION_CREDENTIALS env var or Application Default Credentials
-admin.initializeApp();
+admin.initializeApp({
+  projectId: 'the-dump-bin'
+});
 
 const db = admin.firestore();
 
