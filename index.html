@@ -43,6 +43,7 @@
       --reader-controls-scale: 0.5;
       --menu-btn-size: 40px;
       --menu-btn-gap: 12px;
+      --watermark-logo: url('ro_logo.png');
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -54,6 +55,7 @@
       line-height: 1.6;
       min-height: 100vh;
       overflow: hidden;
+      position: relative;
     }
 
     /* ═══════════════════════════════════════════════════
@@ -87,6 +89,20 @@
       background: var(--navy-900);
       overflow-y: auto; overflow-x: hidden;
       transition: opacity 0.4s ease, transform 0.4s ease;
+      isolation: isolate;
+    }
+    #tocView::before,
+    #readerView::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: var(--watermark-logo);
+      background-repeat: repeat;
+      background-position: center top;
+      background-size: min(220px, 26vw);
+      opacity: 0.06;
+      pointer-events: none;
+      z-index: 0;
     }
     #tocView.hidden {
       opacity: 0; transform: translateY(20px);
@@ -182,7 +198,7 @@
     .toc-watermark {
       position: absolute;
       inset: 0;
-      background-image: url('logo.png');
+      background-image: var(--watermark-logo);
       background-repeat: repeat;
       background-position: center top;
       background-size: min(220px, 26vw);
@@ -317,6 +333,7 @@
       background: var(--navy-950);
       display: flex; flex-direction: column;
       transition: opacity 0.3s ease;
+      isolation: isolate;
     }
     #readerView.hidden { opacity: 0; pointer-events: none; visibility: hidden; }
 
@@ -1338,7 +1355,7 @@
   <div id="tocView" class="hidden">
     <header class="toc-header">
       <div class="toc-header-content">
-        <img src="home_header_logo.png" alt="Retail Odyssey" class="toc-logo">
+        <img src="headliner_logo.png" alt="Retail Odyssey" class="toc-logo">
         <h1 class="toc-title">Advantage Teammate Handbook</h1>
         <p class="toc-subtitle">This page revised February 2026 &nbsp;·&nbsp; 56 Pages</p>
       </div>
@@ -2301,6 +2318,15 @@ function handleHash() {
     openSupplementOverlay();
     return;
   }
+  if (hash.toLowerCase() === 'search' || params.has('search')) {
+    const query = params.get('q') || '';
+    switchDocument('handbook').then(() => {
+      showReaderView();
+      if (query) openSearchWithQuery(query);
+      else toggleSearch();
+    });
+    return;
+  }
   if (params.has('page')) {
     const page = parseInt(params.get('page')) || 1;
     const pdfType = params.get('pdf') || 'handbook';
@@ -3086,6 +3112,23 @@ function toggleSearch() {
     backdrop.classList.add('show');
     document.getElementById('searchToggle').classList.add('active');
     setTimeout(() => document.getElementById('searchInput').focus(), 100);
+  }
+}
+
+function openSearchWithQuery(query) {
+  const overlay = document.getElementById('searchOverlay');
+  const backdrop = document.getElementById('overlayBackdrop');
+  const input = document.getElementById('searchInput');
+  if (!overlay || !backdrop) return;
+  pushNavState();
+  closeAllOverlays();
+  overlay.classList.add('show');
+  backdrop.classList.add('show');
+  document.getElementById('searchToggle').classList.add('active');
+  if (input) {
+    input.value = query || '';
+    if (query) performSearch(query);
+    setTimeout(() => input.focus(), 100);
   }
 }
 
