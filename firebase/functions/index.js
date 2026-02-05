@@ -63,7 +63,7 @@ const createTransporter = () => {
  *   "type": "blank" | "signed"
  * }
  */
-exports.sendFax = functions.https.onRequest((req, res) => {
+exports.sendFax = functions.runWith({ memory: '512MB' }).https.onRequest((req, res) => {
   corsHandler(req, res, async () => {
     // Only allow POST
     if (req.method !== 'POST') {
@@ -161,7 +161,7 @@ exports.sendFax = functions.https.onRequest((req, res) => {
  *   "type": "blank" | "signed"
  * }
  */
-exports.sendFaxDirect = functions.https.onRequest((req, res) => {
+exports.sendFaxDirect = functions.runWith({ memory: '512MB' }).https.onRequest((req, res) => {
   corsHandler(req, res, async () => {
     // Only allow POST
     if (req.method !== 'POST') {
