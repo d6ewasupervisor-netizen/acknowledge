@@ -572,14 +572,16 @@
 
     .search-nav-overlay {
       position: fixed;
+      top: 1rem;
       right: 1rem;
-      bottom: calc(3.75rem + 1rem);
+      bottom: auto;
       background: rgba(15, 23, 42, 0.92);
       border: 1px solid rgba(74,144,196,0.2);
       border-radius: 12px;
       padding: 0.6rem 0.75rem;
       color: var(--white);
       box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+      width: min(360px, 92vw);
       display: flex;
       flex-direction: column;
       gap: 0.45rem;
@@ -587,7 +589,7 @@
       transform: translateY(8px);
       pointer-events: none;
       transition: opacity 0.2s ease, transform 0.2s ease;
-      z-index: 20;
+      z-index: 70;
     }
     .search-nav-overlay.show {
       opacity: 1;
@@ -2277,6 +2279,8 @@ let lastTapTime = 0;
 let pinchStartDist = 0;
 let pinchStartZoom = 1;
 let isSwiping = false;
+window.addEventListener('resize', positionSearchNavOverlay);
+canvasArea.addEventListener('scroll', positionSearchNavOverlay);
 
 function getTouchDist(touches) {
   const dx = touches[0].clientX - touches[1].clientX;
@@ -2464,6 +2468,21 @@ let activeSearchResults = [];
 let activeSearchIndex = -1;
 let highlightRequestId = 0;
 
+function findMatchRanges(text, query) {
+  const ranges = [];
+  if (!text || !query) return ranges;
+  const lowerText = text.toLowerCase();
+  const lowerQuery = query.toLowerCase();
+  let start = 0;
+  while (start < lowerText.length) {
+    const idx = lowerText.indexOf(lowerQuery, start);
+    if (idx === -1) break;
+    ranges.push({ start: idx, end: idx + lowerQuery.length });
+    start = idx + lowerQuery.length;
+  }
+  return ranges;
+}
+
 function clearSearchHighlights() {
   const layer = document.getElementById('searchHighlightLayer');
   if (!layer) return;
@@ -2517,6 +2536,42 @@ function updateSearchNavOverlay() {
   prevBtn.disabled = activeSearchIndex <= 0;
   nextBtn.disabled = activeSearchIndex >= activeSearchResults.length - 1;
   overlay.classList.add('show');
+  positionSearchNavOverlay();
+}
+
+function positionSearchNavOverlay() {
+  const overlay = document.getElementById('searchNavOverlay');
+  if (!overlay || !overlay.classList.contains('show')) return;
+  const canvas = document.getElementById('pdfCanvas');
+  const nav = document.querySelector('.home-bottom-nav');
+  const padding = 12;
+  const viewportW = window.innerWidth;
+  const viewportH = window.innerHeight;
+  const maxWidth = Math.min(360, viewportW - padding * 2);
+  overlay.style.maxWidth = `${maxWidth}px`;
+  overlay.style.right = 'auto';
+  overlay.style.bottom = 'auto';
+  overlay.style.left = '0px';
+  overlay.style.top = '0px';
+
+  const anchor = canvas ? canvas.getBoundingClientRect() : {
+    top: padding,
+    right: viewportW - padding
+  };
+
+  requestAnimationFrame(() => {
+    const rect = overlay.getBoundingClientRect();
+    const navHeight = nav ? nav.getBoundingClientRect().height : 0;
+    const maxBottom = viewportH - navHeight - padding;
+    let left = anchor.right - rect.width;
+    left = Math.min(Math.max(left, padding), viewportW - rect.width - padding);
+    let top = anchor.top + padding;
+    if (top + rect.height > maxBottom) {
+      top = Math.max(padding, maxBottom - rect.height);
+    }
+    overlay.style.left = `${left}px`;
+    overlay.style.top = `${top}px`;
+  });
 }
 
 function clearSearchNavigation() {
@@ -2548,25 +2603,32 @@ async function applySearchHighlight() {
   if (requestId !== highlightRequestId) return;
 
   layer.innerHTML = '';
-  const q = query.toLowerCase();
   for (const item of textContent.items) {
-    const str = (item.str || '').toLowerCase();
-    if (!str.includes(q)) continue;
+    const raw = item.str || '';
+    if (!raw) continue;
+    const ranges = findMatchRanges(raw, query);
+    if (!ranges.length) continue;
     const tx = pdfjsLib.Util.transform(viewport.transform, item.transform);
     const x = tx[4];
     const y = tx[5];
     const height = Math.hypot(tx[2], tx[3]);
-    const width = item.width * viewport.scale;
     const top = viewport.height - y - height;
-    const highlight = document.createElement('div');
-    highlight.className = 'search-highlight';
-    highlight.style.left = `${x}px`;
-    highlight.style.top = `${top}px`;
-    highlight.style.width = `${Math.max(2, width)}px`;
-    highlight.style.height = `${Math.max(2, height)}px`;
-    layer.appendChild(highlight);
+    const totalWidth = item.width * viewport.scale;
+    const charWidth = raw.length ? (totalWidth / raw.length) : totalWidth;
+    ranges.forEach(range => {
+      const left = x + (charWidth * range.start);
+      const width = Math.max(2, charWidth * (range.end - range.start));
+      const highlight = document.createElement('div');
+      highlight.className = 'search-highlight';
+      highlight.style.left = `${left}px`;
+      highlight.style.top = `${top}px`;
+      highlight.style.width = `${width}px`;
+      highlight.style.height = `${Math.max(2, height)}px`;
+      layer.appendChild(highlight);
+    });
   }
   layer.style.display = layer.children.length ? 'block' : 'none';
+  positionSearchNavOverlay();
 }
 
 async function navigateSearchResult(index, announce = false) {
@@ -2629,15 +2691,16 @@ document.getElementById('searchInput').addEventListener('input', (e) => {
 async function performSearch(query) {
   const resultsDiv = document.getElementById('searchResults');
   const countDiv = document.getElementById('searchCount');
+  const q = (query || '').trim();
 
-  if (!query || query.length < 2) {
+  if (!q || q.length < 2) {
     resultsDiv.innerHTML = '';
     countDiv.textContent = '';
     lastReaderSearchResults = [];
     return;
   }
 
-  const results = await collectSearchResults(query);
+  const results = await collectSearchResults(q);
   lastReaderSearchResults = results;
 
   countDiv.textContent = `${results.length} result${results.length !== 1 ? 's' : ''} found`;
@@ -2655,22 +2718,30 @@ async function performSearch(query) {
   }).join('');
 }
 
-async function collectSearchResults(query) {
-  const q = query.toLowerCase();
+async function collectSearchResults(query, includeMeta = false) {
+  const q = (query || '').trim();
+  const qLower = q.toLowerCase();
   await ensureHandbookText();
   await ensureSupplementText();
   const results = [];
   const addResults = (cache, docType, total) => {
     for (let i = 1; i <= total; i++) {
       const text = (cache[i] || '').toLowerCase();
-      const idx = text.indexOf(q);
+      const idx = text.indexOf(qLower);
       if (idx !== -1) {
         const start = Math.max(0, idx - 60);
-        const end = Math.min(text.length, idx + q.length + 60);
+        const end = Math.min(text.length, idx + qLower.length + 60);
         let snippet = (cache[i] || '').substring(start, end);
         if (start > 0) snippet = '…' + snippet;
         if (end < text.length) snippet += '…';
-        results.push({ docType, page: i, snippet, query });
+        const entry = { docType, page: i, snippet, query: q };
+        if (includeMeta) {
+          entry.title = docType === 'handbook' ? 'Handbook' : 'State Supplement';
+          entry.meta = docType === 'handbook'
+            ? `Page ${i} of ${handbookDoc.numPages}`
+            : `Page ${Math.max(1, i - SUPPLEMENT_PAGE_OFFSET)} of ${supplementDoc.numPages - SUPPLEMENT_PAGE_OFFSET}`;
+        }
+        results.push(entry);
       }
     }
   };
@@ -2729,7 +2800,7 @@ function renderSearchResults(results, query) {
 }
 
 async function performGlobalSearch(query) {
-  const q = query.trim().toLowerCase();
+  const q = (query || '').trim();
   if (!q || q.length < 2) {
     tocSearchResults.classList.remove('show');
     tocSections.style.display = '';
@@ -2740,38 +2811,7 @@ async function performGlobalSearch(query) {
   tocSections.style.display = 'none';
   tocSearchResults.classList.add('show');
   tocSearchResults.innerHTML = `<div class="toc-search-item"><div class="result-title">Searching…</div><div class="result-meta">This can take a moment</div></div>`;
-
-  await ensureHandbookText();
-  await ensureSupplementText();
-
-  const results = [];
-  const addResults = (cache, docType) => {
-    const total = docType === 'handbook' ? handbookDoc.numPages : supplementDoc.numPages;
-    for (let i = 1; i <= total; i++) {
-      const text = (cache[i] || '').toLowerCase();
-      const idx = text.indexOf(q);
-      if (idx !== -1) {
-        const start = Math.max(0, idx - 60);
-        const end = Math.min(text.length, idx + q.length + 60);
-        let snippet = (cache[i] || '').substring(start, end);
-        if (start > 0) snippet = '…' + snippet;
-        if (end < text.length) snippet += '…';
-        results.push({
-          docType,
-          page: i,
-          title: docType === 'handbook' ? 'Handbook' : 'State Supplement',
-          meta: docType === 'handbook'
-            ? `Page ${i} of ${handbookDoc.numPages}`
-            : `Page ${Math.max(1, i - SUPPLEMENT_PAGE_OFFSET)} of ${supplementDoc.numPages - SUPPLEMENT_PAGE_OFFSET}`,
-          snippet,
-          query: q
-        });
-      }
-    }
-  };
-
-  addResults(handbookTextCache, 'handbook');
-  addResults(supplementTextCache, 'supplement');
+  const results = await collectSearchResults(q, true);
   renderSearchResults(results, q);
 }
 
