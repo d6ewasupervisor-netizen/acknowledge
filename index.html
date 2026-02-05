@@ -655,6 +655,13 @@
       display: flex;
       align-items: center;
       gap: 0.35rem;
+      justify-content: flex-end;
+    }
+    .search-nav-results-btn {
+      margin-right: auto;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
     }
     .search-nav-btn {
       display: inline-flex;
@@ -1374,6 +1381,9 @@
       <div class="search-nav-meta" id="searchNavMeta">Result 0 of 0</div>
       <div class="search-nav-section" id="searchNavSection">Search results</div>
       <div class="search-nav-controls">
+        <button class="search-nav-btn search-nav-results-btn" onclick="openSearchResultsFromNav()" title="Back to results">
+          Results
+        </button>
         <button class="search-nav-btn" id="searchNavPrev" onclick="prevSearchResult()" title="Previous result">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg>
           Prev
@@ -2777,6 +2787,21 @@ function runSearchFromNav() {
   if (!query) return;
   performSearch(query);
   performGlobalSearch(query);
+}
+
+function openSearchResultsFromNav() {
+  const overlay = document.getElementById('searchOverlay');
+  const backdrop = document.getElementById('overlayBackdrop');
+  const input = document.getElementById('searchInput');
+  if (!overlay || !backdrop || !input) return;
+  const query = (document.getElementById('searchNavInput')?.value || '').trim();
+  closeAllOverlays();
+  overlay.classList.add('show');
+  backdrop.classList.add('show');
+  document.getElementById('searchToggle').classList.add('active');
+  input.value = query;
+  if (query) performSearch(query);
+  setTimeout(() => input.focus(), 50);
 }
 
 async function applySearchHighlight() {
