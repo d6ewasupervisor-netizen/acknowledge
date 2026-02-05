@@ -511,10 +511,25 @@
       content: '';
       position: absolute;
       inset: 0;
-      background-image: url('logo.png');
+      background-image: url('ro_logo.png');
       background-repeat: repeat;
-      background-position: center top;
-      background-size: min(240px, 22vw);
+      /* Position logo with 10px buffer from top-left */
+      background-position: 10px 10px;
+      /* Tile size: logo size + 20px buffer (10px on each side) */
+      background-size: calc(min(240px, 22vw) + 20px) calc(min(240px, 22vw) + 20px);
+      opacity: 0.08;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .reader-canvas-area::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: url('ro_logo.png');
+      background-repeat: repeat;
+      /* Offset by half tile width horizontally and full tile height vertically for staggered effect */
+      background-position: calc(10px + (min(240px, 22vw) + 20px) / 2) calc(10px + min(240px, 22vw) + 20px);
+      background-size: calc(min(240px, 22vw) + 20px) calc(min(240px, 22vw) + 20px);
       opacity: 0.08;
       pointer-events: none;
       z-index: 0;
