@@ -2492,6 +2492,22 @@ function getSupplementStateLabel(page) {
   return `${stateLabel} Supplement`;
 }
 
+function getSupplementStateName(page) {
+  const entries = Object.entries(STATE_PAGES)
+    .map(([state, start]) => ({ state, start: start + SUPPLEMENT_PAGE_OFFSET }))
+    .sort((a, b) => a.start - b.start);
+  let stateLabel = currentSupplementState || 'State Supplement';
+  for (let i = 0; i < entries.length; i++) {
+    const curr = entries[i];
+    const next = entries[i + 1];
+    if (page >= curr.start && (!next || page < next.start)) {
+      stateLabel = curr.state;
+      break;
+    }
+  }
+  return stateLabel;
+}
+
 pageSlider.addEventListener('input', (e) => {
   const value = parseInt(e.target.value, 10);
   updatePageBubble(value);
@@ -2901,12 +2917,11 @@ async function performSearch(query) {
 
   resultsDiv.innerHTML = results.map((r, i) => {
     const highlighted = r.snippet.replace(new RegExp(`(${escapeRegex(r.query)})`, 'gi'), '<mark>$1</mark>');
-    const label = r.docType === 'handbook' ? 'Handbook' : getSupplementStateLabel(r.page);
-    const displayPage = r.docType === 'supplement'
-      ? Math.max(1, r.page - SUPPLEMENT_PAGE_OFFSET)
-      : r.page;
+    const label = r.docType === 'handbook'
+      ? `Handbook - ${getHandbookSectionLabel(r.page)}`
+      : `State Supplement - ${getSupplementStateName(r.page)}`;
     return `<div class="search-result-item" onclick="openReaderSearchResult(${i})">
-      <div class="result-page">${label} · Page ${displayPage}</div>
+      <div class="result-page">${label}</div>
       <div class="result-context">${highlighted}</div>
     </div>`;
   }).join('');
