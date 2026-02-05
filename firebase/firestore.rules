@@ -12,6 +12,12 @@ service cloud.firestore {
     match /fax_log/{logId} {
       allow read, write: if false; // Admin SDK only
     }
+
+    // faxJobs collection - read: anyone (for frontend status polling), write: admin only
+    match /faxJobs/{jobId} {
+      allow read: if true;
+      allow write: if false; // Admin SDK only (Cloud Functions)
+    }
     
     // Deny all other collections by default
     match /{document=**} {

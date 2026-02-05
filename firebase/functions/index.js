@@ -101,11 +101,22 @@ exports.sendFax = functions.runWith({ memory: '512MB' }).https.onRequest((req, r
       // Create email with PDF attachment
       // Subject format: #023 - Power Automate extracts number after #
       const transporter = createTransporter();
-      
+      const trackingId = `WEB-${new Date().toISOString().replace(/[-:T]/g, '').slice(0, 15)}`;
+
+      // Create Pending doc for frontend to listen on
+      await db.collection('faxJobs').doc(trackingId).set({
+        trackingId,
+        status: 'Pending',
+        requesterEmail: getFromEmail(),
+        storeNumber,
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        updatedAt: admin.firestore.FieldValue.serverTimestamp()
+      });
+
       const mailOptions = {
         from: getFromEmail(),
         to: gatewayEmail,
-        subject: storeNumber, // e.g., "#023"
+        subject: `${storeNumber} ${trackingId}`,
         text: `Handbook Acknowledgement for ${store.location} (${storeNumber})`,
         attachments: [
           {
@@ -134,6 +145,7 @@ exports.sendFax = functions.runWith({ memory: '512MB' }).https.onRequest((req, r
       return res.status(200).json({
         success: true,
         message: `Fax sent to ${store.location} (${storeNumber})`,
+        trackingId,
         store: {
           storeNumber: store.storeNumber,
           location: store.location
@@ -198,11 +210,22 @@ exports.sendFaxDirect = functions.runWith({ memory: '512MB' }).https.onRequest((
       // Create email with PDF attachment
       // Subject format: Fax#15553412222 - Power Automate extracts everything after #
       const transporter = createTransporter();
-      
+      const trackingId = `WEB-${new Date().toISOString().replace(/[-:T]/g, '').slice(0, 15)}`;
+
+      // Create Pending doc for frontend to listen on
+      await db.collection('faxJobs').doc(trackingId).set({
+        trackingId,
+        status: 'Pending',
+        faxNumber: cleanFaxNumber,
+        requesterEmail: getFromEmail(),
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        updatedAt: admin.firestore.FieldValue.serverTimestamp()
+      });
+
       const mailOptions = {
         from: getFromEmail(),
         to: gatewayEmail,
-        subject: `Fax#${cleanFaxNumber}`,
+        subject: `Fax#${cleanFaxNumber} ${trackingId}`,
         text: `Handbook Acknowledgement sent to fax number ${cleanFaxNumber}`,
         attachments: [
           {
@@ -231,6 +254,7 @@ exports.sendFaxDirect = functions.runWith({ memory: '512MB' }).https.onRequest((
       return res.status(200).json({
         success: true,
         message: `Fax sent to ${cleanFaxNumber}`,
+        trackingId,
         faxNumber: cleanFaxNumber
       });
 
@@ -284,4 +308,107 @@ exports.getStores = functions.https.onRequest((req, res) => {
       });
     }
   });
+});
+
+/**
+ * monitorFaxStatus - Polls Gmail for FAXDONE: bridge emails from Power Automate
+ * Updates Firestore faxJobs collection so the web app gets real-time status
+ * 
+ * Subject format: FAXDONE:{FaxKey}:{Status}
+ * Body: RequesterEmail
+ */
+exports.monitorFaxStatus = functions.pubsub
+.schedule('every 1 minutes')
+.onRun(async (context) => {
+  const imapSimple = require('imap-simple');
+  const config = functions.config();
+
+  const imapConfig = {
+    imap: {
+      user: config.gmail.user,
+      password: config.gmail.pass,
+      host: 'imap.gmail.com',
+      port: 993,
+      tls: true,
+      tlsOptions: { rejectUnauthorized: false },
+      authTimeout: 10000
+    }
+  };
+
+  let connection;
+  try {
+    connection = await imapSimple.connect(imapConfig);
+    await connection.openBox('INBOX');
+
+    const searchCriteria = ['UNSEEN', ['SUBJECT', 'FAXDONE:']];
+    const fetchOptions = {
+      bodies: ['HEADER', 'TEXT'],
+      markSeen: true
+    };
+
+    const messages = await connection.search(searchCriteria, fetchOptions);
+
+    if (messages.length === 0) {
+      await connection.end();
+      return null;
+    }
+
+    console.log(`Found ${messages.length} FAXDONE message(s)`);
+
+    for (const message of messages) {
+      try {
+        const header = message.parts.find(p => p.which === 'HEADER');
+        const textPart = message.parts.find(p => p.which === 'TEXT');
+
+        const subject = (header.body.subject || [''])[0];
+        const body = (textPart.body || '').trim();
+
+        // Parse: FAXDONE:20260205-125013:Success
+        const match = subject.match(/FAXDONE:([^:]+):(\w+)/);
+        if (!match) {
+          console.warn('Could not parse FAXDONE subject:', subject);
+          continue;
+        }
+
+        const faxKey = match[1].trim();
+        const status = match[2].trim();
+        const firstLine = body.split('\n')[0].trim();
+        const parts = firstLine.split('|');
+        const requesterEmail = (parts[0] || '').trim();
+        const trackingId = (parts[1] || '').trim();
+
+        // Update by FaxKey
+        await db.collection('faxJobs').doc(faxKey).set({
+          faxKey,
+          status,
+          requesterEmail,
+          updatedAt: admin.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+
+        // Also update by trackingId if present (web app listens on this)
+        if (trackingId) {
+          await db.collection('faxJobs').doc(trackingId).set({
+            faxKey,
+            trackingId,
+            status,
+            requesterEmail,
+            updatedAt: admin.firestore.FieldValue.serverTimestamp()
+          }, { merge: true });
+        }
+
+        console.log(`Updated faxJobs/${faxKey} → ${status}`);
+      } catch (msgErr) {
+        console.error('Error processing message:', msgErr);
+      }
+    }
+
+    await connection.end();
+  } catch (err) {
+    console.error('monitorFaxStatus error:', err);
+    if (connection) {
+      try { await connection.end(); } catch (e) { /* ignore */ }
+    }
+  }
+
+  return null;
 });
