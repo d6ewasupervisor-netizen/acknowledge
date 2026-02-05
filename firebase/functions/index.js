@@ -372,14 +372,21 @@ exports.monitorFaxStatus = functions.pubsub
 
         const faxKey = match[1].trim();
         const status = match[2].trim();
-        const firstLine = body.split('\n')[0].trim();
-        // Strip HTML tags if present
-        const cleanLine = firstLine.replace(/<[^>]*>/g, '');
-        const parts = cleanLine.split('|');
-        const requesterEmail = (parts[0] || '').trim();
-        const trackingId = (parts[1] || '').trim().replace(/\.$/, ''); // Remove trailing period
+        // Extract between FAXDATA: and :ENDFAXDATA markers
+        const markerMatch = body.match(/FAXDATA:(.*?):ENDFAXDATA/s);
+        let requesterEmail = '';
+        let trackingId = '';
+        
+        if (markerMatch) {
+          const rawData = markerMatch[1];
+          // Strip HTML tags
+          const cleanData = rawData.replace(/<[^>]*>/g, '').trim();
+          const parts = cleanData.split('|');
+          requesterEmail = (parts[0] || '').trim();
+          trackingId = (parts[1] || '').trim().replace(/\.$/, '');
+        }
 
-        console.log('Parsed:', { requesterEmail, trackingId, rawBody: firstLine });
+        console.log('Parsed:', { requesterEmail, trackingId });
 
         // Update by FaxKey
         await db.collection('faxJobs').doc(faxKey).set({
