@@ -104,6 +104,7 @@
       pointer-events: none;
       z-index: 0;
     }
+    #tocView::before { display: none; }
     #tocView.hidden {
       opacity: 0; transform: translateY(20px);
       pointer-events: none; visibility: hidden;
@@ -206,6 +207,7 @@
       pointer-events: none;
       z-index: 1;
     }
+    #tocView .toc-watermark { display: none; }
 
     .toc-search-bar {
       position: relative; margin-bottom: 1.5rem;
