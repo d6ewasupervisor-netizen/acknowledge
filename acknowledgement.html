@@ -35,7 +35,8 @@
       --white: #ffffff;
       --red-500: #ef4444;
       --green-500: #22c55e;
-      --bottom-nav-height: 68px;
+      --bottom-nav-height: calc(68px * 1.2);
+      --bottom-nav-scale: 1.2;
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -534,13 +535,23 @@
       left: 0;
       right: 0;
       bottom: 0;
-      padding: 0.5rem 0.75rem max(0.5rem, env(safe-area-inset-bottom));
+      padding: calc(0.5rem * var(--bottom-nav-scale)) calc(0.75rem * var(--bottom-nav-scale)) max(calc(0.5rem * var(--bottom-nav-scale)), env(safe-area-inset-bottom));
       background: rgba(6,14,26,0.98);
       border-top: 1px solid rgba(74,144,196,0.15);
-      gap: 0.5rem;
+      gap: calc(0.5rem * var(--bottom-nav-scale));
       z-index: 6;
     }
-    .home-bottom-nav .toolbar-btn { flex: 1; justify-content: center; }
+    .home-bottom-nav .toolbar-btn {
+      flex: 1;
+      justify-content: center;
+      padding: calc(0.4rem * var(--bottom-nav-scale)) calc(0.6rem * var(--bottom-nav-scale));
+      font-size: calc(0.75rem * var(--bottom-nav-scale));
+      border-radius: calc(6px * var(--bottom-nav-scale));
+    }
+    .home-bottom-nav .toolbar-btn svg {
+      width: calc(16px * var(--bottom-nav-scale));
+      height: calc(16px * var(--bottom-nav-scale));
+    }
 
     /* Scrollbar */
     ::-webkit-scrollbar { width: 6px; }
