@@ -13,6 +13,7 @@ ui-debug.log
 firebase/functions/.env
 .env.local
 .env.*.local
+config.js
 *.pem
 *-key.json
 service-account*.json

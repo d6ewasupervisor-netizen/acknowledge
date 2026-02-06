@@ -9,6 +9,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=DM+Serif+Display&family=Dancing+Script:wght@400;600&family=Great+Vibes&family=Pacifico&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <!-- App configuration (gitignored — copy config.example.js to config.js) -->
+  <script src="config.js"></script>
   <!-- Firebase SDK for real-time fax delivery tracking -->
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
@@ -1150,6 +1152,217 @@
       to { transform: translateY(0); }
     }
 
+    /* ═══════════════════════════════════════════════════════════
+       FLOATING PRINT STATUS OVERLAY
+       ═══════════════════════════════════════════════════════════ */
+    .print-status-overlay {
+      display: none;
+      position: fixed;
+      bottom: calc(var(--bottom-nav-height) + 16px);
+      right: 16px;
+      z-index: 9999;
+      width: 340px;
+      max-width: calc(100vw - 32px);
+      border-radius: 14px;
+      background: var(--navy-900);
+      border: 1px solid rgba(74,144,196,0.25);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4), 0 2px 8px rgba(0,0,0,0.3);
+      font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+      overflow: hidden;
+      transition: width 0.3s ease, height 0.3s ease, border-radius 0.3s ease, box-shadow 0.3s ease;
+      animation: floatOverlayIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .print-status-overlay.show { display: block; }
+    .print-status-overlay.minimized {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      cursor: pointer;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.4), 0 0 0 2px rgba(74,144,196,0.3);
+    }
+    .print-status-overlay.minimized:hover {
+      box-shadow: 0 4px 20px rgba(0,0,0,0.4), 0 0 0 3px rgba(74,144,196,0.5);
+      transform: scale(1.05);
+    }
+    .print-status-overlay.minimized .pso-expanded { display: none; }
+    .print-status-overlay:not(.minimized) .pso-minimized-icon { display: none; }
+
+    @keyframes floatOverlayIn {
+      from { opacity: 0; transform: translateY(24px) scale(0.92); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    @keyframes floatOverlayOut {
+      from { opacity: 1; transform: translateY(0) scale(1); }
+      to { opacity: 0; transform: translateY(24px) scale(0.92); }
+    }
+    .print-status-overlay.closing {
+      animation: floatOverlayOut 0.25s ease forwards;
+    }
+
+    /* Minimized icon (FAB) */
+    .pso-minimized-icon {
+      width: 56px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+    .pso-minimized-icon svg {
+      width: 26px;
+      height: 26px;
+      color: var(--blue-400);
+    }
+    .pso-minimized-icon.sending svg { animation: spin 1.2s linear infinite; }
+    .pso-minimized-icon.waiting svg { animation: pulse-sending 2s ease-in-out infinite; }
+    .pso-minimized-icon.delivered svg { color: var(--green-500); }
+    .pso-minimized-icon.error svg { color: var(--red-500); }
+    .pso-minimized-icon.info svg { color: var(--blue-300); }
+    .pso-notify-dot {
+      display: none;
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      width: 12px;
+      height: 12px;
+      background: var(--green-500);
+      border-radius: 50%;
+      border: 2px solid var(--navy-900);
+      animation: notifyPulse 1.5s ease-in-out infinite;
+    }
+    .pso-notify-dot.show { display: block; }
+    @keyframes notifyPulse {
+      0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(34,197,94,0.5); }
+      50% { transform: scale(1.15); box-shadow: 0 0 0 6px rgba(34,197,94,0); }
+    }
+
+    /* Expanded overlay header (drag handle) */
+    .pso-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 12px 8px;
+      cursor: grab;
+      user-select: none;
+      border-bottom: 1px solid rgba(74,144,196,0.1);
+    }
+    .pso-header:active { cursor: grabbing; }
+    .pso-header-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+    .pso-header-icon {
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+    }
+    .pso-header-icon svg { width: 20px; height: 20px; }
+    .pso-header-title {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--white);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .pso-header-actions {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      flex-shrink: 0;
+    }
+    .pso-action-btn {
+      background: none;
+      border: none;
+      color: var(--slate-400);
+      cursor: pointer;
+      padding: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+      transition: color 0.15s, background 0.15s;
+    }
+    .pso-action-btn:hover { color: var(--slate-200); background: rgba(255,255,255,0.06); }
+    .pso-action-btn svg { width: 16px; height: 16px; }
+
+    /* Status body */
+    .pso-body {
+      padding: 12px;
+    }
+    .pso-status-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+    .pso-status-icon {
+      flex-shrink: 0;
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .pso-status-icon svg { width: 18px; height: 18px; }
+    .pso-status-icon.sending { background: rgba(74,144,196,0.15); color: var(--blue-400); }
+    .pso-status-icon.sending svg { animation: spin 1.2s linear infinite; }
+    .pso-status-icon.waiting { background: rgba(245,158,11,0.12); color: #fbbf24; }
+    .pso-status-icon.delivered { background: rgba(34,197,94,0.12); color: var(--green-500); }
+    .pso-status-icon.error { background: rgba(239,68,68,0.1); color: var(--red-500); }
+    .pso-status-icon.info { background: rgba(74,144,196,0.12); color: var(--blue-300); }
+
+    .pso-status-text { flex: 1; min-width: 0; }
+    .pso-status-title {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--white);
+      line-height: 1.3;
+    }
+    .pso-status-sub {
+      font-size: 0.75rem;
+      color: var(--slate-400);
+      line-height: 1.4;
+      margin-top: 2px;
+    }
+    .pso-status-timer {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--slate-500);
+      margin-top: 4px;
+      display: block;
+    }
+
+    /* Delivered glow effect */
+    .print-status-overlay.delivered-glow {
+      border-color: rgba(34,197,94,0.4);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4), 0 0 20px rgba(34,197,94,0.15);
+    }
+    .print-status-overlay.error-glow {
+      border-color: rgba(239,68,68,0.4);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4), 0 0 20px rgba(239,68,68,0.15);
+    }
+
+    /* Mobile adjustments */
+    @media (max-width: 640px) {
+      .print-status-overlay {
+        width: 300px;
+        right: 10px;
+        bottom: calc(var(--bottom-nav-height) + 10px);
+      }
+      .print-status-overlay.minimized {
+        width: 50px;
+        height: 50px;
+      }
+      .pso-minimized-icon {
+        width: 50px;
+        height: 50px;
+      }
+    }
+
     /* ═══════ MOBILE ═══════ */
     @media (max-width: 640px) {
       body { -webkit-tap-highlight-color: transparent; }
@@ -1531,8 +1744,50 @@
     </div>
   </div>
 
+  <!-- Floating Print Status Overlay -->
+  <div class="print-status-overlay" id="printStatusOverlay">
+    <!-- Minimized FAB icon -->
+    <div class="pso-minimized-icon" id="psoMinIcon" onclick="expandPrintOverlay()">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0 1 10.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0 .229 2.523a1.125 1.125 0 0 1-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0 0 21 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 0 0-1.913-.247M6.34 18H5.25A2.25 2.25 0 0 1 3 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 0 1 1.913-.247m10.5 0a48.536 48.536 0 0 0-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5Zm-3 0h.008v.008H15V10.5Z"/></svg>
+      <div class="pso-notify-dot" id="psoNotifyDot"></div>
+    </div>
+    <!-- Expanded content -->
+    <div class="pso-expanded">
+      <div class="pso-header" id="psoHeader">
+        <div class="pso-header-left">
+          <div class="pso-header-icon" id="psoHeaderIcon">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0 1 10.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0 .229 2.523a1.125 1.125 0 0 1-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0 0 21 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 0 0-1.913-.247M6.34 18H5.25A2.25 2.25 0 0 1 3 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 0 1 1.913-.247m10.5 0a48.536 48.536 0 0 0-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5Zm-3 0h.008v.008H15V10.5Z"/></svg>
+          </div>
+          <span class="pso-header-title" id="psoHeaderTitle">Print Job</span>
+        </div>
+        <div class="pso-header-actions">
+          <button class="pso-action-btn" onclick="minimizePrintOverlay()" title="Minimize">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 12h-15"/></svg>
+          </button>
+          <button class="pso-action-btn" onclick="dismissPrintOverlay()" title="Close">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="pso-body">
+        <div class="pso-status-row">
+          <div class="pso-status-icon sending" id="psoStatusIcon">
+            <svg id="psoSpinnerSvg" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.992 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182"/></svg>
+          </div>
+          <div class="pso-status-text">
+            <div class="pso-status-title" id="psoStatusTitle">Sending to printer...</div>
+            <div class="pso-status-sub" id="psoStatusSub">Please wait while we connect to the print server.</div>
+            <span class="pso-status-timer" id="psoStatusTimer"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script>
-    const ONEDRIVE_CLIENT_ID = '';
+    // Read config from config.js (loaded in <head>)
+    const _cfg = (typeof APP_CONFIG !== 'undefined') ? APP_CONFIG : {};
+    const ONEDRIVE_CLIENT_ID = _cfg.ONEDRIVE_CLIENT_ID || '';
 
     function returnToHandbook(e) {
       if (e) e.preventDefault();
@@ -1614,21 +1869,13 @@
     const scanHandles = Array.from(document.querySelectorAll('.scan-handle'));
 
     // ═══════════════════════════════════════════════════════════
-    // FAX CONFIGURATION
+    // FAX CONFIGURATION (loaded from config.js)
     // ═══════════════════════════════════════════════════════════
-    // Set to Cloud Functions base URL after deploying, e.g.:
-    // 'https://us-central1-your-project.cloudfunctions.net'
-    // Leave empty for demo mode (shows what would be sent without calling the function)
-    const FUNCTIONS_BASE = 'https://us-central1-the-dump-bin.cloudfunctions.net';
+    const FUNCTIONS_BASE = _cfg.FUNCTIONS_BASE || '';
 
-    // ═══════════════════════════════════════════════════════════
-    // FIREBASE CONFIG (for real-time fax delivery tracking)
-    // ═══════════════════════════════════════════════════════════
-    // Get your config from: Firebase Console → Project Settings → General → Your apps
-    // If no web app exists, click "Add app" → Web → Register, then copy the config.
     const FIREBASE_CONFIG = {
-      apiKey: "AIzaSyDSmpo3nM11_d_X41ulm0rC5TCS3m0Dt_s",   // ← Replace with your Firebase Web API Key
-      projectId: "the-dump-bin"
+      apiKey: _cfg.FIREBASE_API_KEY || '',
+      projectId: _cfg.FIREBASE_PROJECT_ID || ''
     };
 
     // Initialize Firebase Firestore (only if API key is configured)
@@ -1642,7 +1889,7 @@
         console.warn('Firebase initialization failed:', e.message);
       }
     } else {
-      console.log('Firebase not configured — fax status tracking disabled. Set FIREBASE_CONFIG.apiKey to enable.');
+      console.log('Firebase not configured — fax status tracking disabled. Set FIREBASE_API_KEY in config.js to enable.');
     }
 
     // Embedded store data for instant dropdown load (no network call needed)
@@ -1852,7 +2099,10 @@
     }
 
     function closeFaxModal() {
-      cleanupFaxListener();
+      // Only cleanup the fax listener if the floating overlay is NOT actively tracking
+      if (!printOverlay.classList.contains('show')) {
+        cleanupFaxListener();
+      }
       faxModalOverlay.classList.remove('show');
       document.body.style.overflow = '';
     }
@@ -1860,6 +2110,229 @@
     function closeFaxModalOnBackdrop(e) {
       if (e.target === faxModalOverlay) closeFaxModal();
     }
+
+    // ═══════════════════════════════════════════════════════════
+    // FLOATING PRINT STATUS OVERLAY
+    // ═══════════════════════════════════════════════════════════
+    const printOverlay = document.getElementById('printStatusOverlay');
+    const psoMinIcon = document.getElementById('psoMinIcon');
+    const psoNotifyDot = document.getElementById('psoNotifyDot');
+    const psoHeaderTitle = document.getElementById('psoHeaderTitle');
+    const psoStatusIcon = document.getElementById('psoStatusIcon');
+    const psoStatusTitle = document.getElementById('psoStatusTitle');
+    const psoStatusSub = document.getElementById('psoStatusSub');
+    const psoStatusTimer = document.getElementById('psoStatusTimer');
+    const psoHeader = document.getElementById('psoHeader');
+
+    let psoCurrentState = 'sending'; // sending | waiting | delivered | error
+    let psoTimerInterval = null;
+    let psoElapsedSeconds = 0;
+    let psoDragData = { isDragging: false, startX: 0, startY: 0, origLeft: 0, origTop: 0 };
+    let psoHasNotified = false;
+
+    // SVG icons for overlay states
+    const PSO_ICONS = {
+      printer: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0 1 10.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0 .229 2.523a1.125 1.125 0 0 1-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0 0 21 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 0 0-1.913-.247M6.34 18H5.25A2.25 2.25 0 0 1 3 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 0 1 1.913-.247m10.5 0a48.536 48.536 0 0 0-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5Zm-3 0h.008v.008H15V10.5Z"/></svg>',
+      spinner: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.992 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182"/></svg>',
+      clock: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>',
+      check: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>',
+      error: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z"/></svg>'
+    };
+
+    function showPrintOverlay(target) {
+      psoCurrentState = 'sending';
+      psoElapsedSeconds = 0;
+      psoHasNotified = false;
+      psoNotifyDot.classList.remove('show');
+      printOverlay.classList.remove('minimized', 'closing', 'delivered-glow', 'error-glow');
+      printOverlay.classList.add('show');
+
+      // Reset position to default bottom-right
+      printOverlay.style.left = '';
+      printOverlay.style.top = '';
+      printOverlay.style.right = '16px';
+      printOverlay.style.bottom = `calc(var(--bottom-nav-height) + 16px)`;
+
+      psoHeaderTitle.textContent = 'Sending to Printer';
+      updatePsoState('sending', 'Sending to print server...', `Routing ${faxMode} form to ${target}`, '');
+
+      // Start timer
+      clearInterval(psoTimerInterval);
+      psoTimerInterval = setInterval(() => {
+        psoElapsedSeconds++;
+        const mins = Math.floor(psoElapsedSeconds / 60);
+        const secs = psoElapsedSeconds % 60;
+        psoStatusTimer.textContent = mins > 0
+          ? `${mins}m ${secs.toString().padStart(2, '0')}s elapsed`
+          : `${secs}s elapsed`;
+      }, 1000);
+    }
+
+    function updatePsoState(state, title, sub, timer) {
+      psoCurrentState = state;
+
+      // Update status icon
+      psoStatusIcon.className = `pso-status-icon ${state}`;
+      if (state === 'sending') {
+        psoStatusIcon.innerHTML = PSO_ICONS.spinner;
+      } else if (state === 'waiting') {
+        psoStatusIcon.innerHTML = PSO_ICONS.clock;
+      } else if (state === 'delivered') {
+        psoStatusIcon.innerHTML = PSO_ICONS.check;
+      } else if (state === 'error') {
+        psoStatusIcon.innerHTML = PSO_ICONS.error;
+      } else if (state === 'info') {
+        psoStatusIcon.innerHTML = PSO_ICONS.printer;
+      }
+
+      // Update minimized icon state
+      psoMinIcon.className = `pso-minimized-icon ${state}`;
+
+      // Update text
+      psoStatusTitle.textContent = title;
+      psoStatusSub.textContent = sub;
+      if (timer !== undefined) psoStatusTimer.textContent = timer;
+
+      // Update header
+      if (state === 'delivered') {
+        psoHeaderTitle.textContent = 'Print Complete';
+        printOverlay.classList.add('delivered-glow');
+        printOverlay.classList.remove('error-glow');
+      } else if (state === 'error') {
+        psoHeaderTitle.textContent = 'Print Failed';
+        printOverlay.classList.add('error-glow');
+        printOverlay.classList.remove('delivered-glow');
+      } else if (state === 'waiting') {
+        psoHeaderTitle.textContent = 'Waiting for Printer';
+        printOverlay.classList.remove('delivered-glow', 'error-glow');
+      } else if (state === 'info') {
+        psoHeaderTitle.textContent = 'Print Job';
+        printOverlay.classList.remove('delivered-glow', 'error-glow');
+      } else {
+        psoHeaderTitle.textContent = 'Sending to Printer';
+        printOverlay.classList.remove('delivered-glow', 'error-glow');
+      }
+    }
+
+    function notifyPrintComplete(success) {
+      if (psoHasNotified) return;
+      psoHasNotified = true;
+
+      // Show notification dot when minimized
+      if (printOverlay.classList.contains('minimized')) {
+        psoNotifyDot.classList.add('show');
+      }
+
+      // Stop the timer
+      clearInterval(psoTimerInterval);
+      psoTimerInterval = null;
+
+      // Try vibration API for mobile
+      if (navigator.vibrate) {
+        navigator.vibrate(success ? [100, 50, 100] : [200, 100, 200]);
+      }
+
+      // Auto-expand if minimized after a brief delay
+      if (printOverlay.classList.contains('minimized')) {
+        setTimeout(() => {
+          expandPrintOverlay();
+          psoNotifyDot.classList.remove('show');
+        }, 800);
+      }
+
+      // Auto-dismiss after 30 seconds for success
+      if (success) {
+        setTimeout(() => {
+          if (printOverlay.classList.contains('show') && psoCurrentState === 'delivered') {
+            dismissPrintOverlay();
+          }
+        }, 30000);
+      }
+    }
+
+    function minimizePrintOverlay() {
+      printOverlay.classList.add('minimized');
+    }
+
+    function expandPrintOverlay() {
+      printOverlay.classList.remove('minimized');
+      psoNotifyDot.classList.remove('show');
+    }
+
+    function dismissPrintOverlay() {
+      // Cleanup timers and listeners
+      clearInterval(psoTimerInterval);
+      psoTimerInterval = null;
+      cleanupFaxListener();
+
+      printOverlay.classList.add('closing');
+      setTimeout(() => {
+        printOverlay.classList.remove('show', 'closing', 'minimized', 'delivered-glow', 'error-glow');
+      }, 250);
+    }
+
+    // ── Drag logic for the overlay ──
+    function initPsoDrag(e) {
+      // Only drag from header, ignore button clicks
+      if (e.target.closest('.pso-action-btn')) return;
+      if (printOverlay.classList.contains('minimized')) return;
+
+      const touch = e.touches ? e.touches[0] : e;
+      const rect = printOverlay.getBoundingClientRect();
+
+      // Convert from right/bottom positioning to left/top
+      if (!printOverlay.style.left || printOverlay.style.right) {
+        printOverlay.style.left = rect.left + 'px';
+        printOverlay.style.top = rect.top + 'px';
+        printOverlay.style.right = 'auto';
+        printOverlay.style.bottom = 'auto';
+      }
+
+      psoDragData = {
+        isDragging: true,
+        startX: touch.clientX,
+        startY: touch.clientY,
+        origLeft: rect.left,
+        origTop: rect.top
+      };
+
+      document.addEventListener('mousemove', onPsoDrag);
+      document.addEventListener('mouseup', endPsoDrag);
+      document.addEventListener('touchmove', onPsoDrag, { passive: false });
+      document.addEventListener('touchend', endPsoDrag);
+    }
+
+    function onPsoDrag(e) {
+      if (!psoDragData.isDragging) return;
+      e.preventDefault();
+      const touch = e.touches ? e.touches[0] : e;
+      const dx = touch.clientX - psoDragData.startX;
+      const dy = touch.clientY - psoDragData.startY;
+
+      let newLeft = psoDragData.origLeft + dx;
+      let newTop = psoDragData.origTop + dy;
+
+      // Keep within viewport
+      const rect = printOverlay.getBoundingClientRect();
+      const maxLeft = window.innerWidth - rect.width;
+      const maxTop = window.innerHeight - rect.height;
+      newLeft = Math.max(0, Math.min(newLeft, maxLeft));
+      newTop = Math.max(0, Math.min(newTop, maxTop));
+
+      printOverlay.style.left = newLeft + 'px';
+      printOverlay.style.top = newTop + 'px';
+    }
+
+    function endPsoDrag() {
+      psoDragData.isDragging = false;
+      document.removeEventListener('mousemove', onPsoDrag);
+      document.removeEventListener('mouseup', endPsoDrag);
+      document.removeEventListener('touchmove', onPsoDrag);
+      document.removeEventListener('touchend', endPsoDrag);
+    }
+
+    psoHeader.addEventListener('mousedown', initPsoDrag);
+    psoHeader.addEventListener('touchstart', initPsoDrag, { passive: true });
 
     function renderFaxStoreList(stores) {
       if (stores.length === 0) {
@@ -1966,32 +2439,18 @@
       // Clean up any previous listener
       cleanupFaxListener();
 
-      // If Firebase is not configured, fall back to basic success message
+      // If Firebase is not configured, fall back to basic success on the overlay
       if (!firestore) {
-        showFaxStatus('success', `Sent! Your ${faxMode} form is being printed at ${target}.`);
-        setTimeout(() => closeFaxModal(), 2500);
+        clearInterval(psoTimerInterval);
+        psoTimerInterval = null;
+        updatePsoState('delivered', 'Printed Successfully',
+          `Your ${faxMode} form is being printed at ${target}.`, '');
+        psoStatusTimer.textContent = '';
+        notifyPrintComplete(true);
         return;
       }
 
-      // Show waiting status with live timer
-      faxWaitingSeconds = 0;
-      const updateWaitingDisplay = () => {
-        faxWaitingSeconds++;
-        const mins = Math.floor(faxWaitingSeconds / 60);
-        const secs = faxWaitingSeconds % 60;
-        const timeStr = mins > 0
-          ? `${mins}m ${secs.toString().padStart(2, '0')}s`
-          : `${secs}s`;
-        showFaxStatusHtml('waiting',
-          `<strong>Sent to printer at ${target}</strong>` +
-          `<span class="fax-status-sub">Waiting for print confirmation from the print server...</span>` +
-          `<span class="fax-status-timer">${timeStr} elapsed</span>` +
-          `<span class="fax-status-hint">This usually takes 1–3 minutes. You can close this at any time.</span>`
-        );
-      };
-      updateWaitingDisplay();
-      faxWaitingTimer = setInterval(updateWaitingDisplay, 1000);
-
+      // The overlay is already showing "waiting" state from sendFax()
       // Listen for Firestore document changes on faxJobs/{trackingId}
       unsubscribeFaxListener = firestore.collection('faxJobs').doc(trackingId)
         .onSnapshot((doc) => {
@@ -2000,39 +2459,40 @@
           const status = (data.status || '').trim();
 
           if (/^(success|delivered|completed)$/i.test(status)) {
-            // Stop the waiting timer
-            if (faxWaitingTimer) { clearInterval(faxWaitingTimer); faxWaitingTimer = null; }
-            showFaxStatusHtml('delivered',
-              `<strong>Printed successfully!</strong>` +
-              `<span class="fax-status-sub">Your ${faxMode} form was printed at ${target}.</span>`
-            );
+            clearInterval(psoTimerInterval);
+            psoTimerInterval = null;
+            updatePsoState('delivered', 'Printed Successfully',
+              `Your ${faxMode} form was printed at ${target}.`, '');
+            psoStatusTimer.textContent = '';
+            notifyPrintComplete(true);
             cleanupFaxListener();
           } else if (/^(fail|failed|error)$/i.test(status)) {
-            if (faxWaitingTimer) { clearInterval(faxWaitingTimer); faxWaitingTimer = null; }
-            showFaxStatusHtml('error',
-              `<strong>Print failed</strong>` +
-              `<span class="fax-status-sub">The print job for ${target} could not be completed. Please try again.</span>`
-            );
+            clearInterval(psoTimerInterval);
+            psoTimerInterval = null;
+            updatePsoState('error', 'Print Failed',
+              `The print job for ${target} could not be completed. Please try again.`, '');
+            psoStatusTimer.textContent = '';
+            notifyPrintComplete(false);
             cleanupFaxListener();
           }
           // 'Pending' or other statuses — keep listening
         }, (error) => {
           console.error('Firestore fax listener error:', error);
-          // Fall back to basic success message
-          if (faxWaitingTimer) { clearInterval(faxWaitingTimer); faxWaitingTimer = null; }
-          showFaxStatus('success', `Sent! Your ${faxMode} form is being printed at ${target}.`);
+          // Fall back to success message on overlay
+          clearInterval(psoTimerInterval);
+          psoTimerInterval = null;
+          updatePsoState('delivered', 'Sent to Printer',
+            `Your ${faxMode} form is being printed at ${target}.`, '');
+          psoStatusTimer.textContent = '';
+          notifyPrintComplete(true);
           cleanupFaxListener();
         });
 
       // After 5 minutes, show a "still processing" hint (but keep listening)
       faxStatusTimeout = setTimeout(() => {
         if (unsubscribeFaxListener) {
-          if (faxWaitingTimer) { clearInterval(faxWaitingTimer); faxWaitingTimer = null; }
-          showFaxStatusHtml('info',
-            `<strong>Sent to printer at ${target}</strong>` +
-            `<span class="fax-status-sub">No confirmation received yet. The print job may still be processing.</span>` +
-            `<span class="fax-status-hint">You can close this window — the print job will continue in the background.</span>`
-          );
+          updatePsoState('waiting', `Sent to ${target}`,
+            'No confirmation received yet. The print job may still be processing.', '');
         }
         faxStatusTimeout = null;
       }, 5 * 60 * 1000);
@@ -2164,28 +2624,25 @@
         return;
       }
 
+      // Capture target info before closing modal
+      const targetLabel = useDirectFax 
+        ? `printer ${formatPhoneNumber(directNum)}`
+        : `${selectedStore.l} (${selectedStore.n})`;
+      const capturedStore = selectedStore ? { ...selectedStore } : null;
+      const capturedDirectNum = directNum;
+      const capturedFaxMode = faxMode;
+
       faxSending = true;
       faxSendBtn.disabled = true;
       faxSendBtnText.innerHTML = '<span class="spinner"></span> Sending...';
 
-      // Start timer and show sending status
-      let elapsedSeconds = 0;
-      const updateSendingStatus = () => {
-        elapsedSeconds++;
-        faxStatusEl.innerHTML = `<strong>Sending to print server... Please wait.</strong><span class="timer">${elapsedSeconds} second${elapsedSeconds !== 1 ? 's' : ''} elapsed</span>`;
-      };
-      faxStatusEl.className = 'fax-status show sending';
-      faxStatusEl.innerHTML = '<strong>Sending to print server... Please wait.</strong><span class="timer">0 seconds elapsed</span>';
-      const sendingTimer = setInterval(updateSendingStatus, 1000);
-
       try {
         // Generate appropriate PDF
         let pdfDoc, fileName;
-        if (faxMode === 'blank') {
+        if (capturedFaxMode === 'blank') {
           pdfDoc = generateBlankPDF();
           fileName = 'Blank_Handbook_Acknowledgement.pdf';
         } else {
-          // Use existing signed PDF
           if (!generatedPDF) {
             throw new Error('No signed PDF available. Please submit the form first.');
           }
@@ -2198,18 +2655,22 @@
 
         // Demo mode check
         if (!FUNCTIONS_BASE) {
-          // Demo mode - show what would be sent
-          clearInterval(sendingTimer);
-          const target = useDirectFax 
-            ? `printer ${formatPhoneNumber(directNum)}`
-            : `${selectedStore.l} (${selectedStore.n})`;
-          
-          showFaxStatus('info', `DEMO MODE: Would print ${faxMode} form at ${target}. Set FUNCTIONS_BASE to enable.`);
+          // Close modal, show floating overlay in demo mode
+          closeFaxModal();
+          showPrintOverlay(targetLabel);
+          updatePsoState('info', 'Demo Mode',
+            `Would print ${capturedFaxMode} form at ${targetLabel}. Set FUNCTIONS_BASE to enable.`, '');
+          clearInterval(psoTimerInterval);
+          psoTimerInterval = null;
+          psoStatusTimer.textContent = '';
           faxSending = false;
-          faxSendBtn.disabled = false;
-          faxSendBtnText.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5"/></svg> Send to Printer';
+          resetFaxSendBtn();
           return;
         }
+
+        // Close the modal and show the floating overlay immediately
+        closeFaxModal();
+        showPrintOverlay(targetLabel);
 
         // Call appropriate Cloud Function
         let response;
@@ -2218,10 +2679,10 @@
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              faxNumber: directNum,
+              faxNumber: capturedDirectNum,
               pdfBase64: pdfBase64,
               fileName: fileName,
-              type: faxMode
+              type: capturedFaxMode
             })
           });
         } else {
@@ -2229,10 +2690,10 @@
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              storeNumber: selectedStore.n,
+              storeNumber: capturedStore.n,
               pdfBase64: pdfBase64,
               fileName: fileName,
-              type: faxMode
+              type: capturedFaxMode
             })
           });
         }
@@ -2243,26 +2704,39 @@
           throw new Error(result.error || 'Failed to send to printer');
         }
 
-        // Success — start real-time delivery tracking
-        clearInterval(sendingTimer);
-        const target = useDirectFax 
-          ? formatPhoneNumber(directNum)
-          : `${selectedStore.l} (${selectedStore.n})`;
+        // Success — update overlay to waiting and start real-time delivery tracking
+        const shortTarget = useDirectFax 
+          ? formatPhoneNumber(capturedDirectNum)
+          : `${capturedStore.l} (${capturedStore.n})`;
+
+        updatePsoState('waiting', `Sent to ${shortTarget}`,
+          'Waiting for print confirmation from the print server...', '');
 
         // Start listening for delivery confirmation via Firestore
-        listenForFaxStatus(result.trackingId, target);
+        listenForFaxStatus(result.trackingId, shortTarget);
 
       } catch (error) {
         console.error('Fax error:', error);
-        clearInterval(sendingTimer);
-        showFaxStatus('error', error.message || 'Failed to send to printer. Please try again.');
+        // If overlay is showing, update it with the error
+        if (printOverlay.classList.contains('show')) {
+          clearInterval(psoTimerInterval);
+          psoTimerInterval = null;
+          updatePsoState('error', 'Print Failed',
+            error.message || 'Failed to send to printer. Please try again.', '');
+          psoStatusTimer.textContent = '';
+        } else {
+          showFaxStatus('error', error.message || 'Failed to send to printer. Please try again.');
+        }
       } finally {
-        clearInterval(sendingTimer);
         faxSending = false;
-        faxSendBtn.disabled = false;
-        faxSendBtnText.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5"/></svg> Send to Printer';
-        updateFaxSendButton();
+        resetFaxSendBtn();
       }
+    }
+
+    function resetFaxSendBtn() {
+      faxSendBtn.disabled = false;
+      faxSendBtnText.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5"/></svg> Send to Printer';
+      updateFaxSendButton();
     }
 
     function formatPhoneNumber(num) {
