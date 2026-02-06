@@ -9,20 +9,28 @@ This guide walks you through deploying the Employee Handbook Acknowledgement app
 │                        GitHub Pages                              │
 │                    (Static Frontend)                             │
 │              acknowledgement.html, index.html                    │
-└─────────────────────┬───────────────────────────────────────────┘
-                      │ HTTPS API calls
-                      ▼
-┌─────────────────────────────────────────────────────────────────┐
+└──────────┬──────────────────────────────────┬───────────────────┘
+           │ HTTPS API calls                  │ Firestore onSnapshot
+           ▼                                  │ (real-time listener)
+┌─────────────────────────────────────────────┴───────────────────┐
 │                    Firebase Cloud Functions                      │
-│         sendFax() · sendFaxDirect() · getStores()               │
+│  sendFax() · sendFaxDirect() · getStores() · faxWebhook()      │
+│  monitorFaxStatus() (scheduled every 30s)                       │
 └─────────────────────┬───────────────────────────────────────────┘
                       │
         ┌─────────────┴─────────────┐
         ▼                           ▼
-┌───────────────────┐     ┌─────────────────────┐
-│  Firestore        │     │  SMTP → Fax Gateway │
-│  stores, fax_log  │     │  Power Automate     │
-└───────────────────┘     └─────────────────────┘
+┌───────────────────┐     ┌─────────────────────────────┐
+│  Firestore        │     │  SMTP → Fax Gateway         │
+│  stores, fax_log, │     │  Power Automate             │
+│  faxJobs          │     │    │                        │
+└───────────────────┘     │    ▼ FAXDONE email or       │
+        ▲                 │      webhook callback       │
+        │                 └─────────────┬───────────────┘
+        │                               │
+        └───── monitorFaxStatus() ──────┘
+               reads FAXDONE emails
+               via Gmail IMAP
 ```
 
 ---
@@ -122,6 +130,32 @@ firebase functions:config:set \
   fax.gateway_email="fax-receiver@yourcompany.com"
 ```
 
+### Configure Gmail IMAP for Fax Confirmation Monitoring
+
+The `monitorFaxStatus` function polls the Gmail inbox for FAXDONE confirmation emails
+from Power Automate. It uses Gmail IMAP to read these emails and update Firestore,
+which triggers real-time status updates in the frontend.
+
+**Option A: Use the same Gmail account as SMTP** (recommended — no extra config needed)
+The function automatically falls back to SMTP credentials if Gmail-specific ones aren't set.
+
+**Option B: Use separate Gmail IMAP credentials:**
+```bash
+firebase functions:config:set \
+  gmail.user="emailtofaxtoprint@gmail.com" \
+  gmail.pass="your-app-password"
+```
+
+Or in `.env`:
+```
+GMAIL_USER=emailtofaxtoprint@gmail.com
+GMAIL_PASS=your-app-password
+```
+
+> **Important**: IMAP must be enabled on the Gmail account. Go to Gmail Settings → 
+> See all settings → Forwarding and POP/IMAP → Enable IMAP. Use a Google App Password
+> (not your regular password) if 2FA is enabled.
+
 ### Verify config:
 ```bash
 firebase functions:config:get
@@ -165,11 +199,17 @@ After deployment, you'll see output like:
 ✔  functions[sendFax(us-central1)]: Successful
 ✔  functions[sendFaxDirect(us-central1)]: Successful
 ✔  functions[getStores(us-central1)]: Successful
+✔  functions[faxWebhook(us-central1)]: Successful
+✔  functions[monitorFaxStatus(us-central1)]: Successful
 
 Function URL (sendFax): https://us-central1-YOUR-PROJECT.cloudfunctions.net/sendFax
 ```
 
 Copy the base URL: `https://us-central1-YOUR-PROJECT.cloudfunctions.net`
+
+> **Note**: `monitorFaxStatus` is a scheduled function (runs every 30 seconds). It requires
+> Cloud Scheduler, which is automatically provisioned on the Blaze plan. `faxWebhook` is an
+> optional HTTP endpoint that Power Automate can call directly for instant confirmation.
 
 ---
 
@@ -272,6 +312,12 @@ Opens at http://localhost:3000
 | `smtp.pass` | SMTP password | `your-password` |
 | `smtp.from` | From email address | `handbook@company.com` |
 | `fax.gateway_email` | Email monitored by fax server | `fax@company.com` |
+| `gmail.user` | Gmail IMAP user (for reading FAXDONE emails) | `monitor@gmail.com` |
+| `gmail.pass` | Gmail IMAP password/app password | `your-app-password` |
+
+> **Tip**: If `gmail.user`/`gmail.pass` are not set, `monitorFaxStatus` automatically
+> falls back to `SMTP_USER`/`SMTP_PASS` from `.env` (works when the same Gmail account
+> is used for both sending and receiving).
 
 ---
 

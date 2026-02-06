@@ -383,10 +383,20 @@ exports.monitorFaxStatus = functions.pubsub
   const imapSimple = require('imap-simple');
   const config = functions.config();
 
+  // Gmail IMAP credentials — check firebase config first, then .env, then fall back to SMTP creds
+  // (since the SMTP account and IMAP inbox are typically the same Gmail account)
+  const gmailUser = config.gmail?.user || process.env.GMAIL_USER || config.smtp?.user || process.env.SMTP_USER;
+  const gmailPass = config.gmail?.pass || process.env.GMAIL_PASS || config.smtp?.pass || process.env.SMTP_PASS;
+
+  if (!gmailUser || !gmailPass) {
+    console.error('monitorFaxStatus: No Gmail/IMAP credentials configured. Set gmail.user & gmail.pass, or GMAIL_USER & GMAIL_PASS in .env, or fall back to SMTP credentials.');
+    return null;
+  }
+
   const imapConfig = {
     imap: {
-      user: config.gmail.user,
-      password: config.gmail.pass,
+      user: gmailUser,
+      password: gmailPass,
       host: 'imap.gmail.com',
       port: 993,
       tls: true,
