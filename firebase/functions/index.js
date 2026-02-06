@@ -5,6 +5,8 @@
  *   - sendFax: Send PDF to a store by store number
  *   - sendFaxDirect: Send PDF to a direct fax number
  *   - getStores: Get all stores (backup API for frontend)
+ *   - faxWebhook: HTTP callback for instant Power Automate status updates
+ *   - monitorFaxStatus: Polls Gmail for FAXDONE emails (fallback)
  * 
  * Configuration (set via firebase functions:config:set):
  *   smtp.host, smtp.port, smtp.user, smtp.pass, smtp.from
@@ -63,7 +65,7 @@ const createTransporter = () => {
  *   "type": "blank" | "signed"
  * }
  */
-exports.sendFax = functions.runWith({ memory: '512MB' }).https.onRequest((req, res) => {
+exports.sendFax = functions.runWith({ memory: '512MB', minInstances: 1 }).https.onRequest((req, res) => {
   corsHandler(req, res, async () => {
     // Only allow POST
     if (req.method !== 'POST') {
@@ -103,16 +105,6 @@ exports.sendFax = functions.runWith({ memory: '512MB' }).https.onRequest((req, r
       const transporter = createTransporter();
       const trackingId = `WEB-${new Date().toISOString().replace(/[-:T.Z]/g, '').slice(0, 14)}`;
 
-      // Create Pending doc for frontend to listen on
-      await db.collection('faxJobs').doc(trackingId).set({
-        trackingId,
-        status: 'Pending',
-        requesterEmail: getFromEmail(),
-        storeNumber,
-        createdAt: admin.firestore.FieldValue.serverTimestamp(),
-        updatedAt: admin.firestore.FieldValue.serverTimestamp()
-      });
-
       const mailOptions = {
         from: getFromEmail(),
         to: gatewayEmail,
@@ -128,19 +120,27 @@ exports.sendFax = functions.runWith({ memory: '512MB' }).https.onRequest((req, r
         ]
       };
 
-      // Send email
-      await transporter.sendMail(mailOptions);
-
-      // Log to fax_log collection
-      await db.collection('fax_log').add({
-        storeNumber: storeNumber,
-        location: store.location,
-        faxNumber: store.faxNumber,
-        fileName: fileName,
-        type: type || 'unknown',
-        sentAt: admin.firestore.FieldValue.serverTimestamp(),
-        status: 'sent'
-      });
+      // Run Firestore write, email send, and log write in parallel for speed
+      await Promise.all([
+        db.collection('faxJobs').doc(trackingId).set({
+          trackingId,
+          status: 'Pending',
+          requesterEmail: getFromEmail(),
+          storeNumber,
+          createdAt: admin.firestore.FieldValue.serverTimestamp(),
+          updatedAt: admin.firestore.FieldValue.serverTimestamp()
+        }),
+        transporter.sendMail(mailOptions),
+        db.collection('fax_log').add({
+          storeNumber: storeNumber,
+          location: store.location,
+          faxNumber: store.faxNumber,
+          fileName: fileName,
+          type: type || 'unknown',
+          sentAt: admin.firestore.FieldValue.serverTimestamp(),
+          status: 'sent'
+        })
+      ]);
 
       return res.status(200).json({
         success: true,
@@ -173,7 +173,7 @@ exports.sendFax = functions.runWith({ memory: '512MB' }).https.onRequest((req, r
  *   "type": "blank" | "signed"
  * }
  */
-exports.sendFaxDirect = functions.runWith({ memory: '512MB' }).https.onRequest((req, res) => {
+exports.sendFaxDirect = functions.runWith({ memory: '512MB', minInstances: 1 }).https.onRequest((req, res) => {
   corsHandler(req, res, async () => {
     // Only allow POST
     if (req.method !== 'POST') {
@@ -212,16 +212,6 @@ exports.sendFaxDirect = functions.runWith({ memory: '512MB' }).https.onRequest((
       const transporter = createTransporter();
       const trackingId = `WEB-${new Date().toISOString().replace(/[-:T.Z]/g, '').slice(0, 14)}`;
 
-      // Create Pending doc for frontend to listen on
-      await db.collection('faxJobs').doc(trackingId).set({
-        trackingId,
-        status: 'Pending',
-        faxNumber: cleanFaxNumber,
-        requesterEmail: getFromEmail(),
-        createdAt: admin.firestore.FieldValue.serverTimestamp(),
-        updatedAt: admin.firestore.FieldValue.serverTimestamp()
-      });
-
       const mailOptions = {
         from: getFromEmail(),
         to: gatewayEmail,
@@ -237,19 +227,27 @@ exports.sendFaxDirect = functions.runWith({ memory: '512MB' }).https.onRequest((
         ]
       };
 
-      // Send email
-      await transporter.sendMail(mailOptions);
-
-      // Log to fax_log collection
-      await db.collection('fax_log').add({
-        storeNumber: null,
-        location: 'Direct Fax',
-        faxNumber: cleanFaxNumber,
-        fileName: fileName,
-        type: type || 'unknown',
-        sentAt: admin.firestore.FieldValue.serverTimestamp(),
-        status: 'sent'
-      });
+      // Run Firestore write, email send, and log write in parallel for speed
+      await Promise.all([
+        db.collection('faxJobs').doc(trackingId).set({
+          trackingId,
+          status: 'Pending',
+          faxNumber: cleanFaxNumber,
+          requesterEmail: getFromEmail(),
+          createdAt: admin.firestore.FieldValue.serverTimestamp(),
+          updatedAt: admin.firestore.FieldValue.serverTimestamp()
+        }),
+        transporter.sendMail(mailOptions),
+        db.collection('fax_log').add({
+          storeNumber: null,
+          location: 'Direct Fax',
+          faxNumber: cleanFaxNumber,
+          fileName: fileName,
+          type: type || 'unknown',
+          sentAt: admin.firestore.FieldValue.serverTimestamp(),
+          status: 'sent'
+        })
+      ]);
 
       return res.status(200).json({
         success: true,
@@ -311,6 +309,68 @@ exports.getStores = functions.https.onRequest((req, res) => {
 });
 
 /**
+ * faxWebhook - Direct HTTP callback from Power Automate for instant status updates
+ * 
+ * This eliminates the email-polling delay entirely. Configure Power Automate
+ * to POST to this endpoint when a fax completes instead of (or in addition to)
+ * sending a FAXDONE email.
+ * 
+ * POST body:
+ * {
+ *   "trackingId": "WEB-20260205125013",
+ *   "status": "Success" | "Failed",
+ *   "faxKey": "20260205-125013"  (optional)
+ * }
+ */
+exports.faxWebhook = functions.https.onRequest((req, res) => {
+  corsHandler(req, res, async () => {
+    if (req.method !== 'POST') {
+      return res.status(405).json({ error: 'Method not allowed' });
+    }
+
+    try {
+      const { trackingId, status, faxKey } = req.body;
+
+      if (!trackingId || !status) {
+        return res.status(400).json({
+          error: 'Missing required fields: trackingId, status'
+        });
+      }
+
+      const updateData = {
+        status,
+        updatedAt: admin.firestore.FieldValue.serverTimestamp()
+      };
+      if (faxKey) updateData.faxKey = faxKey;
+
+      // Update Firestore — frontend is listening in real-time on this doc
+      const updates = [
+        db.collection('faxJobs').doc(trackingId).set(updateData, { merge: true })
+      ];
+
+      // Also update by faxKey if provided
+      if (faxKey) {
+        updates.push(
+          db.collection('faxJobs').doc(faxKey).set(updateData, { merge: true })
+        );
+      }
+
+      await Promise.all(updates);
+
+      console.log(`faxWebhook: ${trackingId} → ${status}`);
+      return res.status(200).json({ success: true, trackingId, status });
+
+    } catch (error) {
+      console.error('faxWebhook error:', error);
+      return res.status(500).json({
+        error: 'Failed to process webhook',
+        details: error.message
+      });
+    }
+  });
+});
+
+/**
  * monitorFaxStatus - Polls Gmail for FAXDONE: bridge emails from Power Automate
  * Updates Firestore faxJobs collection so the web app gets real-time status
  * 
@@ -318,7 +378,7 @@ exports.getStores = functions.https.onRequest((req, res) => {
  * Body: RequesterEmail
  */
 exports.monitorFaxStatus = functions.pubsub
-.schedule('every 1 minutes')
+.schedule('every 30 seconds')
 .onRun(async (context) => {
   const imapSimple = require('imap-simple');
   const config = functions.config();
