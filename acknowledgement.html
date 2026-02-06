@@ -555,6 +555,14 @@
     }
     .save-btn.done:hover { color: var(--slate-300); }
     .onedrive-status { font-size: 0.75rem; color: var(--slate-500); margin-top: 0.2rem; font-style: italic; }
+    .cloud-save-status {
+      font-size: 0.78rem;
+      color: var(--slate-400);
+      margin: 0.4rem 0 1rem;
+    }
+    .cloud-save-status.success { color: var(--green-500); }
+    .cloud-save-status.warn { color: var(--amber-500); }
+    .cloud-save-status.error { color: var(--red-500); }
 
     #hiddenFileInput { display: none; }
 
@@ -1765,6 +1773,7 @@
       <h3>Acknowledgement Signed</h3>
       <p>Your signed acknowledgement PDF is ready. Choose how to save it.</p>
       <div class="signer-detail" id="signerDetail"></div>
+      <div class="cloud-save-status" id="cloudSaveStatus"></div>
       <div class="save-buttons">
         <button class="save-btn onedrive" id="onedriveSaveBtn" onclick="saveToOneDrive()">
           <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.39 4.19c1.66-.89 3.73-.78 5.28.32a5.17 5.17 0 0 1 2.2 3.54 4.38 4.38 0 0 1 2.67 1.81 4.34 4.34 0 0 1 .72 3.1 4.36 4.36 0 0 1-1.67 2.85 4.4 4.4 0 0 1-3.14.94H6.13a5.07 5.07 0 0 1-3.55-1.38A4.91 4.91 0 0 1 1.1 12a4.94 4.94 0 0 1 2.1-3.07 5.03 5.03 0 0 1 3.56-.85c.54-1.71 1.78-3.07 3.43-3.59a5.89 5.89 0 0 1 2.2-.3Z"/></svg>
@@ -3567,6 +3576,63 @@
       generatedPDF = doc;
     }
 
+    function updateCloudSaveStatus(state, message) {
+      const statusEl = document.getElementById('cloudSaveStatus');
+      if (!statusEl) return;
+      statusEl.className = 'cloud-save-status';
+      if (state) statusEl.classList.add(state);
+      statusEl.textContent = message || '';
+    }
+
+    function getDeliveryMethod() {
+      if (signatureMode === 'scan') return 'scan';
+      if (signatureMode === 'fax') {
+        const directNum = faxNumber.value.trim().replace(/\D/g, '');
+        return directNum ? 'print-direct' : 'print-store';
+      }
+      return 'digital';
+    }
+
+    async function saveAcknowledgementRecord() {
+      if (!generatedPDF) return;
+      updateCloudSaveStatus('info', 'Saving your acknowledgement to the cloud...');
+
+      if (!FUNCTIONS_BASE) {
+        updateCloudSaveStatus('info', 'Cloud save disabled in demo mode.');
+        return;
+      }
+
+      try {
+        const pdfBase64 = generatedPDF.output('datauristring').split(',')[1];
+        const payload = {
+          employeeName: nameInput.value.trim(),
+          signDate: dateInput.value,
+          signatureMode: signatureMode,
+          signatureDataUrl: signatureMode === 'scan' || signatureMode === 'fax' ? '' : signatureImage,
+          scanImageUrl: signatureMode === 'scan' ? scanImage : '',
+          pdfBase64,
+          pdfFileName: pdfFileName || buildFileName(),
+          deliveryMethod: getDeliveryMethod(),
+          storeNumber: signatureMode === 'fax' ? (faxStore.value || '') : ''
+        };
+
+        const response = await fetch(`${FUNCTIONS_BASE}/saveAcknowledgement`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const result = await response.json();
+        if (!response.ok) {
+          throw new Error(result.error || 'Failed to save acknowledgement');
+        }
+
+        updateCloudSaveStatus('success', 'Saved to cloud.');
+      } catch (error) {
+        console.error('saveAcknowledgement error:', error);
+        updateCloudSaveStatus('warn', 'Cloud save failed — you can still download or print.');
+      }
+    }
+
     /* ═══════════════════════════════════════════════════════════
        SUBMIT
        ═══════════════════════════════════════════════════════════ */
@@ -3641,6 +3707,7 @@
       } else { odBtn.style.opacity = '1'; odBtn.style.cursor = 'pointer'; odSt.textContent = ''; }
 
       document.getElementById('saveOverlay').classList.add('show');
+      saveAcknowledgementRecord();
     }
 
     /* ═══════════════════════════════════════════════════════════

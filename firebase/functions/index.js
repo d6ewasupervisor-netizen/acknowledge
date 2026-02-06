@@ -6,6 +6,7 @@
  *   - sendFaxDirect: Send PDF to a direct fax number
  *   - getStores: Get all stores (backup API for frontend)
  *   - faxWebhook: HTTP callback for instant Power Automate status updates
+ *   - saveAcknowledgement: Store signed acknowledgements in Firestore
  *   - monitorFaxStatus: Polls Gmail for FAXDONE emails (fallback)
  * 
  * Configuration (set via firebase functions:config:set):
@@ -364,6 +365,81 @@ exports.faxWebhook = functions.https.onRequest((req, res) => {
       console.error('faxWebhook error:', error);
       return res.status(500).json({
         error: 'Failed to process webhook',
+        details: error.message
+      });
+    }
+  });
+});
+
+/**
+ * saveAcknowledgement - Store signed acknowledgement records
+ *
+ * POST body:
+ * {
+ *   "employeeName": "John Doe",
+ *   "signDate": "2026-02-06",
+ *   "signatureMode": "draw" | "type" | "upload" | "scan" | "fax",
+ *   "signatureDataUrl": "<base64-png>",
+ *   "scanImageUrl": "<base64-jpg>",
+ *   "pdfBase64": "<full-pdf-base64>",
+ *   "pdfFileName": "Doe_John_2026_02_06_Acknowledgement.pdf",
+ *   "deliveryMethod": "digital" | "print-store" | "print-direct" | "scan",
+ *   "storeNumber": "#023"
+ * }
+ */
+exports.saveAcknowledgement = functions.runWith({ memory: '512MB' }).https.onRequest((req, res) => {
+  corsHandler(req, res, async () => {
+    if (req.method !== 'POST') {
+      return res.status(405).json({ error: 'Method not allowed' });
+    }
+
+    try {
+      const {
+        employeeName,
+        signDate,
+        signatureMode,
+        signatureDataUrl,
+        scanImageUrl,
+        pdfBase64,
+        pdfFileName,
+        deliveryMethod,
+        storeNumber
+      } = req.body || {};
+
+      if (!employeeName || !signDate || !pdfBase64 || !pdfFileName) {
+        return res.status(400).json({
+          error: 'Missing required fields: employeeName, signDate, pdfBase64, pdfFileName'
+        });
+      }
+
+      const cleanPdfBase64 = String(pdfBase64).includes(',')
+        ? String(pdfBase64).split(',')[1]
+        : String(pdfBase64);
+
+      const forwarded = req.headers['x-forwarded-for'];
+      const ipAddress = forwarded ? String(forwarded).split(',')[0].trim() : (req.ip || null);
+      const userAgent = req.headers['user-agent'] || null;
+
+      const docRef = await db.collection('signedAcknowledgements').add({
+        employeeName,
+        signDate,
+        signatureMode: signatureMode || 'draw',
+        signatureDataUrl: signatureDataUrl || null,
+        scanImageUrl: scanImageUrl || null,
+        pdfBase64: cleanPdfBase64,
+        pdfFileName,
+        deliveryMethod: deliveryMethod || 'digital',
+        storeNumber: storeNumber || null,
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        ipAddress: ipAddress || null,
+        userAgent: userAgent || null
+      });
+
+      return res.status(200).json({ success: true, docId: docRef.id });
+    } catch (error) {
+      console.error('saveAcknowledgement error:', error);
+      return res.status(500).json({
+        error: 'Failed to save acknowledgement',
         details: error.message
       });
     }

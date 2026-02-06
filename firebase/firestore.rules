@@ -18,6 +18,11 @@ service cloud.firestore {
       allow read: if true;
       allow write: if false; // Admin SDK only (Cloud Functions)
     }
+
+    // signedAcknowledgements collection - admin only
+    match /signedAcknowledgements/{docId} {
+      allow read, write: if false; // Admin SDK only
+    }
     
     // Deny all other collections by default
     match /{document=**} {
