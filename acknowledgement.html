@@ -9,6 +9,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=DM+Serif+Display&family=Dancing+Script:wght@400;600&family=Great+Vibes&family=Pacifico&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <!-- Firebase SDK for real-time fax delivery tracking -->
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
   <style>
     :root {
       --navy-950: #060e1a;
@@ -1019,6 +1022,39 @@
       display: block;
       margin-top: 0.5rem;
     }
+    .fax-status.waiting {
+      background: rgba(245,158,11,0.12);
+      color: #fbbf24;
+      border: 1px solid rgba(245,158,11,0.25);
+      animation: pulse-sending 2s ease-in-out infinite;
+    }
+    .fax-status.delivered {
+      background: rgba(34,197,94,0.15);
+      color: #4ade80;
+      border: 1px solid rgba(34,197,94,0.3);
+    }
+    .fax-status strong {
+      display: block;
+      margin-bottom: 0.25rem;
+    }
+    .fax-status .fax-status-sub {
+      display: block;
+      font-size: 0.92em;
+      opacity: 0.9;
+    }
+    .fax-status .fax-status-hint {
+      display: block;
+      font-size: 0.8em;
+      opacity: 0.55;
+      margin-top: 0.5rem;
+    }
+    .fax-status .fax-status-timer {
+      font-weight: 600;
+      font-size: 1.05em;
+      display: block;
+      margin-top: 0.4rem;
+      opacity: 0.8;
+    }
 
     /* Fax Trigger Card */
     .fax-trigger-card {
@@ -1581,6 +1617,30 @@
     // Leave empty for demo mode (shows what would be sent without calling the function)
     const FUNCTIONS_BASE = 'https://us-central1-the-dump-bin.cloudfunctions.net';
 
+    // ═══════════════════════════════════════════════════════════
+    // FIREBASE CONFIG (for real-time fax delivery tracking)
+    // ═══════════════════════════════════════════════════════════
+    // Get your config from: Firebase Console → Project Settings → General → Your apps
+    // If no web app exists, click "Add app" → Web → Register, then copy the config.
+    const FIREBASE_CONFIG = {
+      apiKey: "AIzaSyDSmpo3nM11_d_X41ulm0rC5TCS3m0Dt_s",   // ← Replace with your Firebase Web API Key
+      projectId: "the-dump-bin"
+    };
+
+    // Initialize Firebase Firestore (only if API key is configured)
+    let firestore = null;
+    if (FIREBASE_CONFIG.apiKey && FIREBASE_CONFIG.apiKey !== 'YOUR_FIREBASE_API_KEY') {
+      try {
+        firebase.initializeApp(FIREBASE_CONFIG);
+        firestore = firebase.firestore();
+        console.log('Firebase Firestore initialized for real-time fax status tracking');
+      } catch (e) {
+        console.warn('Firebase initialization failed:', e.message);
+      }
+    } else {
+      console.log('Firebase not configured — fax status tracking disabled. Set FIREBASE_CONFIG.apiKey to enable.');
+    }
+
     // Embedded store data for instant dropdown load (no network call needed)
     // Format: n = storeNumber, l = location, f = faxNumber
     const STORES = [
@@ -1764,6 +1824,7 @@
     const faxStatusEl = document.getElementById('faxStatus');
 
     function openFaxModal(mode) {
+      cleanupFaxListener();
       faxMode = mode;
       selectedStore = null;
       faxStoreSearch.value = '';
@@ -1787,6 +1848,7 @@
     }
 
     function closeFaxModal() {
+      cleanupFaxListener();
       faxModalOverlay.classList.remove('show');
       document.body.style.overflow = '';
     }
@@ -1865,6 +1927,111 @@
     function showFaxStatus(type, message) {
       faxStatusEl.className = `fax-status show ${type}`;
       faxStatusEl.textContent = message;
+    }
+
+    function showFaxStatusHtml(type, html) {
+      faxStatusEl.className = `fax-status show ${type}`;
+      faxStatusEl.innerHTML = html;
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // REAL-TIME FAX DELIVERY TRACKING
+    // ═══════════════════════════════════════════════════════════
+    let unsubscribeFaxListener = null;
+    let faxStatusTimeout = null;
+    let faxWaitingTimer = null;
+    let faxWaitingSeconds = 0;
+
+    function cleanupFaxListener() {
+      if (unsubscribeFaxListener) {
+        unsubscribeFaxListener();
+        unsubscribeFaxListener = null;
+      }
+      if (faxStatusTimeout) {
+        clearTimeout(faxStatusTimeout);
+        faxStatusTimeout = null;
+      }
+      if (faxWaitingTimer) {
+        clearInterval(faxWaitingTimer);
+        faxWaitingTimer = null;
+      }
+      faxWaitingSeconds = 0;
+    }
+
+    function listenForFaxStatus(trackingId, target) {
+      // Clean up any previous listener
+      cleanupFaxListener();
+
+      // If Firebase is not configured, fall back to basic success message
+      if (!firestore) {
+        showFaxStatus('success', `Sent! Your ${faxMode} form is being faxed to ${target}.`);
+        setTimeout(() => closeFaxModal(), 2500);
+        return;
+      }
+
+      // Show waiting status with live timer
+      faxWaitingSeconds = 0;
+      const updateWaitingDisplay = () => {
+        faxWaitingSeconds++;
+        const mins = Math.floor(faxWaitingSeconds / 60);
+        const secs = faxWaitingSeconds % 60;
+        const timeStr = mins > 0
+          ? `${mins}m ${secs.toString().padStart(2, '0')}s`
+          : `${secs}s`;
+        showFaxStatusHtml('waiting',
+          `<strong>Fax sent to ${target}</strong>` +
+          `<span class="fax-status-sub">Waiting for delivery confirmation...</span>` +
+          `<span class="fax-status-timer">${timeStr} elapsed</span>` +
+          `<span class="fax-status-hint">This usually takes 1–3 minutes. You can close this at any time.</span>`
+        );
+      };
+      updateWaitingDisplay();
+      faxWaitingTimer = setInterval(updateWaitingDisplay, 1000);
+
+      // Listen for Firestore document changes on faxJobs/{trackingId}
+      unsubscribeFaxListener = firestore.collection('faxJobs').doc(trackingId)
+        .onSnapshot((doc) => {
+          if (!doc.exists) return;
+          const data = doc.data();
+          const status = (data.status || '').trim();
+
+          if (/^(success|delivered|completed)$/i.test(status)) {
+            // Stop the waiting timer
+            if (faxWaitingTimer) { clearInterval(faxWaitingTimer); faxWaitingTimer = null; }
+            showFaxStatusHtml('delivered',
+              `<strong>Fax delivered!</strong>` +
+              `<span class="fax-status-sub">Your ${faxMode} form was successfully printed at ${target}.</span>`
+            );
+            cleanupFaxListener();
+          } else if (/^(fail|failed|error)$/i.test(status)) {
+            if (faxWaitingTimer) { clearInterval(faxWaitingTimer); faxWaitingTimer = null; }
+            showFaxStatusHtml('error',
+              `<strong>Fax delivery failed</strong>` +
+              `<span class="fax-status-sub">The fax to ${target} could not be delivered. Please try again.</span>`
+            );
+            cleanupFaxListener();
+          }
+          // 'Pending' or other statuses — keep listening
+        }, (error) => {
+          console.error('Firestore fax listener error:', error);
+          // Fall back to basic success message
+          if (faxWaitingTimer) { clearInterval(faxWaitingTimer); faxWaitingTimer = null; }
+          showFaxStatus('success', `Sent! Your ${faxMode} form is being faxed to ${target}.`);
+          cleanupFaxListener();
+        });
+
+      // After 5 minutes, show a "still processing" hint (but keep listening)
+      faxStatusTimeout = setTimeout(() => {
+        if (unsubscribeFaxListener) {
+          if (faxWaitingTimer) { clearInterval(faxWaitingTimer); faxWaitingTimer = null; }
+          showFaxStatusHtml('info',
+            `<strong>Fax sent to ${target}</strong>` +
+            `<span class="fax-status-sub">No confirmation received yet. The fax may still be processing.</span>` +
+            `<span class="fax-status-hint">You can close this window — the fax will continue in the background.</span>`
+          );
+        }
+        faxStatusTimeout = null;
+      }, 5 * 60 * 1000);
     }
 
     // Generate blank PDF for faxing
@@ -2072,17 +2239,14 @@
           throw new Error(result.error || 'Failed to send fax');
         }
 
-        // Success
+        // Success — start real-time delivery tracking
         clearInterval(sendingTimer);
         const target = useDirectFax 
           ? formatPhoneNumber(directNum)
           : `${selectedStore.l} (${selectedStore.n})`;
-        showFaxStatus('success', `Sent! Your ${faxMode} form is being faxed to ${target}.`);
 
-        // Reset after delay
-        setTimeout(() => {
-          closeFaxModal();
-        }, 2500);
+        // Start listening for delivery confirmation via Firestore
+        listenForFaxStatus(result.trackingId, target);
 
       } catch (error) {
         console.error('Fax error:', error);
