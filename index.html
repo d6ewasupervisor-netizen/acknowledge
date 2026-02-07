@@ -204,10 +204,6 @@
     .toc-header {
       position: relative;
       padding: 2.5rem 2rem 2.25rem;
-      /* Give the fixed hamburger its own "notch" so it never overlaps the logo */
-      padding-top: calc(2.5rem + var(--menu-btn-size) + var(--menu-btn-gap) + 0.75rem);
-      padding-left: calc(2rem + var(--menu-btn-size) + var(--menu-btn-gap));
-      padding-right: calc(2rem + var(--menu-btn-size) + var(--menu-btn-gap));
       text-align: center;
       background: linear-gradient(180deg, var(--navy-950) 0%, var(--navy-900) 100%);
       overflow: hidden;
@@ -447,7 +443,7 @@
     .reader-toolbar {
       display: flex; align-items: center; gap: 0.5rem;
       padding: 0.5rem 0.75rem;
-      padding-left: calc(max(0.75rem, env(safe-area-inset-left)) + var(--menu-btn-size) + var(--menu-btn-gap));
+      padding-left: max(0.75rem, env(safe-area-inset-left));
       background: var(--navy-900);
       border-bottom: 1px solid rgba(74,144,196,0.12);
       flex-shrink: 0;
@@ -517,6 +513,11 @@
     }
 
     /* App Menu (hamburger) */
+    .app-menu-button,
+    .app-menu-backdrop,
+    .app-menu-panel {
+      display: none !important;
+    }
     .app-menu-button {
       position: fixed;
       top: max(0.5rem, env(safe-area-inset-top));
@@ -1271,15 +1272,11 @@
 
       /* Safe area for notched phones */
       .reader-toolbar { padding: 0.4rem max(0.5rem, env(safe-area-inset-left)) 0.4rem max(0.5rem, env(safe-area-inset-right)); }
-      .reader-toolbar { padding-left: calc(max(0.5rem, env(safe-area-inset-left)) + var(--menu-btn-size) + 8px); }
       .reader-bottom { padding: 0.5rem max(0.75rem, env(safe-area-inset-left)) max(0.5rem, env(safe-area-inset-bottom)) max(0.75rem, env(safe-area-inset-right)); }
 
       /* TOC Landing */
       .toc-header {
         padding: 2rem 1.25rem 1.75rem;
-        padding-top: calc(2rem + var(--menu-btn-size) + var(--menu-btn-gap) + 0.75rem);
-        padding-left: calc(1.25rem + var(--menu-btn-size) + var(--menu-btn-gap));
-        padding-right: calc(1.25rem + var(--menu-btn-size) + var(--menu-btn-gap));
       }
       .toc-logo { height: auto; }
       .toc-title { font-size: 1.5rem; }
@@ -1634,6 +1631,9 @@
           <h3>State Supplements</h3>
           <p>Select your state to view the 2025 supplement.</p>
         </div>
+        <button class="supplement-close" onclick="openStateSelection()">
+          Choose states
+        </button>
         <button class="supplement-close" onclick="closeSupplementOverlay()">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
           Close

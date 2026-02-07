@@ -75,8 +75,6 @@
     .header {
       background: linear-gradient(135deg, var(--navy-950) 0%, var(--navy-900) 50%, var(--navy-800) 100%);
       padding: 2.25rem 2.25rem;
-      padding-left: calc(2.25rem + var(--menu-btn-size) + 0.75rem);
-      padding-right: calc(2.25rem + var(--menu-btn-size) + 0.75rem);
       text-align: center;
       position: relative;
       overflow: hidden;
@@ -616,6 +614,11 @@
     .toolbar-divider { width: 1px; height: 24px; background: rgba(74,144,196,0.15); margin: 0 0.25rem; }
     .toolbar-spacer { flex: 1; }
 
+    .app-menu-button,
+    .app-menu-backdrop,
+    .app-menu-panel {
+      display: none !important;
+    }
     .app-menu-button {
       position: fixed;
       top: max(0.5rem, env(safe-area-inset-top));
@@ -1458,13 +1461,10 @@
       body { -webkit-tap-highlight-color: transparent; }
       .app-toolbar {
         padding: 0.4rem max(0.5rem, env(safe-area-inset-left)) 0.4rem max(0.5rem, env(safe-area-inset-right));
-        padding-left: calc(max(0.5rem, env(safe-area-inset-left)) + var(--menu-btn-size) + 8px);
       }
       .header {
         padding: 1.6rem 1rem;
         padding-top: max(1.6rem, env(safe-area-inset-top));
-        padding-left: calc(1rem + var(--menu-btn-size) + 0.75rem);
-        padding-right: calc(1rem + var(--menu-btn-size) + 0.75rem);
       }
       .header-logo { max-height: 44px; }
       .header h1 { font-size: 1.25rem; }
@@ -1506,8 +1506,6 @@
     @media (max-width: 380px) {
       .header {
         padding: 1.3rem 0.75rem;
-        padding-left: calc(0.75rem + var(--menu-btn-size) + 0.75rem);
-        padding-right: calc(0.75rem + var(--menu-btn-size) + 0.75rem);
       }
       .header-logo { max-height: 36px; }
       .container { padding: 1rem 0.5rem calc(2.7rem + var(--bottom-nav-height)); }
