@@ -700,13 +700,16 @@
       pointer-events: none;
       color: transparent;
       z-index: 2;
+      overflow: hidden;
+      line-height: 1;
+      text-size-adjust: none;
+      -webkit-text-size-adjust: none;
     }
     /* Only position PDF.js's text spans; not nested highlight spans. */
     .textLayer > span {
       position: absolute;
       white-space: pre;
-      transform-origin: 0 0;
-      line-height: 1;
+      transform-origin: 0% 0%;
     }
     .textLayer .search-text-hit {
       position: static;
@@ -2884,6 +2887,11 @@ async function renderTextLayerForPage(page, viewport) {
   const textContent = await page.getTextContent();
   if (requestId !== textLayerRequestId) return;
   layer.innerHTML = '';
+  // PDF.js 3.11 uses calc(var(--scale-factor)*…) for span fontSize and
+  // for the container width/height set internally by setLayerDimensions().
+  // Without this variable every calc() expression is invalid, collapsing
+  // the text layer to 0×0 and making all highlights land at the origin.
+  layer.style.setProperty('--scale-factor', viewport.scale);
   layer.style.width = `${viewport.width}px`;
   layer.style.height = `${viewport.height}px`;
   positionTextLayer();
@@ -2901,6 +2909,11 @@ async function renderTextLayerForPage(page, viewport) {
     await task;
   }
   if (requestId !== textLayerRequestId) return;
+  // setLayerDimensions() (called inside renderTextLayer) overwrites the
+  // container width/height with calc(var(--scale-factor)*…).  Re-apply
+  // explicit pixel values so percentage-based span positions resolve
+  // against the actual canvas size.
+  positionTextLayer();
   currentTextItems = textContent.items || [];
   currentTextDivs = textDivs;
   resetTextLayerHighlights();
