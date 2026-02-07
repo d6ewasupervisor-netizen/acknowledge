@@ -38,6 +38,8 @@
       --red-500: #ef4444;
       --green-500: #22c55e;
       --amber-500: #f59e0b;
+      /* Updated at runtime (mobile on-screen keyboard) */
+      --keyboard-offset: 0px;
       --bottom-nav-height: calc(68px * 1.2);
       --bottom-nav-scale: 1.2;
       --reader-controls-scale: 0.5;
@@ -129,6 +131,7 @@
       max-height: min(320px, 42vh);
       overflow: auto;
       padding: 0.25rem;
+      padding-bottom: calc(0.25rem + var(--keyboard-offset));
       border-radius: 10px;
       background: rgba(255,255,255,0.02);
       border: 1px solid rgba(74,144,196,0.12);
@@ -1127,7 +1130,7 @@
     }
     /* Avoid nested scrolling; let the panel itself scroll if needed */
     .supplement-panel { overflow-y: auto; }
-    .supplement-body { padding: 1rem 1.5rem 1.25rem; overflow: visible; }
+    .supplement-body { padding: 1rem 1.5rem calc(1.25rem + var(--keyboard-offset)); overflow: visible; }
     .supplement-search {
       display: flex; align-items: center; gap: 0.5rem;
       padding: 0.6rem 0.8rem;
@@ -1334,7 +1337,7 @@
         border-radius: 0;
       }
       .supplement-header { padding: 1rem; padding-top: max(1rem, env(safe-area-inset-top)); }
-      .supplement-body { padding: 0.85rem 1rem; }
+      .supplement-body { padding: 0.85rem 1rem calc(0.85rem + var(--keyboard-offset)); }
       .supplement-footer { padding: 0.85rem 1rem max(0.85rem, env(safe-area-inset-bottom)); }
 
       /* Section tools — bottom sheet on mobile */
@@ -2179,6 +2182,41 @@ function escapeHtmlMini(text) {
     .replace(/"/g, '&quot;');
 }
 
+/* ═══════════════════════════════════════════════════════════
+   KEYBOARD / VIEWPORT (mobile on-screen keyboard)
+   ═══════════════════════════════════════════════════════════ */
+function blurActiveElement() {
+  const el = document.activeElement;
+  if (!el || typeof el.blur !== 'function') return;
+  const tag = (el.tagName || '').toLowerCase();
+  if (tag === 'input' || tag === 'textarea' || el.isContentEditable) el.blur();
+}
+
+function updateKeyboardOffset() {
+  try {
+    const vv = window.visualViewport;
+    if (!vv) {
+      document.documentElement.style.setProperty('--keyboard-offset', '0px');
+      return;
+    }
+    const overlap = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+    document.documentElement.style.setProperty('--keyboard-offset', `${Math.round(overlap)}px`);
+  } catch {
+    // Best-effort only; ignore.
+  }
+}
+
+(() => {
+  updateKeyboardOffset();
+  window.addEventListener('resize', updateKeyboardOffset, { passive: true });
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', updateKeyboardOffset, { passive: true });
+    window.visualViewport.addEventListener('scroll', updateKeyboardOffset, { passive: true });
+  }
+  document.addEventListener('focusin', updateKeyboardOffset, { passive: true });
+  document.addEventListener('focusout', () => setTimeout(updateKeyboardOffset, 50), { passive: true });
+})();
+
 function getSelectedSupplementStates() {
   try {
     const raw = localStorage.getItem(SELECTED_STATES_KEY) || '[]';
@@ -2241,6 +2279,7 @@ function confirmStateSelection() {
 }
 
 async function openStateSelection() {
+  blurActiveElement();
   const screen = document.getElementById('loadingScreen');
   const panel = document.getElementById('stateSelectPanel');
   const barTrack = document.getElementById('loadingBarTrack');
@@ -2656,7 +2695,6 @@ function focusHomeSearch() {
   const input = document.getElementById('tocSearchInput');
   if (!input) return;
   input.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  setTimeout(() => input.focus(), 150);
 }
 
 function showReaderView() {
@@ -3687,7 +3725,6 @@ function openSearchResultsFromNav() {
   document.getElementById('searchToggle').classList.add('active');
   input.value = query;
   if (query) performSearch(query);
-  setTimeout(() => input.focus(), 50);
   highlightBottomNav();
 }
 
@@ -3708,8 +3745,6 @@ function goPrimarySearch() {
   }
   if (!overlay.classList.contains('show')) {
     toggleSearch();
-  } else {
-    setTimeout(() => input.focus(), 50);
   }
 
   // De-emphasize the floating search navigation overlay (if open)
@@ -3724,9 +3759,6 @@ function openSearchNavInput() {
   if (!overlay) return;
   overlay.classList.remove('minimized');
   updateSearchNavOverlay();
-  if (input) {
-    setTimeout(() => input.focus(), 50);
-  }
   highlightBottomNav();
 }
 
@@ -3807,7 +3839,6 @@ function toggleSearch() {
     overlay.classList.add('show');
     backdrop.classList.add('show');
     document.getElementById('searchToggle').classList.add('active');
-    setTimeout(() => document.getElementById('searchInput').focus(), 100);
   }
   highlightBottomNav();
 }
@@ -3825,7 +3856,6 @@ function openSearchWithQuery(query) {
   if (input) {
     input.value = query || '';
     if (query) performSearch(query);
-    setTimeout(() => input.focus(), 100);
   }
 }
 
@@ -4092,7 +4122,6 @@ function openSupplementOverlay() {
   document.getElementById('supplementSearch').value = '';
   document.getElementById('supplementOverlay').classList.add('show');
   document.getElementById('supplementToggle').classList.add('active');
-  setTimeout(() => document.getElementById('supplementSearch').focus(), 100);
   highlightBottomNav();
 }
 
@@ -4168,6 +4197,7 @@ function closeAllOverlays() {
   closeSupplementOverlay();
   closeSectionTools();
   closeAppMenu();
+  blurActiveElement();
 }
 
 /* ═══════════════════════════════════════════════════════════

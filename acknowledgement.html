@@ -2351,7 +2351,10 @@
       renderFaxStoreList(STORES);
       faxModalOverlay.classList.add('show');
       document.body.style.overflow = 'hidden';
-      setTimeout(() => faxStoreSearch.focus(), 100);
+      // Do not auto-focus text fields when opening modals (prevents mobile keyboard pop).
+      if (document.activeElement && typeof document.activeElement.blur === 'function') {
+        document.activeElement.blur();
+      }
     }
 
     function closeFaxModal() {
