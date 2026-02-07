@@ -2058,6 +2058,7 @@ async function applyBrandingFromHandbookAssets() {
       const handbook = pickIconPath(icons, ['handbook', 'book', 'reader']);
       const supplements = pickIconPath(icons, ['supplement', 'state', 'map', 'usa']);
       const sign = pickIconPath(icons, ['sign', 'signature', 'pen', 'pencil']);
+      const back = pickIconPath(icons, ['back.png', '/back.', 'back', 'arrow-left', 'previous']);
       const menu = pickIconPath(icons, ['menu.png', '/menu.', 'menu', 'hamburger', 'bars']);
       const printer = pickIconPath(icons, ['printer', 'print']);
 
@@ -2067,6 +2068,8 @@ async function applyBrandingFromHandbookAssets() {
         if (oc.includes('gohome') && home) replaceButtonIcon(btn, url(home));
         else if (oc.includes('gosearch') || oc.includes('togglesearch') || oc.includes('focushomesearch')) {
           if (search) replaceButtonIcon(btn, url(search));
+        } else if (oc.includes('gobacknav')) {
+          if (back) replaceButtonIcon(btn, url(back));
         } else if (oc.includes('gohandbook') || oc.includes('openhandbookpage')) {
           if (handbook) replaceButtonIcon(btn, url(handbook));
         } else if (oc.includes('gosupplements') || oc.includes('opensupplement')) {

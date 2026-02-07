@@ -127,6 +127,7 @@
     "State_Supplement/32_Wisconsin.txt"
   ],
   "icons": [
+    "Icons/back.png",
     "Icons/book.png",
     "Icons/download.png",
     "Icons/home.png",
