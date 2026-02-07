@@ -4,9 +4,9 @@
   "description": "Employee Handbook Acknowledgement App",
   "main": "index.js",
   "scripts": {
-    "dev": "node server.js",
-    "start": "node server.js",
-    "dev:static": "http-server -c-1 -p 3000",
+    "dev": "http-server -c-1 -p 3000",
+    "start": "http-server -c-1 -p 3000",
+    "dev:node": "node server.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "firebase:login": "firebase login",
     "firebase:init": "firebase use --add",

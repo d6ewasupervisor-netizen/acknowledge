@@ -1380,7 +1380,7 @@
 
   <!-- ═══════ LOADING SCREEN ═══════ -->
   <div id="loadingScreen">
-    <img src="logo.png" alt="Retail Odyssey" class="loading-logo">
+    <img src="employeeHandbook/Logos/banner.png" alt="Retail Odyssey" class="loading-logo">
     <div class="loading-bar-track" id="loadingBarTrack"><div class="loading-bar-fill" id="loadingBar"></div></div>
     <div class="loading-text" id="loadingText">Loading handbook…</div>
     <div class="state-select hidden" id="stateSelectPanel">
@@ -1478,7 +1478,7 @@
   <div id="tocView" class="hidden">
     <header class="toc-header">
       <div class="toc-header-content">
-        <img src="headliner_logo.png" alt="Retail Odyssey" class="toc-logo">
+        <img src="employeeHandbook/Logos/banner.png" alt="Retail Odyssey" class="toc-logo">
         <h1 class="toc-title">Advantage Teammate Handbook</h1>
         <p class="toc-subtitle">Current version revised February 2025 &nbsp;·&nbsp; 56 Pages</p>
       </div>
@@ -1499,7 +1499,7 @@
   <div id="readerView" class="hidden">
     <!-- Top Toolbar -->
     <div class="reader-toolbar">
-      <img src="headliner_logo.png" alt="Retail Odyssey" class="toolbar-logo" onclick="showTocView()" title="Back to Contents">
+      <img src="employeeHandbook/Logos/banner.png" alt="Retail Odyssey" class="toolbar-logo" onclick="showTocView()" title="Back to Contents">
       <div class="toolbar-divider"></div>
       <div class="toolbar-page-info" id="pageInfo">Page <strong>1</strong> of 56</div>
       <div class="toolbar-spacer"></div>
@@ -1966,7 +1966,7 @@ const STATE_PAGES = {
 };
 const STATE_LIST = Object.keys(STATE_PAGES);
 const SELECTED_STATES_KEY = 'selectedSupplementStates';
-const HANDBOOK_ASSET_BASE = '/employeeHandbook';
+const HANDBOOK_ASSET_BASE = 'employeeHandbook';
 
 function pickLogoPath(paths, kind) {
   const list = Array.isArray(paths) ? paths : [];
@@ -2031,7 +2031,7 @@ function replaceContainerIcon(container, url) {
 
 async function applyBrandingFromHandbookAssets() {
   try {
-    const res = await fetch('/api/handbook-manifest', { cache: 'no-store' });
+    const res = await fetch(`${HANDBOOK_ASSET_BASE}/manifest.json`, { cache: 'no-store' });
     if (!res.ok) return;
     const manifest = await res.json();
     const logos = manifest?.logos || [];
@@ -3074,8 +3074,8 @@ let searchNavDrag = { active: false, offsetX: 0, offsetY: 0 };
 let searchNavManual = false;
 let pendingSearchScrollToHit = false;
 
-// TXT corpus search (served by local dev server; falls back to PDF text extraction)
-const TXT_CORPUS_BASE = '/employeeHandbook';
+// TXT corpus search (served as static files under /employeeHandbook)
+const TXT_CORPUS_BASE = 'employeeHandbook';
 let txtCorpusState = {
   ready: false,
   loading: false,
@@ -3162,7 +3162,7 @@ async function ensureTxtCorpusReady() {
   if (txtCorpusState.ready || txtCorpusState.loading || txtCorpusState.error) return;
   txtCorpusState.loading = true;
   try {
-    const manifest = await fetchJson('/api/handbook-manifest');
+    const manifest = await fetchJson(`${TXT_CORPUS_BASE}/manifest.json`);
     const advFiles = Array.isArray(manifest?.adv) ? manifest.adv : [];
     const suppFiles = Array.isArray(manifest?.supplement) ? manifest.supplement : [];
     const all = [

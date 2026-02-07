@@ -7,8 +7,7 @@ const { URL } = require('node:url');
 const ROOT_DIR = __dirname;
 const PORT = Number(process.env.PORT || 3000);
 const DEFAULT_LOCAL_HANDBOOK_DIR = path.join(ROOT_DIR, 'employeeHandbook');
-const HANDBOOK_DIR = process.env.EMPLOYEE_HANDBOOK_DIR
-  || (fs.existsSync(DEFAULT_LOCAL_HANDBOOK_DIR) ? DEFAULT_LOCAL_HANDBOOK_DIR : 'C:\\Assets\\employeeHandbook');
+const HANDBOOK_DIR = process.env.EMPLOYEE_HANDBOOK_DIR || DEFAULT_LOCAL_HANDBOOK_DIR;
 
 const MIME = {
   '.html': 'text/html; charset=utf-8',
@@ -120,6 +119,7 @@ const server = http.createServer(async (req, res) => {
     const url = new URL(req.url || '/', `http://${req.headers.host || 'localhost'}`);
     const pathname = decodeURIComponent(url.pathname || '/');
 
+    // Legacy endpoint retained for compatibility (prefer employeeHandbook/manifest.json)
     if (pathname === '/api/handbook-manifest') {
       const manifest = await getHandbookManifest();
       return send(res, 200, JSON.stringify(manifest), { 'Content-Type': MIME['.json'] });

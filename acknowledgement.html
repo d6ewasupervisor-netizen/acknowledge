@@ -1555,7 +1555,7 @@
   </div>
 
   <div class="app-toolbar" role="banner">
-    <img src="headliner_logo.png" alt="Retail Odyssey" class="toolbar-logo" onclick="goHome()" title="Back to Contents">
+    <img src="employeeHandbook/Logos/banner.png" alt="Retail Odyssey" class="toolbar-logo" onclick="goHome()" title="Back to Contents">
     <div class="toolbar-divider"></div>
     <div class="toolbar-spacer"></div>
     <button class="toolbar-btn" type="button" onclick="goHome()">
@@ -1583,7 +1583,7 @@
   <div class="page-shell">
     <header class="header">
       <div class="header-inner">
-        <img src="headliner_logo.png" alt="The Retail Odyssey Company" class="header-logo">
+        <img src="employeeHandbook/Logos/banner.png" alt="The Retail Odyssey Company" class="header-logo">
         <h1>Teammate Handbook Acknowledgement</h1>
         <p>
           <span class="header-sub">Current version revised February 2025</span>
@@ -1917,7 +1917,7 @@
     const ONEDRIVE_CLIENT_ID = _cfg.ONEDRIVE_CLIENT_ID || '';
 
     // Optional: swap logos/backgrounds from local handbook assets server.
-    const HANDBOOK_ASSET_BASE = '/employeeHandbook';
+    const HANDBOOK_ASSET_BASE = 'employeeHandbook';
     function pickLogoPath(paths, kind) {
       const list = Array.isArray(paths) ? paths : [];
       if (!list.length) return '';
@@ -1980,7 +1980,7 @@
 
     async function applyBrandingFromHandbookAssets() {
       try {
-        const res = await fetch('/api/handbook-manifest', { cache: 'no-store' });
+        const res = await fetch(`${HANDBOOK_ASSET_BASE}/manifest.json`, { cache: 'no-store' });
         if (!res.ok) return;
         const manifest = await res.json();
         const logos = manifest?.logos || [];
