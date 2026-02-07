@@ -152,7 +152,13 @@
     }
     .state-check:hover { border-color: rgba(74,144,196,0.28); }
     .state-check input { width: 16px; height: 16px; accent-color: var(--blue-500); }
-    .state-check span { color: var(--slate-100); font-size: 0.86rem; font-weight: 650; }
+    .state-check .state-emoji {
+      width: 1.35rem;
+      text-align: center;
+      font-size: 1.05rem;
+      line-height: 1;
+    }
+    .state-check .state-name { color: var(--slate-100); font-size: 0.86rem; font-weight: 650; }
 
     .state-continue {
       margin-top: 0.9rem;
@@ -1467,9 +1473,6 @@
       <button class="app-menu-item" onclick="zoomOut(); closeAppMenu();">
         Zoom Out <span class="app-menu-kbd">−</span>
       </button>
-      <button class="app-menu-item" onclick="toggleSectionTools(document.getElementById('toolsToggle')); closeAppMenu();">
-        Section Tools
-      </button>
       <button class="app-menu-item" onclick="printCurrentPage(); closeAppMenu();">
         Print Current Page
       </button>
@@ -1532,28 +1535,6 @@
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607zM10.5 7.5v6m3-3h-6"/></svg>
         </button>
       </div>
-      <div class="toolbar-divider"></div>
-
-      <button class="toolbar-btn" id="searchToggle" onclick="toggleSearch()">
-        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g transform="translate(1, 1)"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" fill="#B7950B"/></g><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" fill="#F1C40F"/></svg>
-        <span class="btn-label">Search</span>
-      </button>
-      <button class="toolbar-btn" id="tocToggle" onclick="toggleTocOverlay()">
-        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g transform="translate(1.5, 1.5)"><path d="M21 5c-1.11-.35-2.33-.5-3.5-.5-1.95 0-4.05.4-5.5 1.5-1.45-1.1-3.55-1.5-5.5-1.5S2.45 4.9 1 6v14.65c0 .25.25.5.5.5.1 0 .15-.05.25-.05C3.1 20.45 5.05 20 6.5 20c1.95 0 4.05.4 5.5 1.5 1.35-.85 3.8-1.5 5.5-1.5 1.65 0 3.35.3 4.75 1.05.1.05.15.05.25.05.25 0 .5-.25.5-.5V6c-.6-.45-1.25-.75-2-1zM6.5 18c-1.65 0-3.35.3-4.75 1.05V7.5C3.1 6.75 5.05 6.5 6.5 6.5c1.95 0 4.05.4 5.5 1.5v11.5c-1.45-1.1-3.55-1.5-5.5-1.5z" fill="#117A65"/></g><path d="M21 5c-1.11-.35-2.33-.5-3.5-.5-1.95 0-4.05.4-5.5 1.5-1.45-1.1-3.55-1.5-5.5-1.5S2.45 4.9 1 6v14.65c0 .25.25.5.5.5.1 0 .15-.05.25-.05C3.1 20.45 5.05 20 6.5 20c1.95 0 4.05.4 5.5 1.5 1.35-.85 3.8-1.5 5.5-1.5 1.65 0 3.35.3 4.75 1.05.1.05.15.05.25.05.25 0 .5-.25.5-.5V6c-.6-.45-1.25-.75-2-1zM6.5 18c-1.65 0-3.35.3-4.75 1.05V7.5C3.1 6.75 5.05 6.5 6.5 6.5c1.95 0 4.05.4 5.5 1.5v11.5c-1.45-1.1-3.55-1.5-5.5-1.5z" fill="#2ECC71"/></svg>
-        <span class="btn-label">Handbook</span>
-      </button>
-      <button class="toolbar-btn" id="supplementToggle" onclick="openSupplementOverlay()">
-        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g transform="translate(1, 1)"><path d="M2 12l2-3 4 1 2-3 5-1 4 3 1 2 2 7-6 1-3 3H8l-3-5-3-1v-4z" fill="#5B2C6F"/></g><path d="M2 12l2-3 4 1 2-3 5-1 4 3 1 2 2 7-6 1-3 3H8l-3-5-3-1v-4z" fill="#9B59B6"/></svg>
-        <span class="btn-label">Supplements</span>
-      </button>
-      <button class="toolbar-btn" id="toolsToggle" onclick="toggleSectionTools(this)">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
-        <span class="btn-label">Tools</span>
-      </button>
-      <button class="toolbar-btn" onclick="goToAcknowledgement()">
-        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g transform="translate(1, 1)"><path d="M15.5 5.5L13 8 6 15l-1 3 3-1 7-7 2.5-2.5-2-2zm-2 2l1.5 1.5" fill="#C2185B"/><path d="M2 18c2.5-2 4.5-4 7.5-4 3.5 0 5.5 4 9.5 4" stroke="#C2185B" stroke-width="3" stroke-linecap="round"/></g><path d="M15.5 5.5L13 8 6 15l-1 3 3-1 7-7 2.5-2.5-2-2zm-2 2l1.5 1.5" fill="#E91E63"/><path d="M2 18c2.5-2 4.5-4 7.5-4 3.5 0 5.5 4 9.5 4" stroke="#E91E63" stroke-width="3" stroke-linecap="round"/></svg>
-        <span class="btn-label">Sign</span>
-      </button>
     </div>
 
     <!-- Canvas Area -->
@@ -2242,9 +2223,12 @@ function renderStateSelectionUI() {
   grid.innerHTML = STATE_LIST.map(state => {
     const checked = selected.has(state) ? 'checked' : '';
     const id = `state_${state.replace(/\s+/g, '_')}`;
+    const emoji = getStateEmoji(state);
+    const safeState = escapeHtmlMini(state);
     return `<label class="state-check" for="${id}">
-      <input id="${id}" type="checkbox" data-state="${escapeHtmlMini(state)}" ${checked}>
-      <span>${escapeHtmlMini(state)}</span>
+      <input id="${id}" type="checkbox" data-state="${safeState}" ${checked}>
+      <span class="state-emoji" aria-hidden="true">${emoji}</span>
+      <span class="state-name">${safeState}</span>
     </label>`;
   }).join('');
 }
@@ -2627,26 +2611,26 @@ function restoreOverlays(overlays) {
   if (overlays.toc) {
     tocOverlay.classList.add('show');
     backdrop.classList.add('show');
-    document.getElementById('tocToggle').classList.add('active');
+    document.getElementById('tocToggle')?.classList.add('active');
     highlightTocOverlay();
   }
   if (overlays.search) {
     searchOverlay.classList.add('show');
     backdrop.classList.add('show');
-    document.getElementById('searchToggle').classList.add('active');
+    document.getElementById('searchToggle')?.classList.add('active');
   }
   if (overlays.supplement) {
     supplementOverlay.classList.add('show');
   }
   if (overlays.tools) {
     const isMobile = window.innerWidth <= 640;
-    if (!isMobile) {
+    if (!isMobile && toolsToggle) {
       const rect = toolsToggle.getBoundingClientRect();
       toolsPop.style.top = (rect.bottom + 6) + 'px';
       toolsPop.style.right = (window.innerWidth - rect.right) + 'px';
     }
     toolsPop.classList.add('show');
-    toolsToggle.classList.add('active');
+    toolsToggle?.classList.add('active');
     if (isMobile) backdrop.classList.add('show');
   }
   if (overlays.appMenu) {
@@ -3727,7 +3711,7 @@ function openSearchResultsFromNav() {
   closeAllOverlays();
   overlay.classList.add('show');
   backdrop.classList.add('show');
-  document.getElementById('searchToggle').classList.add('active');
+  document.getElementById('searchToggle')?.classList.add('active');
   input.value = query;
   if (query) performSearch(query);
   highlightBottomNav();
@@ -3843,7 +3827,7 @@ function toggleSearch() {
     closeAllOverlays();
     overlay.classList.add('show');
     backdrop.classList.add('show');
-    document.getElementById('searchToggle').classList.add('active');
+    document.getElementById('searchToggle')?.classList.add('active');
   }
   highlightBottomNav();
 }
@@ -3857,7 +3841,7 @@ function openSearchWithQuery(query) {
   closeAllOverlays();
   overlay.classList.add('show');
   backdrop.classList.add('show');
-  document.getElementById('searchToggle').classList.add('active');
+  document.getElementById('searchToggle')?.classList.add('active');
   if (input) {
     input.value = query || '';
     if (query) performSearch(query);
@@ -3867,7 +3851,7 @@ function openSearchWithQuery(query) {
 function closeSearch() {
   document.getElementById('searchOverlay').classList.remove('show');
   document.getElementById('overlayBackdrop').classList.remove('show');
-  document.getElementById('searchToggle').classList.remove('active');
+  document.getElementById('searchToggle')?.classList.remove('active');
   highlightBottomNav();
 }
 
@@ -4126,13 +4110,13 @@ function openSupplementOverlay() {
   buildSupplementList();
   document.getElementById('supplementSearch').value = '';
   document.getElementById('supplementOverlay').classList.add('show');
-  document.getElementById('supplementToggle').classList.add('active');
+  document.getElementById('supplementToggle')?.classList.add('active');
   highlightBottomNav();
 }
 
 function closeSupplementOverlay() {
   document.getElementById('supplementOverlay').classList.remove('show');
-  document.getElementById('supplementToggle').classList.remove('active');
+  document.getElementById('supplementToggle')?.classList.remove('active');
   highlightBottomNav();
 }
 
@@ -4191,7 +4175,7 @@ function toggleTocOverlay() {
     closeAllOverlays();
     overlay.classList.add('show');
     backdrop.classList.add('show');
-    document.getElementById('tocToggle').classList.add('active');
+    document.getElementById('tocToggle')?.classList.add('active');
     highlightTocOverlay();
   }
 }
@@ -4199,7 +4183,7 @@ function toggleTocOverlay() {
 function closeTocOverlay() {
   document.getElementById('tocOverlay').classList.remove('show');
   document.getElementById('overlayBackdrop').classList.remove('show');
-  document.getElementById('tocToggle').classList.remove('active');
+  document.getElementById('tocToggle')?.classList.remove('active');
 }
 
 function closeAllOverlays() {
@@ -4225,19 +4209,19 @@ function toggleSectionTools(btn) {
   closeTocOverlay();
   closeSearch();
   const isMobile = window.innerWidth <= 640;
-  if (!isMobile) {
+  if (!isMobile && btn) {
     const rect = btn.getBoundingClientRect();
     pop.style.top = (rect.bottom + 6) + 'px';
     pop.style.right = (window.innerWidth - rect.right) + 'px';
   }
   pop.classList.add('show');
   if (isMobile) backdrop.classList.add('show');
-  document.getElementById('toolsToggle').classList.add('active');
+  document.getElementById('toolsToggle')?.classList.add('active');
 }
 
 function closeSectionTools() {
   document.getElementById('sectionToolsPop').classList.remove('show');
-  document.getElementById('toolsToggle').classList.remove('active');
+  document.getElementById('toolsToggle')?.classList.remove('active');
   if (window.innerWidth <= 640) {
     // Only remove backdrop if TOC/search aren't open
     const tocOpen = document.getElementById('tocOverlay').classList.contains('show');
@@ -4261,10 +4245,36 @@ function downloadHandbook() {
   a.click();
 }
 
+function copyTextToClipboard(text) {
+  const str = String(text || '');
+  if (!str) return Promise.reject(new Error('No text'));
+  if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+    return navigator.clipboard.writeText(str);
+  }
+  // Fallback for non-secure contexts / older browsers
+  return new Promise((resolve, reject) => {
+    try {
+      const ta = document.createElement('textarea');
+      ta.value = str;
+      ta.setAttribute('readonly', '');
+      ta.style.position = 'fixed';
+      ta.style.top = '-1000px';
+      ta.style.left = '-1000px';
+      document.body.appendChild(ta);
+      ta.select();
+      const ok = document.execCommand('copy');
+      document.body.removeChild(ta);
+      ok ? resolve() : reject(new Error('Copy failed'));
+    } catch (e) {
+      reject(e);
+    }
+  });
+}
+
 function copyPageLink() {
   closeSectionTools();
   const url = window.location.origin + window.location.pathname + '#' + buildHash(currentPage, currentSupplementState);
-  navigator.clipboard.writeText(url).then(() => showToast('Page link copied!')).catch(() => showToast('Could not copy link'));
+  copyTextToClipboard(url).then(() => showToast('Page link copied!')).catch(() => showToast('Could not copy link'));
 }
 
 function copySectionLink() {
@@ -4281,7 +4291,7 @@ function copySectionLink() {
     }
   }
   const url = window.location.origin + window.location.pathname + '#section=' + (sectionName || 'welcome');
-  navigator.clipboard.writeText(url).then(() => showToast('Section link copied!')).catch(() => showToast('Could not copy link'));
+  copyTextToClipboard(url).then(() => showToast('Section link copied!')).catch(() => showToast('Could not copy link'));
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -4352,7 +4362,7 @@ window.addEventListener('orientationchange', () => {
 document.addEventListener('click', (e) => {
   const pop = document.getElementById('sectionToolsPop');
   const btn = document.getElementById('toolsToggle');
-  if (pop.classList.contains('show') && !pop.contains(e.target) && !btn.contains(e.target)) {
+  if (pop.classList.contains('show') && !pop.contains(e.target) && (!btn || !btn.contains(e.target))) {
     closeSectionTools();
   }
 });
