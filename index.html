@@ -81,6 +81,97 @@
     .loading-text { color: var(--slate-400); font-size: 0.8rem; margin-top: 1rem; letter-spacing: 0.05em; }
     @keyframes loadPulse { 0%, 100% { opacity: 0.7; } 50% { opacity: 1; } }
 
+    .state-select {
+      width: min(720px, 92vw);
+      margin-top: 1.25rem;
+      padding: 1.25rem 1.25rem 1rem;
+      background: rgba(13,27,42,0.7);
+      border: 1px solid rgba(74,144,196,0.18);
+      border-radius: 14px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.25);
+      text-align: left;
+    }
+    .state-select.hidden { display: none; }
+    .state-select h2 {
+      margin: 0 0 0.25rem 0;
+      font-size: 1.05rem;
+      color: var(--white);
+      letter-spacing: 0.02em;
+    }
+    .state-select p {
+      margin: 0 0 0.9rem 0;
+      font-size: 0.82rem;
+      color: var(--slate-300);
+      line-height: 1.5;
+    }
+    .state-select .state-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin: 0.25rem 0 0.85rem 0;
+    }
+    .state-select .state-actions button {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(74,144,196,0.18);
+      color: var(--slate-200);
+      padding: 0.45rem 0.7rem;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 0.78rem;
+    }
+    .state-select .state-actions button:hover { border-color: rgba(74,144,196,0.35); color: var(--white); }
+
+    .state-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.5rem;
+      max-height: min(320px, 42vh);
+      overflow: auto;
+      padding: 0.25rem;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(74,144,196,0.12);
+    }
+    @media (max-width: 720px) { .state-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 420px) { .state-grid { grid-template-columns: 1fr; } }
+
+    .state-check {
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+      padding: 0.55rem 0.65rem;
+      border-radius: 10px;
+      border: 1px solid rgba(74,144,196,0.12);
+      background: rgba(13,27,42,0.55);
+      cursor: pointer;
+      user-select: none;
+    }
+    .state-check:hover { border-color: rgba(74,144,196,0.28); }
+    .state-check input { width: 16px; height: 16px; accent-color: var(--blue-500); }
+    .state-check span { color: var(--slate-100); font-size: 0.86rem; font-weight: 650; }
+
+    .state-continue {
+      margin-top: 0.9rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+    .state-continue .hint { color: var(--slate-400); font-size: 0.78rem; }
+    .state-continue .primary {
+      background: var(--blue-500);
+      border: 1px solid var(--blue-500);
+      color: var(--white);
+      padding: 0.6rem 1rem;
+      border-radius: 12px;
+      cursor: pointer;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+    }
+    .state-continue .primary:hover { background: var(--blue-400); border-color: var(--blue-400); }
+
     /* ═══════════════════════════════════════════════════
        TOC / LANDING VIEW
        ═══════════════════════════════════════════════════ */
@@ -113,6 +204,8 @@
     .toc-header {
       position: relative;
       padding: 2.5rem 2rem 2.25rem;
+      padding-left: calc(2rem + var(--menu-btn-size) + var(--menu-btn-gap));
+      padding-right: calc(2rem + var(--menu-btn-size) + var(--menu-btn-gap));
       text-align: center;
       background: linear-gradient(180deg, var(--navy-950) 0%, var(--navy-900) 100%);
       overflow: hidden;
@@ -433,7 +526,7 @@
     }
     .app-menu-button:hover { background: rgba(13,27,42,1); color: var(--blue-100); }
     .app-menu-button.active { background: rgba(74,144,196,0.2); color: var(--blue-100); border-color: rgba(74,144,196,0.5); }
-    .app-menu-button svg { width: 20px; height: 20px; }
+    .app-menu-button svg, .app-menu-button .icon-img { width: 20px; height: 20px; }
 
     .app-menu-backdrop {
       position: fixed; inset: 0; z-index: 120;
@@ -1166,7 +1259,11 @@
       .reader-bottom { padding: 0.5rem max(0.75rem, env(safe-area-inset-left)) max(0.5rem, env(safe-area-inset-bottom)) max(0.75rem, env(safe-area-inset-right)); }
 
       /* TOC Landing */
-      .toc-header { padding: 2rem 1.25rem 1.75rem; }
+      .toc-header {
+        padding: 2rem 1.25rem 1.75rem;
+        padding-left: calc(1.25rem + var(--menu-btn-size) + var(--menu-btn-gap));
+        padding-right: calc(1.25rem + var(--menu-btn-size) + var(--menu-btn-gap));
+      }
       .toc-logo { height: auto; }
       .toc-title { font-size: 1.5rem; }
       .toc-body { padding: 1rem 0.75rem calc(7rem + var(--bottom-nav-height)); }
@@ -1284,8 +1381,21 @@
   <!-- ═══════ LOADING SCREEN ═══════ -->
   <div id="loadingScreen">
     <img src="logo.png" alt="Retail Odyssey" class="loading-logo">
-    <div class="loading-bar-track"><div class="loading-bar-fill" id="loadingBar"></div></div>
+    <div class="loading-bar-track" id="loadingBarTrack"><div class="loading-bar-fill" id="loadingBar"></div></div>
     <div class="loading-text" id="loadingText">Loading handbook…</div>
+    <div class="state-select hidden" id="stateSelectPanel">
+      <h2>Select your state supplement(s)</h2>
+      <p>Choose none, one, or multiple. This controls which state supplements are shown in the app.</p>
+      <div class="state-actions">
+        <button type="button" onclick="selectAllStates()">Select all</button>
+        <button type="button" onclick="selectNoStates()">Select none</button>
+      </div>
+      <div class="state-grid" id="stateSelectGrid"></div>
+      <div class="state-continue">
+        <div class="hint">You can change this later from the menu.</div>
+        <button type="button" class="primary" onclick="confirmStateSelection()">Continue</button>
+      </div>
+    </div>
   </div>
 
   <!-- ═══════ APP MENU (ALWAYS AVAILABLE) ═══════ -->
@@ -1316,6 +1426,9 @@
       </button>
       <button class="app-menu-item" onclick="openSupplementOverlay(); closeAppMenu();">
         State Supplements
+      </button>
+      <button class="app-menu-item" onclick="openStateSelection(); closeAppMenu();">
+        Choose State Supplements
       </button>
       <button class="app-menu-item" onclick="goToAcknowledgement(); closeAppMenu();">
         Sign Acknowledgement
@@ -1367,7 +1480,7 @@
       <div class="toc-header-content">
         <img src="headliner_logo.png" alt="Retail Odyssey" class="toc-logo">
         <h1 class="toc-title">Advantage Teammate Handbook</h1>
-        <p class="toc-subtitle">This page revised February 2026 &nbsp;·&nbsp; 56 Pages</p>
+        <p class="toc-subtitle">Current version revised February 2025 &nbsp;·&nbsp; 56 Pages</p>
       </div>
     </header>
 
@@ -1852,6 +1965,216 @@ const STATE_PAGES = {
   'Wisconsin': 263
 };
 const STATE_LIST = Object.keys(STATE_PAGES);
+const SELECTED_STATES_KEY = 'selectedSupplementStates';
+const HANDBOOK_ASSET_BASE = '/employeeHandbook';
+
+function pickLogoPath(paths, kind) {
+  const list = Array.isArray(paths) ? paths : [];
+  if (!list.length) return '';
+  const lc = list.map(p => ({ p, l: String(p).toLowerCase() }));
+  const byHint = (hint) => lc.find(x => x.l.includes(hint))?.p || '';
+  if (kind === 'header') {
+    return byHint('header') || byHint('headliner') || byHint('logo') || list[0];
+  }
+  // background / watermark
+  return byHint('watermark') || byHint('background') || byHint('pattern') || list[list.length - 1];
+}
+
+function pickIconPath(paths, hints) {
+  const list = Array.isArray(paths) ? paths : [];
+  if (!list.length) return '';
+  const lc = list.map(p => ({ p, l: String(p).toLowerCase() }));
+  for (const h of (hints || [])) {
+    const hit = lc.find(x => x.l.includes(String(h).toLowerCase()));
+    if (hit?.p) return hit.p;
+  }
+  return '';
+}
+
+function replaceButtonIcon(btn, url) {
+  if (!btn || !url) return;
+  const svg = btn.querySelector('svg');
+  let img = btn.querySelector('img.icon-img');
+  if (!img) {
+    img = document.createElement('img');
+    img.className = 'icon-img';
+    img.alt = '';
+    img.loading = 'lazy';
+    if (svg) {
+      svg.style.display = 'none';
+      btn.insertBefore(img, svg);
+    } else {
+      btn.insertBefore(img, btn.firstChild);
+    }
+  }
+  img.src = url;
+}
+
+async function applyBrandingFromHandbookAssets() {
+  try {
+    const res = await fetch('/api/handbook-manifest', { cache: 'no-store' });
+    if (!res.ok) return;
+    const manifest = await res.json();
+    const logos = manifest?.logos || [];
+    const icons = manifest?.icons || [];
+
+    if (Array.isArray(logos) && logos.length) {
+      const headerLogoPath = pickLogoPath(logos, 'header');
+      const bgLogoPath = pickLogoPath(logos, 'background');
+      if (headerLogoPath) {
+        const headerUrl = `${HANDBOOK_ASSET_BASE}/${headerLogoPath}`;
+        document.querySelectorAll('img.loading-logo, img.toc-logo, img.toolbar-logo').forEach(img => {
+          try { img.src = headerUrl; } catch (e) { /* ignore */ }
+        });
+      }
+      if (bgLogoPath) {
+        const bgUrl = `${HANDBOOK_ASSET_BASE}/${bgLogoPath}`;
+        document.documentElement.style.setProperty('--watermark-logo', `url('${bgUrl}')`);
+      }
+    }
+
+    if (Array.isArray(icons) && icons.length) {
+      const home = pickIconPath(icons, ['home']);
+      const search = pickIconPath(icons, ['search', 'magnify']);
+      const handbook = pickIconPath(icons, ['handbook', 'book', 'reader']);
+      const supplements = pickIconPath(icons, ['supplement', 'state', 'map', 'usa']);
+      const sign = pickIconPath(icons, ['sign', 'signature', 'pen', 'pencil']);
+      const menu = pickIconPath(icons, ['menu', 'hamburger', 'bars']);
+
+      const url = (p) => p ? `${HANDBOOK_ASSET_BASE}/${p}` : '';
+      document.querySelectorAll('.toolbar-btn, .home-bottom-nav .toolbar-btn').forEach(btn => {
+        const oc = (btn.getAttribute('onclick') || '').toLowerCase();
+        if (oc.includes('gohome') && home) replaceButtonIcon(btn, url(home));
+        else if (oc.includes('gosearch') || oc.includes('togglesearch') || oc.includes('focushomesearch')) {
+          if (search) replaceButtonIcon(btn, url(search));
+        } else if (oc.includes('gohandbook') || oc.includes('openhandbookpage')) {
+          if (handbook) replaceButtonIcon(btn, url(handbook));
+        } else if (oc.includes('gosupplements') || oc.includes('opensupplement')) {
+          if (supplements) replaceButtonIcon(btn, url(supplements));
+        } else if (oc.includes('gosign') || oc.includes('gotoacknowledgement')) {
+          if (sign) replaceButtonIcon(btn, url(sign));
+        }
+      });
+
+      if (menu) {
+        const menuBtn = document.getElementById('appMenuButton');
+        if (menuBtn) replaceButtonIcon(menuBtn, url(menu));
+      }
+    }
+  } catch (e) {
+    // ignore (static hosting / no local assets server)
+  }
+}
+
+function escapeHtmlMini(text) {
+  return (text || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function getSelectedSupplementStates() {
+  try {
+    const raw = localStorage.getItem(SELECTED_STATES_KEY) || '[]';
+    const arr = JSON.parse(raw);
+    return Array.isArray(arr) ? arr.filter(s => STATE_LIST.includes(s)) : [];
+  } catch {
+    return [];
+  }
+}
+
+function setSelectedSupplementStates(states) {
+  const uniq = Array.from(new Set((states || []).filter(s => STATE_LIST.includes(s))));
+  localStorage.setItem(SELECTED_STATES_KEY, JSON.stringify(uniq));
+}
+
+let stateSelectResolver = null;
+function renderStateSelectionUI() {
+  const grid = document.getElementById('stateSelectGrid');
+  if (!grid) return;
+  const selected = new Set(getSelectedSupplementStates());
+  grid.innerHTML = STATE_LIST.map(state => {
+    const checked = selected.has(state) ? 'checked' : '';
+    const id = `state_${state.replace(/\s+/g, '_')}`;
+    return `<label class="state-check" for="${id}">
+      <input id="${id}" type="checkbox" data-state="${escapeHtmlMini(state)}" ${checked}>
+      <span>${escapeHtmlMini(state)}</span>
+    </label>`;
+  }).join('');
+}
+
+function selectAllStates() {
+  setSelectedSupplementStates(STATE_LIST.slice());
+  renderStateSelectionUI();
+}
+
+function selectNoStates() {
+  setSelectedSupplementStates([]);
+  renderStateSelectionUI();
+}
+
+function confirmStateSelection() {
+  const grid = document.getElementById('stateSelectGrid');
+  if (!grid) return;
+  const selected = [];
+  grid.querySelectorAll('input[type="checkbox"][data-state]').forEach(cb => {
+    if (cb.checked) selected.push(cb.getAttribute('data-state'));
+  });
+  setSelectedSupplementStates(selected);
+  try {
+    const overlay = document.getElementById('supplementOverlay');
+    if (overlay && overlay.classList.contains('show')) {
+      buildSupplementList(document.getElementById('supplementSearch')?.value || '');
+    }
+  } catch (e) { /* ignore */ }
+  if (typeof stateSelectResolver === 'function') {
+    const r = stateSelectResolver;
+    stateSelectResolver = null;
+    r();
+  }
+}
+
+async function openStateSelection() {
+  const screen = document.getElementById('loadingScreen');
+  const panel = document.getElementById('stateSelectPanel');
+  const barTrack = document.getElementById('loadingBarTrack');
+  const loadingText = document.getElementById('loadingText');
+  if (!screen || !panel) return;
+
+  renderStateSelectionUI();
+  panel.classList.remove('hidden');
+  if (barTrack) barTrack.style.display = 'none';
+  if (loadingText) loadingText.textContent = 'Choose your state supplements…';
+  screen.classList.remove('hidden');
+
+  await new Promise((resolve) => { stateSelectResolver = resolve; });
+
+  panel.classList.add('hidden');
+  if (barTrack) barTrack.style.display = '';
+  screen.classList.add('hidden');
+}
+
+async function ensureStateSelectionStep() {
+  // Show on first run, or if user never chose (localStorage missing)
+  const hasKey = localStorage.getItem(SELECTED_STATES_KEY) != null;
+  if (hasKey) return;
+
+  const panel = document.getElementById('stateSelectPanel');
+  const barTrack = document.getElementById('loadingBarTrack');
+  const loadingText = document.getElementById('loadingText');
+  if (!panel) return;
+
+  renderStateSelectionUI();
+  panel.classList.remove('hidden');
+  if (barTrack) barTrack.style.display = 'none';
+  if (loadingText) loadingText.textContent = 'Almost ready…';
+
+  await new Promise((resolve) => { stateSelectResolver = resolve; });
+
+  panel.classList.add('hidden');
+  if (barTrack) barTrack.style.display = '';
+}
 
 /* ═══════════════════════════════════════════════════════════
    INIT
@@ -1863,6 +2186,9 @@ async function init() {
   const txt = document.getElementById('loadingText');
 
   try {
+    // If local handbook assets are available (Logos/Icons), apply them early.
+    await applyBrandingFromHandbookAssets();
+
     txt.textContent = 'Loading handbook…';
     bar.style.width = '20%';
 
@@ -1888,6 +2214,9 @@ async function init() {
 
     // Compute base scale for good fit
     computeBaseScale();
+
+    // Optional: allow user to select state supplements at startup
+    await ensureStateSelectionStep();
 
     bar.style.width = '100%';
 
@@ -2456,6 +2785,9 @@ async function renderPage(num) {
   rendering = true;
 
   try {
+    const canvasArea = document.getElementById('canvasArea');
+    const shouldAutoScrollTop = !pendingSearchScrollToHit;
+
     const page = await pdfDoc.getPage(num);
     const viewport = page.getViewport({ scale: scale });
     const canvas = document.getElementById('pdfCanvas');
@@ -2472,7 +2804,7 @@ async function renderPage(num) {
     await renderTextLayerForPage(page, viewport);
 
     // Scroll canvas area to top
-    document.getElementById('canvasArea').scrollTop = 0;
+    if (canvasArea && shouldAutoScrollTop) canvasArea.scrollTop = 0;
     updateResourcesOverlay();
     await applySearchHighlight();
   } catch (err) {
@@ -2698,6 +3030,7 @@ pageSlider.addEventListener('input', (e) => {
    TEXT EXTRACTION (for search)
    ═══════════════════════════════════════════════════════════ */
 async function extractAllText() {
+  // Legacy search index (PDF extraction). TXT index will supersede when available.
   await ensureHandbookText();
   pageTextCache = handbookTextCache;
 }
@@ -2713,6 +3046,139 @@ let activeSearchIndex = -1;
 let highlightRequestId = 0;
 let searchNavDrag = { active: false, offsetX: 0, offsetY: 0 };
 let searchNavManual = false;
+let pendingSearchScrollToHit = false;
+
+// TXT corpus search (served by local dev server; falls back to PDF text extraction)
+const TXT_CORPUS_BASE = '/employeeHandbook';
+let txtCorpusState = {
+  ready: false,
+  loading: false,
+  error: '',
+  docs: [],
+  handbookTitleToPage: new Map()
+};
+
+function safeNormalizeTitle(s) {
+  return (s || '')
+    .replace(/\.[^.]+$/, '')
+    .replace(/^[0-9]{1,2}[a-z]?[_-]+/i, '')
+    .replace(/[_-]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLowerCase();
+}
+
+function flattenTocEntries() {
+  const entries = [];
+  try {
+    TOC.forEach(section => {
+      entries.push({ title: section.title, page: section.page });
+      (section.subs || []).forEach(sub => entries.push({ title: sub.title, page: sub.page }));
+    });
+  } catch (e) { /* ignore */ }
+  return entries;
+}
+
+function scoreTitleMatch(a, b) {
+  const na = safeNormalizeTitle(a);
+  const nb = safeNormalizeTitle(b);
+  if (!na || !nb) return 0;
+  if (na === nb) return 1.0;
+  if (na.includes(nb) || nb.includes(na)) return 0.92;
+  const aParts = new Set(na.split(' ').filter(Boolean));
+  const bParts = new Set(nb.split(' ').filter(Boolean));
+  let inter = 0;
+  for (const p of aParts) if (bParts.has(p)) inter++;
+  const union = aParts.size + bParts.size - inter;
+  return union ? inter / union : 0;
+}
+
+function guessHandbookPageFromTxtPath(txtPath) {
+  if (txtCorpusState.handbookTitleToPage.has(txtPath)) {
+    return txtCorpusState.handbookTitleToPage.get(txtPath);
+  }
+  const tocEntries = flattenTocEntries();
+  const fileName = (txtPath || '').split('/').pop() || txtPath || '';
+  const guessTitle = safeNormalizeTitle(fileName);
+  let best = { score: 0, page: 1 };
+  for (const t of tocEntries) {
+    const s = scoreTitleMatch(guessTitle, t.title);
+    if (s > best.score) best = { score: s, page: t.page };
+  }
+  const page = best.score >= 0.25 ? best.page : 1;
+  txtCorpusState.handbookTitleToPage.set(txtPath, page);
+  return page;
+}
+
+function getStateFromSupplementTxtPath(txtPath) {
+  const file = (txtPath || '').split('/').pop() || '';
+  const noExt = file.replace(/\.txt$/i, '');
+  const stripped = noExt.replace(/^[0-9]{1,2}[_-]+/, '');
+  const label = stripped.replace(/_/g, ' ').trim();
+  // normalize "District_of_Columbia" style
+  const match = STATE_LIST.find(s => s.toLowerCase() === label.toLowerCase());
+  return match || '';
+}
+
+async function fetchJson(url) {
+  const res = await fetch(url, { cache: 'no-store' });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return await res.json();
+}
+
+async function fetchText(url) {
+  const res = await fetch(url, { cache: 'no-store' });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return await res.text();
+}
+
+async function ensureTxtCorpusReady() {
+  if (txtCorpusState.ready || txtCorpusState.loading || txtCorpusState.error) return;
+  txtCorpusState.loading = true;
+  try {
+    const manifest = await fetchJson('/api/handbook-manifest');
+    const advFiles = Array.isArray(manifest?.adv) ? manifest.adv : [];
+    const suppFiles = Array.isArray(manifest?.supplement) ? manifest.supplement : [];
+    const all = [
+      ...advFiles.map(p => ({ docType: 'handbook', path: p })),
+      ...suppFiles.map(p => ({ docType: 'supplement', path: p }))
+    ];
+
+    const docs = [];
+    const concurrency = 6;
+    let idx = 0;
+    async function worker() {
+      while (idx < all.length) {
+        const i = idx++;
+        const item = all[i];
+        const url = `${TXT_CORPUS_BASE}/${item.path}`;
+        try {
+          const text = await fetchText(url);
+          docs.push({
+            docType: item.docType,
+            path: item.path,
+            title: safeNormalizeTitle(item.path.split('/').pop() || item.path),
+            text,
+            textLower: (text || '').toLowerCase()
+          });
+        } catch (e) {
+          // Skip missing/unreadable docs; keep indexing others
+        }
+      }
+    }
+    await Promise.all(Array.from({ length: concurrency }, () => worker()));
+
+    txtCorpusState.docs = docs;
+    txtCorpusState.ready = docs.length > 0;
+    if (!txtCorpusState.ready) {
+      txtCorpusState.error = 'TXT corpus unavailable';
+    }
+  } catch (e) {
+    txtCorpusState.error = e?.message || String(e);
+  } finally {
+    txtCorpusState.loading = false;
+  }
+}
 
 function getQueryPreview(query) {
   const clean = (query || '').trim();
@@ -2829,31 +3295,57 @@ function clearSearchHighlights() {
 function normalizeSearchChar(ch) {
   if (!ch) return '';
   if (ch === '\u00ad' || ch === '\u200b' || ch === '\u200c' || ch === '\u200d') return '';
-  if (ch === '\u00a0') return '';
-  if (/\s/.test(ch)) return '';
+  if (ch === '\u00a0') return ' ';
+  if (/\s/.test(ch)) return ' ';
   if (ch >= '\u2010' && ch <= '\u2014') return '-';
   return ch.toLowerCase();
 }
 
 function normalizeQueryForIndex(query) {
-  let normalized = '';
-  for (let i = 0; i < query.length; i++) {
+  // Preserve word boundaries: collapse whitespace to a single space.
+  let out = '';
+  let lastWasSpace = false;
+  for (let i = 0; i < (query || '').length; i++) {
     const n = normalizeSearchChar(query[i]);
-    if (n) normalized += n;
+    if (!n) continue;
+    if (n === ' ') {
+      if (!out.length || lastWasSpace) continue;
+      out += ' ';
+      lastWasSpace = true;
+    } else {
+      out += n;
+      lastWasSpace = false;
+    }
   }
-  return normalized;
+  return out.trim();
 }
 
 function buildNormalizedIndexForItems(items) {
-  const map = [];
+  // Preserve spaces and prevent cross-item "teleporting".
+  const map = []; // index -> { itemIndex, charIndex } | null for synthetic spaces
   let normalized = '';
+  let lastWasSpace = false;
   for (let itemIndex = 0; itemIndex < items.length; itemIndex++) {
     const text = items[itemIndex]?.str || '';
+    // Insert a single synthetic space between items (collapsed below).
+    if (normalized.length && !lastWasSpace) {
+      normalized += ' ';
+      map.push(null);
+      lastWasSpace = true;
+    }
     for (let charIndex = 0; charIndex < text.length; charIndex++) {
       const n = normalizeSearchChar(text[charIndex]);
       if (!n) continue;
+      if (n === ' ') {
+        if (!normalized.length || lastWasSpace) continue;
+        normalized += ' ';
+        map.push(null);
+        lastWasSpace = true;
+        continue;
+      }
       normalized += n;
       map.push({ itemIndex, charIndex });
+      lastWasSpace = false;
     }
   }
   return { normalized, map };
@@ -2869,22 +3361,32 @@ function buildHighlightRangesByItem(items, query) {
     const idx = normalized.indexOf(normalizedQuery, start);
     if (idx === -1) break;
     const endIdx = idx + normalizedQuery.length;
+    // Only highlight real characters mapped to PDF text items (skip synthetic spaces).
     for (let i = idx; i < endIdx; i++) {
       const entry = map[i];
       if (!entry) continue;
       const { itemIndex, charIndex } = entry;
       const ranges = rangesByItem.get(itemIndex) || [];
       const last = ranges[ranges.length - 1];
-      if (last && charIndex === last.end) {
-        last.end += 1;
-      } else {
-        ranges.push({ start: charIndex, end: charIndex + 1 });
-      }
+      if (last && charIndex === last.end) last.end += 1;
+      else ranges.push({ start: charIndex, end: charIndex + 1 });
       rangesByItem.set(itemIndex, ranges);
     }
     start = endIdx;
   }
   return rangesByItem;
+}
+
+function scrollToFirstSearchHit() {
+  const area = document.getElementById('canvasArea');
+  if (!area) return;
+  const hit = document.querySelector('#textLayer .search-text-hit');
+  if (!hit) return;
+  const areaRect = area.getBoundingClientRect();
+  const hitRect = hit.getBoundingClientRect();
+  const delta = hitRect.top - areaRect.top;
+  const target = area.scrollTop + delta - Math.max(24, Math.round(area.clientHeight * 0.25));
+  area.scrollTop = Math.max(0, target);
 }
 
 function applyRangesToText(text, ranges) {
@@ -3128,6 +3630,12 @@ async function applySearchHighlight() {
     div.innerHTML = applyRangesToText(text, ranges);
   }
   positionSearchNavOverlay();
+
+  if (pendingSearchScrollToHit) {
+    pendingSearchScrollToHit = false;
+    // Let DOM apply <span> updates before measuring.
+    requestAnimationFrame(() => scrollToFirstSearchHit());
+  }
 }
 
 async function navigateSearchResult(index, announce = false) {
@@ -3137,6 +3645,7 @@ async function navigateSearchResult(index, announce = false) {
   activeSearchIndex = index;
   markSearchResultVisited(result);
   updateSearchNavOverlay();
+  pendingSearchScrollToHit = true;
   if (result.docType === 'supplement') {
     await openSupplementPage(result.page);
   } else {
@@ -3241,11 +3750,70 @@ async function performSearch(query) {
 async function collectSearchResults(query, includeMeta = false) {
   const q = (query || '').trim();
   const qLower = q.toLowerCase();
+
+  // Prefer TXT corpus search when available (more consistent snippets + avoids PDF text-layer drift).
+  await ensureTxtCorpusReady();
+  if (txtCorpusState.ready) {
+    const results = [];
+    const maxResults = 250;
+    const selectedStates = getSelectedSupplementStates();
+    for (const doc of txtCorpusState.docs) {
+      if (!doc?.textLower) continue;
+      if (doc.docType === 'supplement' && selectedStates.length) {
+        const state = getStateFromSupplementTxtPath(doc.path);
+        if (state && !selectedStates.includes(state)) continue;
+      }
+      let from = 0;
+      while (from < doc.textLower.length) {
+        const idx = doc.textLower.indexOf(qLower, from);
+        if (idx === -1) break;
+        const start = Math.max(0, idx - 70);
+        const end = Math.min(doc.text.length, idx + q.length + 90);
+        let snippet = (doc.text || '').slice(start, end).replace(/\s+/g, ' ').trim();
+        if (start > 0) snippet = '…' + snippet;
+        if (end < doc.text.length) snippet += '…';
+
+        let page = 1;
+        let title = '';
+        let meta = '';
+        if (doc.docType === 'supplement') {
+          const state = getStateFromSupplementTxtPath(doc.path);
+          const startPage = state && STATE_PAGES[state] ? (STATE_PAGES[state] + SUPPLEMENT_PAGE_OFFSET) : 1;
+          page = startPage;
+          title = state ? `${state} Supplement` : 'State Supplement';
+          meta = state ? `State Supplement · ${state}` : 'State Supplement';
+        } else {
+          page = guessHandbookPageFromTxtPath(doc.path);
+          title = 'Handbook';
+          meta = `Handbook · ${getHandbookSectionLabel(page)}`;
+        }
+
+        const entry = { docType: doc.docType, page, snippet, query: q };
+        if (includeMeta) {
+          entry.title = title;
+          entry.meta = meta;
+        }
+        results.push(entry);
+        if (results.length >= maxResults) return results;
+        from = idx + qLower.length;
+      }
+    }
+    return results;
+  }
+
+  // Fallback: legacy PDF page-text search
   await ensureHandbookText();
   await ensureSupplementText();
   const results = [];
   const addResults = (cache, docType, total) => {
     for (let i = 1; i <= total; i++) {
+      if (docType === 'supplement') {
+        const selectedStates = getSelectedSupplementStates();
+        if (selectedStates.length) {
+          const stateName = getSupplementStateName(i);
+          if (stateName && !selectedStates.includes(stateName)) continue;
+        }
+      }
       const text = (cache[i] || '').toLowerCase();
       const idx = text.indexOf(qLower);
       if (idx !== -1) {
@@ -3380,7 +3948,9 @@ loadVisitedSearches();
 function buildSupplementList(filter = '') {
   const grid = document.getElementById('supplementGrid');
   const q = filter.trim().toLowerCase();
-  const states = STATE_LIST.filter(state => !q || state.toLowerCase().includes(q));
+  const selected = getSelectedSupplementStates();
+  const base = selected.length ? selected : STATE_LIST;
+  const states = base.filter(state => !q || state.toLowerCase().includes(q));
   grid.innerHTML = states.map(state => {
     const page = STATE_PAGES[state];
     const pageLabel = page ? `p. ${page}` : 'View';

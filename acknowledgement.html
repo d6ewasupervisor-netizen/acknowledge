@@ -75,6 +75,8 @@
     .header {
       background: linear-gradient(135deg, var(--navy-950) 0%, var(--navy-900) 50%, var(--navy-800) 100%);
       padding: 2.25rem 2.25rem;
+      padding-left: calc(2.25rem + var(--menu-btn-size) + 0.75rem);
+      padding-right: calc(2.25rem + var(--menu-btn-size) + 0.75rem);
       text-align: center;
       position: relative;
       overflow: hidden;
@@ -633,7 +635,7 @@
     }
     .app-menu-button:hover { background: rgba(13,27,42,1); color: var(--blue-100); }
     .app-menu-button.active { background: rgba(74,144,196,0.2); color: var(--blue-100); border-color: rgba(74,144,196,0.5); }
-    .app-menu-button svg { width: 20px; height: 20px; }
+    .app-menu-button svg, .app-menu-button .icon-img { width: 20px; height: 20px; }
 
     .app-menu-backdrop {
       position: fixed;
@@ -652,6 +654,8 @@
       top: calc(max(0.5rem, env(safe-area-inset-top)) + var(--menu-btn-size) + 0.75rem);
       left: max(0.5rem, env(safe-area-inset-left));
       width: min(320px, 90vw);
+      max-height: calc(100vh - 5rem);
+      overflow: auto;
       background: rgba(13,27,42,0.96);
       border: 1px solid rgba(74,144,196,0.2);
       border-radius: 14px;
@@ -1148,6 +1152,12 @@
       box-shadow: 0 4px 16px rgba(0,0,0,0.15);
     }
     .fax-trigger-card:active { transform: scale(0.98); }
+    .fax-trigger-card[aria-disabled="true"] {
+      opacity: 0.55;
+      cursor: not-allowed;
+      pointer-events: none;
+      filter: grayscale(0.15);
+    }
     .fax-trigger-icon {
       width: 48px;
       height: 48px;
@@ -1443,7 +1453,12 @@
         padding: 0.4rem max(0.5rem, env(safe-area-inset-left)) 0.4rem max(0.5rem, env(safe-area-inset-right));
         padding-left: calc(max(0.5rem, env(safe-area-inset-left)) + var(--menu-btn-size) + 8px);
       }
-      .header { padding: 1.6rem 1rem; padding-top: max(1.6rem, env(safe-area-inset-top)); }
+      .header {
+        padding: 1.6rem 1rem;
+        padding-top: max(1.6rem, env(safe-area-inset-top));
+        padding-left: calc(1rem + var(--menu-btn-size) + 0.75rem);
+        padding-right: calc(1rem + var(--menu-btn-size) + 0.75rem);
+      }
       .header-logo { max-height: 44px; }
       .header h1 { font-size: 1.25rem; }
       .container { padding: 1.25rem 0.85rem calc(3.25rem + var(--bottom-nav-height)); }
@@ -1482,7 +1497,11 @@
     }
 
     @media (max-width: 380px) {
-      .header { padding: 1.3rem 0.75rem; }
+      .header {
+        padding: 1.3rem 0.75rem;
+        padding-left: calc(0.75rem + var(--menu-btn-size) + 0.75rem);
+        padding-right: calc(0.75rem + var(--menu-btn-size) + 0.75rem);
+      }
       .header-logo { max-height: 36px; }
       .container { padding: 1rem 0.5rem calc(2.7rem + var(--bottom-nav-height)); }
       .card { padding: 1.15rem 0.8rem; }
@@ -1567,7 +1586,7 @@
         <img src="headliner_logo.png" alt="The Retail Odyssey Company" class="header-logo">
         <h1>Teammate Handbook Acknowledgement</h1>
         <p>
-          <span class="header-sub">This page revised February 2026</span>
+          <span class="header-sub">Current version revised February 2025</span>
           <span class="header-sub">Review, accept, and sign.</span>
         </p>
       </div>
@@ -1706,6 +1725,20 @@
       <div class="fax-trigger-content">
         <h3>Print Blank Form at Your Store</h3>
         <p>Print a blank acknowledgement form at your store for manual signing.</p>
+      </div>
+      <div class="fax-trigger-arrow">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg>
+      </div>
+    </div>
+
+    <!-- Fax Signed Copy Trigger Card -->
+    <div class="fax-trigger-card" id="faxSignedTrigger" onclick="openFaxModal('signed')" role="button" tabindex="0" aria-disabled="true">
+      <div class="fax-trigger-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375H7.875A3.375 3.375 0 0 0 4.5 11.625V14.25m15 0a2.25 2.25 0 0 1 2.25 2.25v.75a3 3 0 0 1-3 3H5.25a3 3 0 0 1-3-3v-.75a2.25 2.25 0 0 1 2.25-2.25m15 0V9.375c0-.621-.504-1.125-1.125-1.125h-9.75c-.621 0-1.125.504-1.125 1.125V14.25m12.75 0h-9.75"/><path stroke-linecap="round" stroke-linejoin="round" d="M9 18.75h6"/></svg>
+      </div>
+      <div class="fax-trigger-content">
+        <h3>Print Signed Copy at Your Store</h3>
+        <p>Print a copy of your signed acknowledgement for your records.</p>
       </div>
       <div class="fax-trigger-arrow">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg>
@@ -1882,6 +1915,98 @@
     // Read config from config.js (loaded in <head>)
     const _cfg = (typeof APP_CONFIG !== 'undefined') ? APP_CONFIG : {};
     const ONEDRIVE_CLIENT_ID = _cfg.ONEDRIVE_CLIENT_ID || '';
+
+    // Optional: swap logos/backgrounds from local handbook assets server.
+    const HANDBOOK_ASSET_BASE = '/employeeHandbook';
+    function pickLogoPath(paths, kind) {
+      const list = Array.isArray(paths) ? paths : [];
+      if (!list.length) return '';
+      const lc = list.map(p => ({ p, l: String(p).toLowerCase() }));
+      const byHint = (hint) => lc.find(x => x.l.includes(hint))?.p || '';
+      if (kind === 'header') {
+        return byHint('header') || byHint('headliner') || byHint('logo') || list[0];
+      }
+      return byHint('watermark') || byHint('background') || byHint('pattern') || list[list.length - 1];
+    }
+
+    function pickIconPath(paths, hints) {
+      const list = Array.isArray(paths) ? paths : [];
+      if (!list.length) return '';
+      const lc = list.map(p => ({ p, l: String(p).toLowerCase() }));
+      for (const h of (hints || [])) {
+        const hit = lc.find(x => x.l.includes(String(h).toLowerCase()));
+        if (hit?.p) return hit.p;
+      }
+      return '';
+    }
+
+    function replaceButtonIcon(btn, url) {
+      if (!btn || !url) return;
+      const svg = btn.querySelector('svg');
+      let img = btn.querySelector('img.icon-img');
+      if (!img) {
+        img = document.createElement('img');
+        img.className = 'icon-img';
+        img.alt = '';
+        img.loading = 'lazy';
+        if (svg) {
+          svg.style.display = 'none';
+          btn.insertBefore(img, svg);
+        } else {
+          btn.insertBefore(img, btn.firstChild);
+        }
+      }
+      img.src = url;
+    }
+
+    async function applyBrandingFromHandbookAssets() {
+      try {
+        const res = await fetch('/api/handbook-manifest', { cache: 'no-store' });
+        if (!res.ok) return;
+        const manifest = await res.json();
+        const logos = manifest?.logos || [];
+        const icons = manifest?.icons || [];
+
+        if (Array.isArray(logos) && logos.length) {
+          const headerLogoPath = pickLogoPath(logos, 'header');
+          const bgLogoPath = pickLogoPath(logos, 'background');
+          if (headerLogoPath) {
+            const headerUrl = `${HANDBOOK_ASSET_BASE}/${headerLogoPath}`;
+            document.querySelectorAll('img.header-logo, img.toolbar-logo').forEach(img => {
+              try { img.src = headerUrl; } catch (e) { /* ignore */ }
+            });
+          }
+          if (bgLogoPath) {
+            const bgUrl = `${HANDBOOK_ASSET_BASE}/${bgLogoPath}`;
+            document.documentElement.style.setProperty('--watermark-logo', `url('${bgUrl}')`);
+          }
+        }
+
+        if (Array.isArray(icons) && icons.length) {
+          const home = pickIconPath(icons, ['home']);
+          const search = pickIconPath(icons, ['search', 'magnify']);
+          const handbook = pickIconPath(icons, ['handbook', 'book', 'reader']);
+          const supplements = pickIconPath(icons, ['supplement', 'state', 'map', 'usa']);
+          const sign = pickIconPath(icons, ['sign', 'signature', 'pen', 'pencil']);
+          const menu = pickIconPath(icons, ['menu', 'hamburger', 'bars']);
+
+          const url = (p) => p ? `${HANDBOOK_ASSET_BASE}/${p}` : '';
+          document.querySelectorAll('.app-toolbar .toolbar-btn, .home-bottom-nav .toolbar-btn').forEach(btn => {
+            const oc = (btn.getAttribute('onclick') || '').toLowerCase();
+            if (oc.includes('gohome') && home) replaceButtonIcon(btn, url(home));
+            else if (oc.includes('gosearch') && search) replaceButtonIcon(btn, url(search));
+            else if (oc.includes('gohandbook') && handbook) replaceButtonIcon(btn, url(handbook));
+            else if (oc.includes('gosupplements') && supplements) replaceButtonIcon(btn, url(supplements));
+            else if (oc.includes('gosign') && sign) replaceButtonIcon(btn, url(sign));
+          });
+          if (menu) {
+            const menuBtn = document.getElementById('appMenuButton');
+            if (menuBtn) replaceButtonIcon(menuBtn, url(menu));
+          }
+        }
+      } catch (e) { /* ignore */ }
+    }
+    applyBrandingFromHandbookAssets();
 
     function returnToHandbook(e) {
       if (e) e.preventDefault();
@@ -2177,6 +2302,11 @@
       faxStatusEl.className = 'fax-status';
       faxStatusEl.textContent = '';
       updateFaxSendButton();
+
+      if (mode === 'signed' && !generatedPDF) {
+        showFaxStatus('error', 'No signed PDF available yet. Please submit the acknowledgement first.');
+        return;
+      }
 
       if (mode === 'blank') {
         faxModalTitle.textContent = 'Print Blank Form';
@@ -2623,7 +2753,7 @@
       doc.setFontSize(9);
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(148, 163, 184);
-      doc.text('Acknowledgement of Receipt  |  Revised February 2026', margin, 20);
+      doc.text('Acknowledgement of Receipt  |  Current version revised February 2025', margin, 20);
       y = 34;
 
       // Section title
@@ -2737,10 +2867,9 @@
           pdfDoc = generateBlankPDF();
           fileName = 'Blank_Handbook_Acknowledgement.pdf';
         } else {
-          if (!generatedPDF) {
-            throw new Error('No signed PDF available. Please submit the form first.');
-          }
-          pdfDoc = generatedPDF;
+          if (!generatedPDF) throw new Error('No signed PDF available. Please submit the form first.');
+          // Use print-optimized variant (transparent header + black text)
+          pdfDoc = generatePrintableSignedPDF();
           fileName = pdfFileName || 'Signed_Handbook_Acknowledgement.pdf';
         }
 
@@ -2850,11 +2979,14 @@
     });
 
     // Keyboard handler for fax trigger card
-    document.querySelector('.fax-trigger-card')?.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' || e.key === ' ') {
+    document.querySelectorAll('.fax-trigger-card').forEach((card) => {
+      card.addEventListener('keydown', (e) => {
+        if (e.key !== 'Enter' && e.key !== ' ') return;
+        if (card.getAttribute('aria-disabled') === 'true') return;
         e.preventDefault();
-        openFaxModal('blank');
-      }
+        if (card.id === 'faxSignedTrigger') openFaxModal('signed');
+        else openFaxModal('blank');
+      });
     });
 
     function resizeCanvas(preserve = true) {
@@ -3501,7 +3633,7 @@
       doc.setFont('helvetica', 'bold'); doc.setFontSize(16); doc.setTextColor(255, 255, 255);
       doc.text('ADV Teammate Handbook', margin, 14);
       doc.setFontSize(10); doc.setFont('helvetica', 'normal'); doc.setTextColor(148, 163, 184);
-      doc.text('Acknowledgement of Receipt  |  Revised February 2026', margin, 23);
+      doc.text('Acknowledgement of Receipt  |  Current version revised February 2025', margin, 23);
       y = 40;
 
       doc.setFont('helvetica', 'bold'); doc.setFontSize(13); doc.setTextColor(13, 27, 42);
@@ -3574,6 +3706,120 @@
 
       pdfFileName = buildFileName();
       generatedPDF = doc;
+    }
+
+    // Printable variant: same content as signed PDF, but with transparent header + black text
+    function generatePrintableSignedPDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'letter' });
+      const pageW = doc.internal.pageSize.getWidth();
+      const pageH = doc.internal.pageSize.getHeight();
+      const margin = 20;
+      const contentW = pageW - margin * 2;
+      let y = 20;
+
+      if (signatureMode === 'scan' && scanImage) {
+        doc.setFont('helvetica', 'bold'); doc.setFontSize(12); doc.setTextColor(0, 0, 0);
+        doc.text('Acknowledgement Scan', margin, 12);
+        doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(0, 0, 0);
+        doc.text(nameInput.value.trim(), pageW - margin, 12, { align: 'right' });
+        const imgProps = doc.getImageProperties(scanImage);
+        const maxW = pageW - margin * 2;
+        const maxH = pageH - 30;
+        const ratio = Math.min(maxW / imgProps.width, maxH / imgProps.height);
+        const imgW = imgProps.width * ratio;
+        const imgH = imgProps.height * ratio;
+        doc.addImage(scanImage, 'JPEG', margin, 22, imgW, imgH);
+        const footerY = pageH - 8;
+        doc.setFontSize(7); doc.setTextColor(0, 0, 0);
+        doc.text('Scan submitted via camera', margin, footerY);
+        return doc;
+      }
+
+      // Transparent header (no banner fill)
+      const headerY = 14;
+      const logo = getHeaderLogoData();
+      if (logo) {
+        const logoH = 12;
+        const logoW = logoH * logo.aspect;
+        const x = pageW - margin - logoW;
+        const yLogo = 6;
+        doc.addImage(logo.dataUrl, 'PNG', x, yLogo, logoW, logoH);
+      }
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(16); doc.setTextColor(0, 0, 0);
+      doc.text('ADV Teammate Handbook', margin, headerY);
+      doc.setFontSize(10); doc.setFont('helvetica', 'normal'); doc.setTextColor(0, 0, 0);
+      doc.text('Acknowledgement of Receipt  |  Current version revised February 2025', margin, 23);
+      y = 36;
+
+      // Body (matches signed PDF content)
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(13); doc.setTextColor(0, 0, 0);
+      doc.text('Acknowledgement of Receipt', margin, y); y += 3;
+      doc.setDrawColor(74, 144, 196); doc.setLineWidth(0.8); doc.line(margin, y, margin + 60, y); y += 8;
+
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(9.5); doc.setTextColor(0, 0, 0);
+      const paras = [
+        'I have received a copy of the Company\'s Handbook and the applicable Supplement(s) for the locations in which I work. I agree to read it and to comply with the policies and procedures described in the Handbook and Supplement(s). If I have any questions regarding any of the Handbook\'s provisions, I will consult with my supervisor, manager or Human Resources. I understand that if I do not follow the policies and procedures contained herein that I may be subject to disciplinary action, up to and including termination of employment.',
+        'I also understand that this Handbook is the most up-to-date version of the Company\'s policies and procedures and replaces any prior written and oral communications about the subjects contained in it.',
+        'I acknowledge that my employment relationship with the Company is "at-will", meaning that, regardless of anything contained in this Handbook and regardless of any custom or practice, either I or the Company may terminate my employment at any time, for any reason or no reason, with or without cause, and with or without procedural requirements. I understand that no representatives of the Company, other than the CEO in a writing signed by him/her/them, may enter into any agreements, or make any representations, written or oral, to alter my at-will status or otherwise create any contractual obligation between me and the Company.',
+        'I further acknowledge that this handbook and the policies contained herein are not intended to create (and shall not be construed as creating) a contract (express or implied) for employment between the Company and any Teammate and that said policies can be modified by the Company at any time, with or without notice to me, in its sole and absolute discretion.',
+        'By signing below, I acknowledge that I have received and will abide by the Company\'s Handbook and all the policies within it, including those on harassment, discrimination, retaliation, and bringing complaints regarding the same.'
+      ];
+      paras.forEach(p => { const lines = doc.splitTextToSize(p, contentW); doc.text(lines, margin, y); y += lines.length * 4.2 + 4; });
+      y += 4;
+
+      const consentBoxSize = 4;
+      doc.setFillColor(241, 245, 249); doc.roundedRect(margin, y, contentW, 16, 2, 2, 'F');
+      doc.setDrawColor(100, 116, 139); doc.setLineWidth(0.4);
+      doc.rect(margin + 4, y + 4, consentBoxSize, consentBoxSize);
+      doc.setDrawColor(34, 197, 94); doc.setLineWidth(0.7);
+      doc.line(margin + 4.6, y + 6.2, margin + 5.6, y + 7.2);
+      doc.line(margin + 5.6, y + 7.2, margin + 7.6, y + 4.8);
+      doc.setFont('helvetica', 'italic'); doc.setFontSize(8); doc.setTextColor(0, 0, 0);
+      const ct = 'I agree that my digital signature captured on this device is applied to this acknowledgement and is the legal equivalent of my handwritten signature.';
+      doc.text(doc.splitTextToSize(ct, contentW - 16), margin + 10, y + 7); y += 22;
+
+      const colGap = 12;
+      const colW = (contentW - colGap) / 2;
+      const dateText = new Date(dateInput.value + 'T12:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(12); doc.setTextColor(0, 0, 0);
+      doc.text(nameInput.value.trim(), margin, y);
+      doc.setDrawColor(0, 0, 0); doc.setLineWidth(0.4);
+      doc.line(margin, y + 3, margin + contentW, y + 3);
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(0, 0, 0);
+      doc.text('PRINTED TEAMMATE NAME', margin, y + 8);
+      y += 16;
+
+      const sigY = y;
+      const sigBlockTop = sigY - 1;
+      const sigBlockHeight = 14;
+      if (signatureMode === 'fax') {
+        const faxTarget = faxNumber.value.trim() || (faxStore.value ? `Store ${faxStore.value}` : 'N/A');
+        doc.setFont('helvetica', 'italic'); doc.setFontSize(9); doc.setTextColor(0, 0, 0);
+        doc.text(`Signature pending via print at ${faxTarget}`, margin, sigY + 8);
+      } else if (signatureImage) {
+        doc.addImage(signatureImage, 'PNG', margin, sigBlockTop, colW * 0.85, sigBlockHeight);
+      }
+      doc.setDrawColor(0, 0, 0); doc.setLineWidth(0.6);
+      doc.line(margin, sigY + 12, margin + colW, sigY + 12);
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(0, 0, 0);
+      doc.text('TEAMMATE SIGNATURE', margin, sigY + 17);
+
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(11); doc.setTextColor(0, 0, 0);
+      doc.text(dateText, margin + colW + colGap, sigY + 8);
+      doc.setDrawColor(0, 0, 0); doc.setLineWidth(0.6);
+      doc.line(margin + colW + colGap, sigY + 12, margin + colW + colGap + colW, sigY + 12);
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(0, 0, 0);
+      doc.text('DATE', margin + colW + colGap, sigY + 17);
+
+      const footerY = pageH - 12;
+      doc.setDrawColor(0, 0, 0); doc.setLineWidth(0.3); doc.line(margin, footerY - 4, pageW - margin, footerY - 4);
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(7); doc.setTextColor(0, 0, 0);
+      doc.text('\u00A9 2026 Advantage Solutions Inc.  |  Confidential', margin, footerY);
+      doc.text('Page 55 of 56', pageW - margin, footerY, { align: 'right' });
+
+      return doc;
     }
 
     function updateCloudSaveStatus(state, message) {
@@ -3688,6 +3934,8 @@
 
       generatePDF();
       lockSignatureControls();
+      const signedTrigger = document.getElementById('faxSignedTrigger');
+      if (signedTrigger) signedTrigger.setAttribute('aria-disabled', 'false');
       // Haptic feedback on successful submit
       if (navigator.vibrate) navigator.vibrate([50, 30, 50]);
       const fd = new Date(dateInput.value + 'T12:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
@@ -3735,7 +3983,7 @@
 
     function printLocally() {
       if (!generatedPDF) return;
-      const pdfBlob = generatedPDF.output('blob');
+      const pdfBlob = generatePrintableSignedPDF().output('blob');
       const blobUrl = URL.createObjectURL(pdfBlob);
       const printWindow = window.open(blobUrl, '_blank');
       if (printWindow) {
