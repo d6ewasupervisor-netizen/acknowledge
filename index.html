@@ -1974,7 +1974,7 @@ function pickLogoPath(paths, kind) {
   const lc = list.map(p => ({ p, l: String(p).toLowerCase() }));
   const byHint = (hint) => lc.find(x => x.l.includes(hint))?.p || '';
   if (kind === 'header') {
-    return byHint('header') || byHint('headliner') || byHint('logo') || list[0];
+    return byHint('banner') || byHint('header') || byHint('headliner') || byHint('logo') || list[0];
   }
   // background / watermark
   return byHint('watermark') || byHint('background') || byHint('pattern') || list[list.length - 1];
@@ -2010,6 +2010,25 @@ function replaceButtonIcon(btn, url) {
   img.src = url;
 }
 
+function replaceContainerIcon(container, url) {
+  if (!container || !url) return;
+  const svg = container.querySelector('svg');
+  let img = container.querySelector('img.icon-img');
+  if (!img) {
+    img = document.createElement('img');
+    img.className = 'icon-img';
+    img.alt = '';
+    img.loading = 'lazy';
+    if (svg) {
+      svg.style.display = 'none';
+      container.insertBefore(img, svg);
+    } else {
+      container.insertBefore(img, container.firstChild);
+    }
+  }
+  img.src = url;
+}
+
 async function applyBrandingFromHandbookAssets() {
   try {
     const res = await fetch('/api/handbook-manifest', { cache: 'no-store' });
@@ -2039,7 +2058,8 @@ async function applyBrandingFromHandbookAssets() {
       const handbook = pickIconPath(icons, ['handbook', 'book', 'reader']);
       const supplements = pickIconPath(icons, ['supplement', 'state', 'map', 'usa']);
       const sign = pickIconPath(icons, ['sign', 'signature', 'pen', 'pencil']);
-      const menu = pickIconPath(icons, ['menu', 'hamburger', 'bars']);
+      const menu = pickIconPath(icons, ['menu.png', '/menu.', 'menu', 'hamburger', 'bars']);
+      const printer = pickIconPath(icons, ['printer', 'print']);
 
       const url = (p) => p ? `${HANDBOOK_ASSET_BASE}/${p}` : '';
       document.querySelectorAll('.toolbar-btn, .home-bottom-nav .toolbar-btn').forEach(btn => {
@@ -2059,6 +2079,12 @@ async function applyBrandingFromHandbookAssets() {
       if (menu) {
         const menuBtn = document.getElementById('appMenuButton');
         if (menuBtn) replaceButtonIcon(menuBtn, url(menu));
+      }
+
+      // If desired, swap other printer icons in-page (where present)
+      if (printer) {
+        document.querySelectorAll('.print-status-overlay .pso-min-icon, .print-status-overlay .pso-status-icon')
+          .forEach(el => replaceContainerIcon(el, url(printer)));
       }
     }
   } catch (e) {

@@ -6,7 +6,9 @@ const { URL } = require('node:url');
 
 const ROOT_DIR = __dirname;
 const PORT = Number(process.env.PORT || 3000);
-const HANDBOOK_DIR = process.env.EMPLOYEE_HANDBOOK_DIR || 'C:\\Assets\\employeeHandbook';
+const DEFAULT_LOCAL_HANDBOOK_DIR = path.join(ROOT_DIR, 'employeeHandbook');
+const HANDBOOK_DIR = process.env.EMPLOYEE_HANDBOOK_DIR
+  || (fs.existsSync(DEFAULT_LOCAL_HANDBOOK_DIR) ? DEFAULT_LOCAL_HANDBOOK_DIR : 'C:\\Assets\\employeeHandbook');
 
 const MIME = {
   '.html': 'text/html; charset=utf-8',
@@ -160,6 +162,9 @@ server.listen(PORT, () => {
     ? `Serving handbook assets from ${HANDBOOK_DIR}`
     : `Handbook assets dir not found: ${HANDBOOK_DIR}`;
   // eslint-disable-next-line no-console
-  console.log(`Acknowledge dev server running on http://localhost:${PORT}\n${handbookNote}`);
+  console.log(
+    `Acknowledge dev server running on http://localhost:${PORT}\n${handbookNote}\n` +
+    `Override with EMPLOYEE_HANDBOOK_DIR if needed.`
+  );
 });
 
