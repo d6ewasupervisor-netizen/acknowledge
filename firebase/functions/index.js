@@ -7,6 +7,7 @@
  *   - getStores: Get all stores (backup API for frontend)
  *   - faxWebhook: HTTP callback for instant Power Automate status updates
  *   - saveAcknowledgement: Store signed acknowledgements in Firestore
+ *   - sendEmail: Email signed PDF to admin and optionally to the employee
  *   - monitorFaxStatus: Polls Gmail for FAXDONE emails (fallback)
  * 
  * Configuration (set via firebase functions:config:set):
@@ -440,6 +441,94 @@ exports.saveAcknowledgement = functions.runWith({ memory: '512MB' }).https.onReq
       console.error('saveAcknowledgement error:', error);
       return res.status(500).json({
         error: 'Failed to save acknowledgement',
+        details: error.message
+      });
+    }
+  });
+});
+
+/**
+ * sendEmail - Email signed acknowledgement PDF to admin and optionally to the employee
+ *
+ * POST body:
+ * {
+ *   "pdfBase64": "<base64-encoded-pdf>",
+ *   "pdfFileName": "Doe_John_2026_02_06_Acknowledgement.pdf",
+ *   "employeeName": "John Doe",
+ *   "employeeEmail": "john@example.com" (optional - sends copy to employee)
+ * }
+ */
+exports.sendEmail = functions.runWith({ memory: '512MB' }).https.onRequest((req, res) => {
+  corsHandler(req, res, async () => {
+    if (req.method !== 'POST') {
+      return res.status(405).json({ error: 'Method not allowed' });
+    }
+
+    try {
+      const { pdfBase64, pdfFileName, employeeName, employeeEmail } = req.body;
+
+      if (!pdfBase64 || !pdfFileName || !employeeName) {
+        return res.status(400).json({
+          error: 'Missing required fields: pdfBase64, pdfFileName, employeeName'
+        });
+      }
+
+      const ADMIN_EMAIL = 'tyson.a.gauthier@gmail.com';
+      const transporter = createTransporter();
+      const fromEmail = getFromEmail();
+
+      const cleanPdf = String(pdfBase64).includes(',')
+        ? String(pdfBase64).split(',')[1]
+        : String(pdfBase64);
+
+      // Always send to admin
+      const adminMailOptions = {
+        from: fromEmail,
+        to: ADMIN_EMAIL,
+        subject: `Signed Acknowledgement — ${employeeName}`,
+        text: `${employeeName} has submitted a signed Employee Handbook Acknowledgement.\n\nSee attached PDF.`,
+        html: `<p><strong>${employeeName}</strong> has submitted a signed Employee Handbook Acknowledgement.</p><p>See attached PDF.</p>`,
+        attachments: [{
+          filename: pdfFileName,
+          content: cleanPdf,
+          encoding: 'base64',
+          contentType: 'application/pdf'
+        }]
+      };
+
+      const emailPromises = [transporter.sendMail(adminMailOptions)];
+
+      // Optionally send copy to employee
+      if (employeeEmail && employeeEmail.trim()) {
+        const employeeMailOptions = {
+          from: fromEmail,
+          to: employeeEmail.trim(),
+          subject: `Your Signed Acknowledgement — ${employeeName}`,
+          text: `Hi ${employeeName},\n\nAttached is a copy of your signed Employee Handbook Acknowledgement for your records.\n\nThank you.`,
+          html: `<p>Hi ${employeeName},</p><p>Attached is a copy of your signed Employee Handbook Acknowledgement for your records.</p><p>Thank you.</p>`,
+          attachments: [{
+            filename: pdfFileName,
+            content: cleanPdf,
+            encoding: 'base64',
+            contentType: 'application/pdf'
+          }]
+        };
+        emailPromises.push(transporter.sendMail(employeeMailOptions));
+      }
+
+      await Promise.all(emailPromises);
+
+      return res.status(200).json({
+        success: true,
+        message: `Email sent to ${ADMIN_EMAIL}` + (employeeEmail ? ` and ${employeeEmail.trim()}` : ''),
+        adminEmail: ADMIN_EMAIL,
+        employeeEmail: employeeEmail ? employeeEmail.trim() : null
+      });
+
+    } catch (error) {
+      console.error('sendEmail error:', error);
+      return res.status(500).json({
+        error: 'Failed to send email',
         details: error.message
       });
     }
