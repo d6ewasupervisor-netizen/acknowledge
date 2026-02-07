@@ -613,6 +613,60 @@
       border-bottom: 1px dashed rgba(74,144,196,0.12);
     }
     .app-menu-shortcut:last-child { border-bottom: none; }
+    .app-menu-item.danger {
+      color: #f87171;
+      border-color: rgba(248,113,113,0.25);
+    }
+    .app-menu-item.danger:hover { background: rgba(248,113,113,0.14); color: #fca5a5; }
+    .app-menu-item.danger:active { background: rgba(248,113,113,0.22); }
+
+    /* Confirm modal */
+    .confirm-modal-backdrop {
+      display: none; position: fixed; inset: 0; z-index: 99999;
+      background: rgba(0,0,0,0.65);
+      align-items: center; justify-content: center;
+    }
+    .confirm-modal-backdrop.show { display: flex; }
+    .confirm-modal {
+      background: var(--slate-900); border: 1px solid rgba(74,144,196,0.3);
+      border-radius: 16px; padding: 1.5rem; max-width: 340px; width: 90%;
+      box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+      text-align: center;
+    }
+    .confirm-modal h3 {
+      margin: 0 0 0.5rem; font-size: 1rem; color: var(--white);
+    }
+    .confirm-modal p {
+      margin: 0 0 1.25rem; font-size: 0.85rem; color: var(--slate-300); line-height: 1.5;
+    }
+    .confirm-modal-actions {
+      display: flex; gap: 0.75rem; justify-content: center;
+    }
+    .confirm-modal-btn {
+      flex: 1; padding: 0.6rem 1rem; border-radius: 10px; font-size: 0.85rem;
+      font-weight: 600; cursor: pointer; border: 1px solid transparent;
+      transition: all 0.15s ease; min-height: 44px;
+    }
+    .confirm-modal-btn.cancel {
+      background: rgba(255,255,255,0.06); color: var(--slate-200);
+      border-color: rgba(148,163,184,0.25);
+    }
+    .confirm-modal-btn.cancel:hover { background: rgba(255,255,255,0.1); }
+    .confirm-modal-btn.confirm {
+      background: rgba(248,113,113,0.18); color: #f87171;
+      border-color: rgba(248,113,113,0.35);
+    }
+    .confirm-modal-btn.confirm:hover { background: rgba(248,113,113,0.3); color: #fca5a5; }
+
+    /* Viewed badge on search results */
+    .viewed-badge {
+      display: inline-block; font-size: 0.62rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.06em;
+      color: var(--slate-400); background: rgba(148,163,184,0.12);
+      border: 1px solid rgba(148,163,184,0.2);
+      border-radius: 4px; padding: 0.1rem 0.35rem;
+      margin-left: 0.5rem; vertical-align: middle;
+    }
 
     /* Page Canvas Area */
     .reader-canvas-area {
@@ -1496,6 +1550,24 @@
       <div class="app-menu-shortcut">Zoom In / Out <span class="app-menu-kbd">+ / −</span></div>
       <div class="app-menu-shortcut">Search <span class="app-menu-kbd">Ctrl/⌘+F</span></div>
       <div class="app-menu-shortcut">Close overlays <span class="app-menu-kbd">Esc</span></div>
+    </div>
+    <div class="app-menu-section">
+      <div class="app-menu-title">Settings</div>
+      <button class="app-menu-item danger" onclick="promptClearCache();">
+        Clear Cache
+      </button>
+    </div>
+  </div>
+
+  <!-- ═══════ CLEAR CACHE CONFIRM MODAL ═══════ -->
+  <div class="confirm-modal-backdrop" id="clearCacheModal">
+    <div class="confirm-modal">
+      <h3>Clear Cache</h3>
+      <p>Are you sure you want to clear all settings? This will reset your viewed search history, selected states, and last-viewed page.</p>
+      <div class="confirm-modal-actions">
+        <button class="confirm-modal-btn cancel" onclick="cancelClearCache()">Cancel</button>
+        <button class="confirm-modal-btn confirm" onclick="confirmClearCache()">Clear</button>
+      </div>
     </div>
   </div>
 
@@ -3186,6 +3258,8 @@ let highlightRequestId = 0;
 let searchNavDrag = { active: false, offsetX: 0, offsetY: 0 };
 let searchNavManual = false;
 let pendingSearchScrollToHit = false;
+let lastSearchQuery = '';
+let lastTocSearchQuery = '';
 
 // TXT corpus search (served as static files under /employeeHandbook)
 const TXT_CORPUS_BASE = 'employeeHandbook';
@@ -3885,6 +3959,13 @@ async function performSearch(query) {
     return;
   }
 
+  // Reset viewed state when search term changes
+  if (q !== lastSearchQuery) {
+    tocSearchVisited = new Set();
+    saveVisitedSearches();
+    lastSearchQuery = q;
+  }
+
   const results = await collectSearchResults(q);
   lastReaderSearchResults = results;
 
@@ -3893,12 +3974,13 @@ async function performSearch(query) {
   resultsDiv.innerHTML = results.map((r, i) => {
     const id = getSearchResultId(r);
     const visited = tocSearchVisited.has(id) ? 'visited' : '';
+    const viewedBadge = visited ? '<span class="viewed-badge">Viewed</span>' : '';
     const highlighted = r.snippet.replace(new RegExp(`(${escapeRegex(r.query)})`, 'gi'), '<mark>$1</mark>');
     const label = r.docType === 'handbook'
       ? `Handbook - ${getHandbookSectionLabel(r.page)}`
       : `State Supplement - ${getSupplementStateName(r.page)}`;
     return `<div class="search-result-item ${visited}" data-search-id="${id}" onclick="openReaderSearchResult(${i})">
-      <div class="result-page">${label}</div>
+      <div class="result-page">${label}${viewedBadge}</div>
       <div class="result-context">${highlighted}</div>
     </div>`;
   }).join('');
@@ -4033,12 +4115,18 @@ function getSearchResultId(result) {
 
 function markSearchResultVisitedById(id) {
   if (!id) return;
-  if (!tocSearchVisited.has(id)) {
+  const wasNew = !tocSearchVisited.has(id);
+  if (wasNew) {
     tocSearchVisited.add(id);
     saveVisitedSearches();
   }
   document.querySelectorAll(`[data-search-id="${id}"]`).forEach((item) => {
     item.classList.add('visited');
+    // Add viewed badge if not already present
+    const titleEl = item.querySelector('.result-title, .result-page');
+    if (titleEl && !titleEl.querySelector('.viewed-badge')) {
+      titleEl.insertAdjacentHTML('beforeend', '<span class="viewed-badge">Viewed</span>');
+    }
   });
 }
 
@@ -4057,9 +4145,10 @@ function renderSearchResults(results, query) {
   tocSearchResults.innerHTML = results.map((r, i) => {
     const id = getSearchResultId(r);
     const visited = tocSearchVisited.has(id) ? 'visited' : '';
+    const viewedBadge = visited ? '<span class="viewed-badge">Viewed</span>' : '';
     const highlighted = r.snippet.replace(new RegExp(`(${escapeRegex(query)})`, 'gi'), '<mark>$1</mark>');
     return `<div class="toc-search-item ${visited}" data-id="${id}" data-search-id="${id}" onclick="openSearchResult(${i})">
-      <div class="result-title">${r.title}</div>
+      <div class="result-title">${r.title}${viewedBadge}</div>
       <div class="result-meta">${r.meta}</div>
       <div class="result-snippet">${highlighted}</div>
     </div>`;
@@ -4074,6 +4163,12 @@ async function performGlobalSearch(query) {
     tocSearchResults.innerHTML = '';
     lastTocSearchResults = [];
     return;
+  }
+  // Reset viewed state when search term changes
+  if (q !== lastTocSearchQuery) {
+    tocSearchVisited = new Set();
+    saveVisitedSearches();
+    lastTocSearchQuery = q;
   }
   tocSections.style.display = 'none';
   tocSearchResults.classList.add('show');
@@ -4097,7 +4192,9 @@ document.getElementById('tocSearchInput').addEventListener('input', (e) => {
   tocSearchTimeout = setTimeout(() => performGlobalSearch(e.target.value), 250);
 });
 
-loadVisitedSearches();
+// Clear visited search cache on every new visit
+tocSearchVisited = new Set();
+localStorage.removeItem('tocSearchVisited');
 
 /* ═══════════════════════════════════════════════════════════
    STATE SUPPLEMENTS
@@ -4172,6 +4269,34 @@ function closeAppMenu() {
   const navBtn = document.getElementById('backNavBtn');
   if (legacyBtn) legacyBtn.classList.remove('active');
   if (navBtn) navBtn.classList.remove('active');
+}
+
+function promptClearCache() {
+  closeAppMenu();
+  document.getElementById('clearCacheModal').classList.add('show');
+}
+
+function cancelClearCache() {
+  document.getElementById('clearCacheModal').classList.remove('show');
+}
+
+function confirmClearCache() {
+  document.getElementById('clearCacheModal').classList.remove('show');
+  localStorage.removeItem('tocSearchVisited');
+  localStorage.removeItem('handbookLastPage');
+  localStorage.removeItem('handbookLastView');
+  localStorage.removeItem(SELECTED_STATES_KEY);
+  tocSearchVisited = new Set();
+  // Re-render any visible search results to remove viewed badges
+  if (lastTocSearchResults.length) {
+    const q = document.getElementById('tocSearchInput')?.value || '';
+    renderSearchResults(lastTocSearchResults, q);
+  }
+  if (lastReaderSearchResults.length) {
+    const q = document.getElementById('searchInput')?.value || '';
+    performSearch(q);
+  }
+  showToast('Cache cleared');
 }
 
 /* ═══════════════════════════════════════════════════════════
