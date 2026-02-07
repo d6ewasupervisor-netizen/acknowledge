@@ -516,11 +516,9 @@
     }
 
     /* App Menu (hamburger) */
-    .app-menu-button,
-    .app-menu-backdrop,
-    .app-menu-panel {
-      display: none !important;
-    }
+    /* Menu panel features are enabled; we hide the legacy top-left button
+       and use the bottom-nav Menu button instead. */
+    .app-menu-button { display: none !important; }
     .app-menu-button {
       position: fixed;
       top: max(0.5rem, env(safe-area-inset-top));
@@ -1382,7 +1380,6 @@
        ═══════════════════════════════════════════════════ */
     @media (max-height: 500px) and (orientation: landscape) {
       .reader-toolbar { padding: 0.25rem 0.5rem; }
-      .reader-toolbar { padding-left: calc(0.5rem + var(--menu-btn-size) + 8px); }
       .toolbar-logo { height: 22px; }
       .toolbar-btn { padding: 0.3rem 0.4rem; min-height: 30px; }
       .toolbar-btn .btn-label { display: none; }
@@ -1702,9 +1699,9 @@
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg>
       </button>
     </div>
-    <button class="toolbar-btn" id="backNavBtn" onclick="goBackNav()" title="Back" disabled>
-      <img class="icon-img" src="employeeHandbook/Icons/back.png" alt="">
-      <span class="btn-label">Back</span>
+    <button class="toolbar-btn" id="backNavBtn" onclick="toggleAppMenu()" title="Menu" aria-label="Menu">
+      <img class="icon-img" src="employeeHandbook/Icons/menu.png" alt="">
+      <span class="btn-label">Menu</span>
     </button>
     <button class="toolbar-btn" onclick="showTocView()" title="Home">
       <img class="icon-img" src="employeeHandbook/Icons/home.png" alt="">
@@ -2141,7 +2138,7 @@ async function applyBrandingFromHandbookAssets() {
       const search = pickIconPath(icons, ['Icons/search.png', '/search.png', 'search.png', '/search.', 'search', 'magnify']);
       const handbook = pickIconPath(icons, ['handbook', 'book', 'reader']);
       const supplements = pickIconPath(icons, ['supplement', 'state', 'map', 'usa']);
-      const sign = pickIconPath(icons, ['sign', 'signature', 'pen', 'pencil']);
+      const sign = pickIconPath(icons, ['Icons/signature.png', '/signature.png', 'signature.png', 'signature', 'sign', 'pen', 'pencil']);
       const back = pickIconPath(icons, ['back.png', '/back.', 'back', 'arrow-left', 'previous']);
       const menu = pickIconPath(icons, ['menu.png', '/menu.', 'menu', 'hamburger', 'bars']);
       const printer = pickIconPath(icons, ['printer', 'print']);
@@ -2601,9 +2598,10 @@ function getNavState() {
 }
 
 function updateBackButton() {
+  // This button used to be "Back". It is now the Menu button.
   const btn = document.getElementById('backNavBtn');
   if (!btn) return;
-  btn.disabled = navHistory.length === 0;
+  btn.disabled = false;
 }
 
 function pushNavState() {
@@ -2624,6 +2622,7 @@ function restoreOverlays(overlays) {
   const appMenuBackdrop = document.getElementById('appMenuBackdrop');
   const appMenuPanel = document.getElementById('appMenuPanel');
   const appMenuButton = document.getElementById('appMenuButton');
+  const menuNavBtn = document.getElementById('backNavBtn');
 
   if (overlays.toc) {
     tocOverlay.classList.add('show');
@@ -2653,7 +2652,8 @@ function restoreOverlays(overlays) {
   if (overlays.appMenu) {
     appMenuBackdrop.classList.add('show');
     appMenuPanel.classList.add('show');
-    appMenuButton.classList.add('active');
+    if (appMenuButton) appMenuButton.classList.add('active');
+    if (menuNavBtn) menuNavBtn.classList.add('active');
   }
 }
 
@@ -4162,13 +4162,19 @@ function openAppMenu() {
   closeAllOverlays();
   document.getElementById('appMenuBackdrop').classList.add('show');
   document.getElementById('appMenuPanel').classList.add('show');
-  document.getElementById('appMenuButton').classList.add('active');
+  const legacyBtn = document.getElementById('appMenuButton');
+  const navBtn = document.getElementById('backNavBtn');
+  if (legacyBtn) legacyBtn.classList.add('active');
+  if (navBtn) navBtn.classList.add('active');
 }
 
 function closeAppMenu() {
   document.getElementById('appMenuBackdrop').classList.remove('show');
   document.getElementById('appMenuPanel').classList.remove('show');
-  document.getElementById('appMenuButton').classList.remove('active');
+  const legacyBtn = document.getElementById('appMenuButton');
+  const navBtn = document.getElementById('backNavBtn');
+  if (legacyBtn) legacyBtn.classList.remove('active');
+  if (navBtn) navBtn.classList.remove('active');
 }
 
 /* ═══════════════════════════════════════════════════════════

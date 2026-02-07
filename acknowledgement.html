@@ -648,7 +648,7 @@
       align-items: center;
       gap: 0.5rem;
       padding: 0.5rem 0.75rem;
-      padding-left: calc(max(0.75rem, env(safe-area-inset-left)) + var(--menu-btn-size) + var(--menu-btn-gap));
+      padding-left: max(0.75rem, env(safe-area-inset-left));
       background: var(--navy-900);
       border-bottom: 1px solid rgba(74,144,196,0.12);
       position: fixed;
@@ -669,11 +669,9 @@
     .toolbar-divider { width: 1px; height: 24px; background: rgba(74,144,196,0.15); margin: 0 0.25rem; }
     .toolbar-spacer { flex: 1; }
 
-    .app-menu-button,
-    .app-menu-backdrop,
-    .app-menu-panel {
-      display: none !important;
-    }
+    /* Menu panel features are enabled; we hide the legacy top-left button
+       and use the bottom-nav Menu button instead. */
+    .app-menu-button { display: none !important; }
     .app-menu-button {
       position: fixed;
       top: max(0.5rem, env(safe-area-inset-top));
@@ -1832,6 +1830,10 @@
   </div>
 
   <div class="home-bottom-nav" aria-label="Handbook navigation">
+    <button class="toolbar-btn" id="menuNavBtn" type="button" onclick="toggleAppMenu()" title="Menu" aria-label="Menu">
+      <img class="icon-img" src="employeeHandbook/Icons/menu.png" alt="">
+      <span class="btn-label">Menu</span>
+    </button>
     <button class="toolbar-btn" type="button" onclick="goHome()">
       <img class="icon-img" src="employeeHandbook/Icons/home.png" alt="">
       <span class="btn-label">Home</span>
@@ -2090,7 +2092,7 @@
           const search = pickIconPath(icons, ['Icons/search.png', '/search.png', 'search.png', '/search.', 'search', 'magnify']);
           const handbook = pickIconPath(icons, ['handbook', 'book', 'reader']);
           const supplements = pickIconPath(icons, ['supplement', 'state', 'map', 'usa']);
-          const sign = pickIconPath(icons, ['sign', 'signature', 'pen', 'pencil']);
+          const sign = pickIconPath(icons, ['Icons/signature.png', '/signature.png', 'signature.png', 'signature', 'sign', 'pen', 'pencil']);
           const menu = pickIconPath(icons, ['menu.png', '/menu.', 'menu', 'hamburger', 'bars']);
           const printer = pickIconPath(icons, ['printer', 'print']);
 
@@ -2151,6 +2153,7 @@
       const panel = document.getElementById('appMenuPanel');
       const backdrop = document.getElementById('appMenuBackdrop');
       const button = document.getElementById('appMenuButton');
+      const navBtn = document.getElementById('menuNavBtn');
       const isOpen = panel.classList.contains('show');
       if (isOpen) {
         closeAppMenu();
@@ -2158,16 +2161,19 @@
       }
       panel.classList.add('show');
       backdrop.classList.add('show');
-      button.classList.add('active');
+      if (button) button.classList.add('active');
+      if (navBtn) navBtn.classList.add('active');
     }
 
     function closeAppMenu() {
       const panel = document.getElementById('appMenuPanel');
       const backdrop = document.getElementById('appMenuBackdrop');
       const button = document.getElementById('appMenuButton');
+      const navBtn = document.getElementById('menuNavBtn');
       panel.classList.remove('show');
       backdrop.classList.remove('show');
-      button.classList.remove('active');
+      if (button) button.classList.remove('active');
+      if (navBtn) navBtn.classList.remove('active');
     }
 
     /* ═══════════════════════════════════════════════════════════
