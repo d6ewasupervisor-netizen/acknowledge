@@ -697,13 +697,18 @@
       color: transparent;
       z-index: 2;
     }
-    .textLayer span {
+    /* Only position PDF.js's text spans; not nested highlight spans. */
+    .textLayer > span {
       position: absolute;
       white-space: pre;
       transform-origin: 0 0;
       line-height: 1;
     }
     .textLayer .search-text-hit {
+      position: static;
+      display: inline;
+      white-space: inherit;
+      transform: none;
       background: rgba(250,204,21,0.35);
       box-shadow: 0 0 0 1px rgba(250,204,21,0.7);
       border-radius: 2px;
