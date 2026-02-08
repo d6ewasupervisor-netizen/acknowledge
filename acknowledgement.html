@@ -3712,18 +3712,18 @@
     function lockSignatureControls() {
       signatureLocked = true;
       canvas.classList.add('locked');
-      signNowBtn.disabled = true;
-      penSizeInput.disabled = true;
-      typedInput.disabled = true;
-      typedFont.disabled = true;
-      faxStore.disabled = true;
-      faxNumber.disabled = true;
-      blankFaxStore.disabled = true;
-      blankFaxNumber.disabled = true;
-      signedFaxStore.disabled = true;
-      signedFaxNumber.disabled = true;
-      clearBtn.disabled = true;
-      scanFileInput.disabled = true;
+      if (signNowBtn) signNowBtn.disabled = true;
+      if (penSizeInput) penSizeInput.disabled = true;
+      if (typedInput) typedInput.disabled = true;
+      if (typedFont) typedFont.disabled = true;
+      if (faxStore) faxStore.disabled = true;
+      if (faxNumber) faxNumber.disabled = true;
+      if (blankFaxStore) blankFaxStore.disabled = true;
+      if (blankFaxNumber) blankFaxNumber.disabled = true;
+      if (signedFaxStore) signedFaxStore.disabled = true;
+      if (signedFaxNumber) signedFaxNumber.disabled = true;
+      if (clearBtn) clearBtn.disabled = true;
+      if (scanFileInput) scanFileInput.disabled = true;
       scanHandles.forEach(handle => handle.style.pointerEvents = 'none');
       document.querySelectorAll('.sig-option, .sig-color, #penSize, #typedSignature, #typedFont').forEach(el => {
         if (el.tagName === 'BUTTON' || el.tagName === 'INPUT' || el.tagName === 'SELECT') {
