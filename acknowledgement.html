@@ -3772,7 +3772,10 @@
     const submitBtn = document.getElementById('submitBtn');
     function checkForm() {
       const signatureRequired = signatureMode !== 'fax';
-      const signatureOk = signatureMode === 'scan' ? !!scanImage : (signatureRequired ? hasSig : true);
+      const typedOk = signatureMode === 'type' ? (typedInput && typedInput.value.trim().length > 0) : false;
+      const signatureOk = signatureMode === 'scan'
+        ? !!scanImage
+        : (signatureRequired ? (hasSig || typedOk) : true);
       const faxOk = signatureMode === 'fax' ? (!!faxStore.value || !!faxNumber.value.trim()) : true;
       submitBtn.disabled = !(nameInput.value.trim().length > 0 && dateInput.value && consentBox.checked && signatureOk && faxOk);
     }
