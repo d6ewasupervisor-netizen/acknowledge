@@ -9,6 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=DM+Serif+Display&family=Dancing+Script:wght@400;600&family=Great+Vibes&family=Pacifico&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
   <!-- App configuration (gitignored — copy config.example.js to config.js) -->
   <script src="config.js"></script>
   <!-- Firebase SDK for real-time fax delivery tracking -->
@@ -2183,6 +2184,8 @@
     // FAX CONFIGURATION (loaded from config.js)
     // ═══════════════════════════════════════════════════════════
     const FUNCTIONS_BASE = _cfg.FUNCTIONS_BASE || '';
+    const TEMPLATE_BLANK_BW_URL = 'employeeHandbook/Acknowledgement_Templates/blank_bandw_acknowledgement.pdf';
+    const TEMPLATE_BLANK_COLOR_URL = 'employeeHandbook/Acknowledgement_Templates/blank_color_acknowledgement.pdf';
 
     const FIREBASE_CONFIG = {
       apiKey: _cfg.FIREBASE_API_KEY || '',
@@ -2818,6 +2821,118 @@
     }
 
     // Generate blank PDF for faxing
+    function arrayBufferToBase64(buffer) {
+      let binary = '';
+      const bytes = new Uint8Array(buffer);
+      const chunkSize = 0x8000;
+      for (let i = 0; i < bytes.length; i += chunkSize) {
+        binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
+      }
+      return btoa(binary);
+    }
+
+    async function fetchPdfBytes(url) {
+      const response = await fetch(url, { cache: 'no-store' });
+      if (!response.ok) {
+        throw new Error(`Failed to load template: ${url}`);
+      }
+      return response.arrayBuffer();
+    }
+
+    function formatSubmitDateTime() {
+      if (!dateInput.value) return '';
+      const localTime = new Intl.DateTimeFormat('en-US', {
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+      }).format(new Date()).toLowerCase();
+      const [year, month, day] = dateInput.value.split('-').map(Number);
+      const dateStr = `${month}/${day}/${year}`;
+      const timeStr = localTime;
+      return `${dateStr} ${timeStr}`;
+    }
+
+    function pickTemplateField(fields, includeKeys, excludeKeys = []) {
+      return fields.find(({ key }) => {
+        const hasInclude = includeKeys.some(term => key.includes(term));
+        const hasExclude = excludeKeys.some(term => key.includes(term));
+        return hasInclude && !hasExclude;
+      })?.field || null;
+    }
+
+    async function buildTemplatePdfBase64({
+      templateUrl,
+      employeeEmail = '',
+      includeSignatureImage = false
+    }) {
+      if (!window.PDFLib) {
+        throw new Error('PDFLib not available');
+      }
+
+      const templateBytes = await fetchPdfBytes(templateUrl);
+      const pdfDoc = await PDFLib.PDFDocument.load(templateBytes);
+      const form = pdfDoc.getForm();
+      const fields = form.getFields().map(field => ({
+        field,
+        name: field.getName(),
+        key: field.getName().toLowerCase(),
+        type: field.constructor.name
+      }));
+
+      window.templateFieldInfo = fields.map(({ name, type }) => ({ name, type }));
+
+      const textFields = fields.filter(({ type }) => /PDFTextField|PDFDropdown|PDFComboBox/.test(type));
+      const checkFields = fields.filter(({ type }) => /PDFCheckBox|PDFRadioGroup/.test(type));
+
+      const mapped = {
+        name: fields.find(f => f.key === 'printed_name')?.field
+          || pickTemplateField(textFields, ['name', 'teammate', 'employee'], ['manager', 'supervisor', 'store', 'location', 'email']),
+        date: fields.find(f => f.key === 'date')?.field
+          || pickTemplateField(textFields, ['date']),
+        signature: fields.find(f => f.key === 'signature_image')?.field
+          || pickTemplateField(textFields, ['signature', 'sign'], ['date', 'name']),
+        store: pickTemplateField(textFields, ['store', 'location', 'site', 'branch', 'unit']),
+        email: pickTemplateField(textFields, ['email', 'e-mail']),
+        consent: fields.find(f => f.key === 'acknowledge_checkbox')?.field
+          || pickTemplateField(checkFields, ['consent', 'agree', 'acknowledge', 'receipt'])
+      };
+
+      const submitName = nameInput.value.trim();
+      const submitDate = formatSubmitDateTime();
+      const storeValue = signatureMode === 'fax'
+        ? (faxStore.value ? `Store ${faxStore.value}` : faxNumber.value.trim())
+        : '';
+
+      if (mapped.name && submitName) mapped.name.setText(submitName);
+      if (mapped.date && submitDate) mapped.date.setText(submitDate);
+      if (mapped.store && storeValue) mapped.store.setText(storeValue);
+      if (mapped.email && employeeEmail) mapped.email.setText(employeeEmail);
+      if (mapped.signature && submitName && !includeSignatureImage) mapped.signature.setText(submitName);
+      if (mapped.consent && consentBox.checked) mapped.consent.check();
+
+      if (includeSignatureImage && signatureImage && mapped.signature?.getWidgets) {
+        const widgets = mapped.signature.getWidgets();
+        if (widgets && widgets.length) {
+          const widget = widgets[0];
+          const rect = widget.getRectangle();
+          const page = widget.getPage();
+          const image = await pdfDoc.embedPng(signatureImage);
+          const fitted = image.scaleToFit(rect.width, rect.height);
+          const x = rect.x + (rect.width - fitted.width) / 2;
+          const y = rect.y + (rect.height - fitted.height) / 2;
+          page.drawImage(image, { x, y, width: fitted.width, height: fitted.height });
+          mapped.signature.setText('');
+        }
+      }
+
+      const font = await pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica);
+      form.updateFieldAppearances(font);
+      form.flatten();
+
+      const pdfBytes = await pdfDoc.save();
+      return arrayBufferToBase64(pdfBytes);
+    }
+
     function generateBlankPDF() {
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'letter' });
@@ -2957,9 +3072,16 @@
 
       try {
         // Generate appropriate PDF
-        let pdfDoc, fileName;
+        let pdfDoc, fileName, pdfBase64 = '';
         if (capturedFaxMode === 'blank') {
-          pdfDoc = generateBlankPDF();
+          try {
+            pdfBase64 = await buildTemplatePdfBase64({
+              templateUrl: TEMPLATE_BLANK_BW_URL
+            });
+          } catch (error) {
+            console.warn('Template load failed, using generated blank PDF:', error);
+            pdfDoc = generateBlankPDF();
+          }
           fileName = 'Blank_Handbook_Acknowledgement.pdf';
         } else {
           if (!generatedPDF) throw new Error('No signed PDF available. Please submit the form first.');
@@ -2969,7 +3091,9 @@
         }
 
         // Convert to base64
-        const pdfBase64 = pdfDoc.output('datauristring').split(',')[1];
+        if (!pdfBase64) {
+          pdfBase64 = pdfDoc.output('datauristring').split(',')[1];
+        }
 
         // Demo mode check
         if (!FUNCTIONS_BASE) {
@@ -3943,7 +4067,16 @@
       }
 
       try {
-        const pdfBase64 = generatedPDF.output('datauristring').split(',')[1];
+        let pdfBase64 = '';
+        try {
+          pdfBase64 = await buildTemplatePdfBase64({
+            templateUrl: TEMPLATE_BLANK_COLOR_URL,
+            includeSignatureImage: signatureMode !== 'fax' && !!signatureImage
+          });
+        } catch (error) {
+          console.warn('Template save failed, using generated PDF:', error);
+          pdfBase64 = generatedPDF.output('datauristring').split(',')[1];
+        }
         const payload = {
           employeeName: nameInput.value.trim(),
           signDate: dateInput.value,
@@ -4079,7 +4212,17 @@
         return;
       }
 
-      const pdfBase64 = generatedPDF.output('datauristring').split(',')[1];
+      let pdfBase64 = '';
+      try {
+        pdfBase64 = await buildTemplatePdfBase64({
+          templateUrl: TEMPLATE_BLANK_COLOR_URL,
+          employeeEmail: includeEmployeeCopy ? employeeEmail : '',
+          includeSignatureImage: signatureMode !== 'fax' && !!signatureImage
+        });
+      } catch (error) {
+        console.warn('Template email failed, using generated PDF:', error);
+        pdfBase64 = generatedPDF.output('datauristring').split(',')[1];
+      }
       const response = await fetch(`${FUNCTIONS_BASE}/sendEmail`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
