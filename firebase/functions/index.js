@@ -575,7 +575,7 @@ exports.sendEmail = functions.runWith({ memory: '512MB' }).https.onRequest((req,
  * Body: RequesterEmail
  */
 exports.monitorFaxStatus = functions.pubsub
-.schedule('every 30 seconds')
+.schedule('every 1 minutes')
 .onRun(async (context) => {
   const imapSimple = require('imap-simple');
   const config = functions.config();
