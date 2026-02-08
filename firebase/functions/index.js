@@ -23,6 +23,7 @@ const cors = require('cors');
 // Initialize Firebase Admin
 admin.initializeApp();
 const db = admin.firestore();
+const FUNCTIONS_BUILD_ID = '2026-02-08-storage-save';
 
 // CORS middleware - allow all origins for GitHub Pages
 const corsHandler = cors({ origin: true });
@@ -424,6 +425,7 @@ exports.saveAcknowledgement = functions.runWith({ memory: '512MB' }).https.onReq
     }
 
     try {
+      console.log('saveAcknowledgement build:', FUNCTIONS_BUILD_ID);
       const {
         employeeName,
         signDate,
