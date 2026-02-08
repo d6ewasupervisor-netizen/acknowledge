@@ -157,14 +157,19 @@ const server = http.createServer(async (req, res) => {
   }
 });
 
-server.listen(PORT, () => {
-  const handbookNote = fs.existsSync(HANDBOOK_DIR)
-    ? `Serving handbook assets from ${HANDBOOK_DIR}`
-    : `Handbook assets dir not found: ${HANDBOOK_DIR}`;
-  // eslint-disable-next-line no-console
-  console.log(
-    `Acknowledge dev server running on http://localhost:${PORT}\n${handbookNote}\n` +
-    `Override with EMPLOYEE_HANDBOOK_DIR if needed.`
-  );
-});
+/* istanbul ignore next */
+if (require.main === module) {
+  server.listen(PORT, () => {
+    const handbookNote = fs.existsSync(HANDBOOK_DIR)
+      ? `Serving handbook assets from ${HANDBOOK_DIR}`
+      : `Handbook assets dir not found: ${HANDBOOK_DIR}`;
+    // eslint-disable-next-line no-console
+    console.log(
+      `Acknowledge dev server running on http://localhost:${PORT}\n${handbookNote}\n` +
+      `Override with EMPLOYEE_HANDBOOK_DIR if needed.`
+    );
+  });
+}
+
+module.exports = { safeJoin, fileExists, walkFiles, getHandbookManifest, serveStaticFile, send, server, MIME };
 
