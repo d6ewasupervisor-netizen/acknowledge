@@ -25,6 +25,15 @@ admin.initializeApp();
 const db = admin.firestore();
 const FUNCTIONS_BUILD_ID = '2026-02-08-storage-save';
 
+const getStorageBucketName = () => {
+  const config = functions.config();
+  return (
+    config.storage?.bucket ||
+    process.env.STORAGE_BUCKET ||
+    (process.env.GCLOUD_PROJECT ? `${process.env.GCLOUD_PROJECT}.appspot.com` : '')
+  );
+};
+
 // CORS middleware - allow all origins for GitHub Pages
 const corsHandler = cors({ origin: true });
 
@@ -452,7 +461,11 @@ exports.saveAcknowledgement = functions.runWith({ memory: '512MB' }).https.onReq
       const ipAddress = forwarded ? String(forwarded).split(',')[0].trim() : (req.ip || null);
       const userAgent = req.headers['user-agent'] || null;
 
-      const bucket = admin.storage().bucket();
+      const bucketName = getStorageBucketName();
+      if (!bucketName) {
+        throw new Error('Storage bucket not configured');
+      }
+      const bucket = admin.storage().bucket(bucketName);
       const safeFileName = String(pdfFileName).replace(/[^a-zA-Z0-9._-]/g, '_');
       const storagePath = `signedAcknowledgements/${Date.now()}_${safeFileName}`;
       const pdfBuffer = Buffer.from(cleanPdfBase64, 'base64');
