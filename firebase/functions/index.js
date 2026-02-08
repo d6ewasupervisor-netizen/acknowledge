@@ -450,14 +450,25 @@ exports.saveAcknowledgement = functions.runWith({ memory: '512MB' }).https.onReq
       const ipAddress = forwarded ? String(forwarded).split(',')[0].trim() : (req.ip || null);
       const userAgent = req.headers['user-agent'] || null;
 
+      const bucket = admin.storage().bucket();
+      const safeFileName = String(pdfFileName).replace(/[^a-zA-Z0-9._-]/g, '_');
+      const storagePath = `signedAcknowledgements/${Date.now()}_${safeFileName}`;
+      const pdfBuffer = Buffer.from(cleanPdfBase64, 'base64');
+
+      await bucket.file(storagePath).save(pdfBuffer, {
+        contentType: 'application/pdf',
+        metadata: { cacheControl: 'private, max-age=0' }
+      });
+
       const docRef = await db.collection('signedAcknowledgements').add({
         employeeName,
         signDate,
         signatureMode: signatureMode || 'draw',
         signatureDataUrl: signatureDataUrl || null,
         scanImageUrl: scanImageUrl || null,
-        pdfBase64: cleanPdfBase64,
         pdfFileName,
+        pdfStoragePath: storagePath,
+        pdfSizeBytes: pdfBuffer.length,
         deliveryMethod: deliveryMethod || 'digital',
         storeNumber: storeNumber || null,
         createdAt: admin.firestore.FieldValue.serverTimestamp(),
@@ -465,7 +476,7 @@ exports.saveAcknowledgement = functions.runWith({ memory: '512MB' }).https.onReq
         userAgent: userAgent || null
       });
 
-      return res.status(200).json({ success: true, docId: docRef.id });
+      return res.status(200).json({ success: true, docId: docRef.id, pdfStoragePath: storagePath });
     } catch (error) {
       console.error('saveAcknowledgement error:', error);
       return res.status(500).json({
