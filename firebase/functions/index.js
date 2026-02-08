@@ -27,6 +27,20 @@ const db = admin.firestore();
 // CORS middleware - allow all origins for GitHub Pages
 const corsHandler = cors({ origin: true });
 
+const applyCorsHeaders = (res) => {
+  res.set('Access-Control-Allow-Origin', '*');
+  res.set('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
+  res.set('Access-Control-Allow-Headers', 'Content-Type');
+};
+
+const handleCorsPreflight = (req, res) => {
+  applyCorsHeaders(res);
+  if (req.method === 'OPTIONS') {
+    return res.status(204).send('');
+  }
+  return null;
+};
+
 // Get SMTP config from Firebase Functions config
 const getSmtpConfig = () => {
   const config = functions.config();
@@ -68,7 +82,10 @@ const createTransporter = () => {
  * }
  */
 exports.sendFax = functions.runWith({ memory: '512MB', minInstances: 1 }).https.onRequest((req, res) => {
+  const preflight = handleCorsPreflight(req, res);
+  if (preflight) return preflight;
   corsHandler(req, res, async () => {
+    applyCorsHeaders(res);
     // Only allow POST
     if (req.method !== 'POST') {
       return res.status(405).json({ error: 'Method not allowed' });
@@ -176,7 +193,10 @@ exports.sendFax = functions.runWith({ memory: '512MB', minInstances: 1 }).https.
  * }
  */
 exports.sendFaxDirect = functions.runWith({ memory: '512MB', minInstances: 1 }).https.onRequest((req, res) => {
+  const preflight = handleCorsPreflight(req, res);
+  if (preflight) return preflight;
   corsHandler(req, res, async () => {
+    applyCorsHeaders(res);
     // Only allow POST
     if (req.method !== 'POST') {
       return res.status(405).json({ error: 'Method not allowed' });
@@ -275,7 +295,10 @@ exports.sendFaxDirect = functions.runWith({ memory: '512MB', minInstances: 1 }).
  * Used as backup API - frontend embeds store data for instant load
  */
 exports.getStores = functions.https.onRequest((req, res) => {
+  const preflight = handleCorsPreflight(req, res);
+  if (preflight) return preflight;
   corsHandler(req, res, async () => {
+    applyCorsHeaders(res);
     // Only allow GET
     if (req.method !== 'GET') {
       return res.status(405).json({ error: 'Method not allowed' });
@@ -325,7 +348,10 @@ exports.getStores = functions.https.onRequest((req, res) => {
  * }
  */
 exports.faxWebhook = functions.https.onRequest((req, res) => {
+  const preflight = handleCorsPreflight(req, res);
+  if (preflight) return preflight;
   corsHandler(req, res, async () => {
+    applyCorsHeaders(res);
     if (req.method !== 'POST') {
       return res.status(405).json({ error: 'Method not allowed' });
     }
@@ -389,7 +415,10 @@ exports.faxWebhook = functions.https.onRequest((req, res) => {
  * }
  */
 exports.saveAcknowledgement = functions.runWith({ memory: '512MB' }).https.onRequest((req, res) => {
+  const preflight = handleCorsPreflight(req, res);
+  if (preflight) return preflight;
   corsHandler(req, res, async () => {
+    applyCorsHeaders(res);
     if (req.method !== 'POST') {
       return res.status(405).json({ error: 'Method not allowed' });
     }
@@ -459,7 +488,10 @@ exports.saveAcknowledgement = functions.runWith({ memory: '512MB' }).https.onReq
  * }
  */
 exports.sendEmail = functions.runWith({ memory: '512MB' }).https.onRequest((req, res) => {
+  const preflight = handleCorsPreflight(req, res);
+  if (preflight) return preflight;
   corsHandler(req, res, async () => {
+    applyCorsHeaders(res);
     if (req.method !== 'POST') {
       return res.status(405).json({ error: 'Method not allowed' });
     }

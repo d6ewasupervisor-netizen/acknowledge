@@ -4058,12 +4058,12 @@
     }
 
     async function saveAcknowledgementRecord() {
-      if (!generatedPDF) return;
+      if (!generatedPDF) return false;
       updateCloudSaveStatus('info', 'Saving your acknowledgement to the cloud...');
 
       if (!FUNCTIONS_BASE) {
         updateCloudSaveStatus('info', 'Cloud save disabled in demo mode.');
-        return;
+        return false;
       }
 
       try {
@@ -4100,9 +4100,11 @@
         }
 
         updateCloudSaveStatus('success', 'Saved to cloud.');
+        return true;
       } catch (error) {
         console.error('saveAcknowledgement error:', error);
         updateCloudSaveStatus('warn', 'Cloud save failed — you can still download or print.');
+        return false;
       }
     }
 
@@ -4183,13 +4185,14 @@
       setSubmitButtonsEnabled(true);
 
       document.getElementById('saveOverlay').classList.add('show');
-      saveAcknowledgementRecord();
+      lastSavePromise = saveAcknowledgementRecord();
     }
 
     /* ═══════════════════════════════════════════════════════════
        SUBMISSION ACTIONS
        ═══════════════════════════════════════════════════════════ */
     let submissionInProgress = false;
+    let lastSavePromise = null;
 
     function setSubmitButtonsEnabled(enabled) {
       ['submitOnlyBtn', 'submitLocalPrintBtn', 'submitStorePrintBtn', 'submitSavePrintBtn', 'submitEmailCopyBtn'].forEach(id => {
@@ -4262,8 +4265,18 @@
           return;
         }
 
+        if (lastSavePromise) {
+          try {
+            await lastSavePromise;
+          } catch (error) {
+            console.warn('Cloud save failed:', error);
+          }
+        }
+
+        const includeEmployeeCopy = needsEmployeeEmail || (action === 'save-print' && !!employeeEmail);
+
         // All actions email to admin (tyson.a.gauthier@gmail.com)
-        await sendEmailToAdmin(employeeEmail, needsEmployeeEmail);
+        await sendEmailToAdmin(employeeEmail, includeEmployeeCopy);
 
         if (action === 'submit') {
           updateSubmitStatus('success', 'Submitted successfully.');
