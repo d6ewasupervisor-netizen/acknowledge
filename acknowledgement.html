@@ -3089,8 +3089,16 @@
           fileName = 'Blank_Handbook_Acknowledgement.pdf';
         } else {
           if (!generatedPDF) throw new Error('No signed PDF available. Please submit the form first.');
-          // Use print-optimized variant (transparent header + black text)
-          pdfDoc = generatePrintableSignedPDF();
+          try {
+            pdfBase64 = await buildTemplatePdfBase64({
+              templateUrl: TEMPLATE_BLANK_BW_URL,
+              includeSignatureImage: !!signatureImage
+            });
+          } catch (error) {
+            console.warn('Template signed print failed, using generated signed PDF:', error);
+            // Use print-optimized variant (transparent header + black text)
+            pdfDoc = generatePrintableSignedPDF();
+          }
           fileName = pdfFileName || 'Signed_Handbook_Acknowledgement.pdf';
         }
 
