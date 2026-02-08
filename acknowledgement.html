@@ -1789,20 +1789,6 @@
       </div>
     </div>
 
-    <!-- Fax Signed Copy Trigger Card -->
-    <div class="fax-trigger-card" id="faxSignedTrigger" onclick="openFaxModal('signed')" role="button" tabindex="0" aria-disabled="true">
-      <div class="fax-trigger-icon">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375H7.875A3.375 3.375 0 0 0 4.5 11.625V14.25m15 0a2.25 2.25 0 0 1 2.25 2.25v.75a3 3 0 0 1-3 3H5.25a3 3 0 0 1-3-3v-.75a2.25 2.25 0 0 1 2.25-2.25m15 0V9.375c0-.621-.504-1.125-1.125-1.125h-9.75c-.621 0-1.125.504-1.125 1.125V14.25m12.75 0h-9.75"/><path stroke-linecap="round" stroke-linejoin="round" d="M9 18.75h6"/></svg>
-      </div>
-      <div class="fax-trigger-content">
-        <h3>Print Signed Copy at Your Store</h3>
-        <p>Print a copy of your signed acknowledgement for your records.</p>
-      </div>
-      <div class="fax-trigger-arrow">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg>
-      </div>
-    </div>
-
     <section class="alternate-options">
       <div class="alternate-label">Alternate Options</div>
 
@@ -1870,48 +1856,37 @@
       <div class="signer-detail" id="signerDetail"></div>
       <div class="cloud-save-status" id="cloudSaveStatus"></div>
 
-      <!-- Email input for employee copy -->
+      <!-- Email input for optional signer copy -->
       <div class="submit-email-section">
-        <label class="submit-email-label" for="submitEmailInput">Your email <span class="submit-email-optional">(optional — to receive a copy)</span></label>
-        <input type="email" id="submitEmailInput" class="submit-email-input" placeholder="you@example.com" autocomplete="email">
+        <label class="submit-email-label" for="submitEmailInput">Signer email <span class="submit-email-optional">(required for email option)</span></label>
+        <input type="email" id="submitEmailInput" class="submit-email-input" placeholder="signer@example.com" autocomplete="email">
       </div>
 
       <!-- Submit status area -->
       <div class="submit-status" id="submitStatus"></div>
 
       <div class="save-buttons">
-        <button class="save-btn submit-primary" id="submitEmailBtn" onclick="submitAcknowledgement('submit')">
+        <button class="save-btn submit-primary" id="submitOnlyBtn" onclick="submitAcknowledgement('submit')">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5"/></svg>
-          <span id="submitEmailBtnText">Submit</span>
+          <span>Only Submit</span>
         </button>
-        <button class="save-btn download" id="submitPrintBtn" onclick="submitAcknowledgement('print')">
+        <button class="save-btn download" id="submitLocalPrintBtn" onclick="submitAcknowledgement('print-local')">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0 1 10.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0 .229 2.523a1.125 1.125 0 0 1-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0 0 21 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 0 0-1.913-.247M6.34 18H5.25A2.25 2.25 0 0 1 3 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 0 1 1.913-.247m10.5 0a48.536 48.536 0 0 0-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5Zm-3 0h.008v.008H15V10.5Z"/></svg>
-          Submit &amp; Print
+          Send to Local Printer &amp; Submit
         </button>
-        <button class="save-btn download" id="submitSaveBtn" onclick="submitAcknowledgement('save')">
+        <button class="save-btn download" id="submitStorePrintBtn" onclick="submitAcknowledgement('print-store')">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5"/></svg>
+          Send to Store Printer &amp; Submit
+        </button>
+        <button class="save-btn download" id="submitSavePrintBtn" onclick="submitAcknowledgement('save-print')">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
-          Submit &amp; Save to Device
+          Save to Device &amp; Print
+        </button>
+        <button class="save-btn download" id="submitEmailCopyBtn" onclick="submitAcknowledgement('email-submit')">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21.75 7.5v9a2.25 2.25 0 0 1-2.25 2.25H4.5A2.25 2.25 0 0 1 2.25 16.5v-9A2.25 2.25 0 0 1 4.5 5.25h15A2.25 2.25 0 0 1 21.75 7.5Z"/><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 7.5 9.75 6.75 9.75-6.75"/></svg>
+          Email to Signer &amp; Submit
         </button>
         <button class="save-btn done" onclick="cancelSubmission()">Cancel</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Print choice modal (shown after Submit & Print) -->
-  <div class="save-overlay" id="printChoiceOverlay">
-    <div class="save-card" style="max-width: 420px;">
-      <h3>How would you like to print?</h3>
-      <p>Choose a printing method for your signed acknowledgement.</p>
-      <div class="save-buttons">
-        <button class="save-btn download" onclick="printChoiceLocal()">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0 1 10.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0 .229 2.523a1.125 1.125 0 0 1-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0 0 21 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 0 0-1.913-.247M6.34 18H5.25A2.25 2.25 0 0 1 3 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 0 1 1.913-.247m10.5 0a48.536 48.536 0 0 0-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5Zm-3 0h.008v.008H15V10.5Z"/></svg>
-          Print on This Device
-        </button>
-        <button class="save-btn download" onclick="printChoiceFax()">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5"/></svg>
-          Print at Store / Fax
-        </button>
-        <button class="save-btn done" onclick="closePrintChoice()">Back</button>
       </div>
     </div>
   </div>
@@ -3104,8 +3079,7 @@
         if (e.key !== 'Enter' && e.key !== ' ') return;
         if (card.getAttribute('aria-disabled') === 'true') return;
         e.preventDefault();
-        if (card.id === 'faxSignedTrigger') openFaxModal('signed');
-        else openFaxModal('blank');
+        openFaxModal('blank');
       });
     });
 
@@ -4054,8 +4028,6 @@
 
       generatePDF();
       lockSignatureControls();
-      const signedTrigger = document.getElementById('faxSignedTrigger');
-      if (signedTrigger) signedTrigger.setAttribute('aria-disabled', 'false');
       // Haptic feedback on successful submit
       if (navigator.vibrate) navigator.vibrate([50, 30, 50]);
       const fd = new Date(dateInput.value + 'T12:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
@@ -4068,9 +4040,13 @@
       document.getElementById('signerDetail').innerHTML = `<span><strong>Name:</strong> ${nameInput.value.trim()}</span><span><strong>Date:</strong> ${fd}</span><span><strong>Delivery:</strong> ${delivery}</span><span><strong>File:</strong> ${pdfFileName}</span>`;
 
       // Reset submission UI
-      document.getElementById('submitEmailInput').value = '';
-      document.getElementById('submitStatus').textContent = '';
-      document.getElementById('submitStatus').className = 'submit-status';
+      const submitEmailInput = document.getElementById('submitEmailInput');
+      const submitStatus = document.getElementById('submitStatus');
+      if (submitEmailInput) submitEmailInput.value = '';
+      if (submitStatus) {
+        submitStatus.textContent = '';
+        submitStatus.className = 'submit-status';
+      }
       setSubmitButtonsEnabled(true);
 
       document.getElementById('saveOverlay').classList.add('show');
@@ -4083,7 +4059,7 @@
     let submissionInProgress = false;
 
     function setSubmitButtonsEnabled(enabled) {
-      ['submitEmailBtn', 'submitPrintBtn', 'submitSaveBtn'].forEach(id => {
+      ['submitOnlyBtn', 'submitLocalPrintBtn', 'submitStorePrintBtn', 'submitSavePrintBtn', 'submitEmailCopyBtn'].forEach(id => {
         const btn = document.getElementById(id);
         if (btn) btn.disabled = !enabled;
       });
@@ -4096,7 +4072,7 @@
       el.textContent = message || '';
     }
 
-    async function sendEmailToAdmin(employeeEmail) {
+    async function sendEmailToAdmin(employeeEmail, includeEmployeeCopy) {
       if (!generatedPDF) return;
       if (!FUNCTIONS_BASE) {
         updateSubmitStatus('success', 'Demo mode — email simulated.');
@@ -4111,7 +4087,7 @@
           pdfBase64,
           pdfFileName: pdfFileName || buildFileName(),
           employeeName: nameInput.value.trim(),
-          employeeEmail: employeeEmail || ''
+          employeeEmail: includeEmployeeCopy ? (employeeEmail || '') : ''
         })
       });
       const result = await response.json();
@@ -4135,28 +4111,46 @@
       try {
         updateSubmitStatus('sending', 'Sending...');
 
+        const needsEmployeeEmail = action === 'email-submit';
+        if (needsEmployeeEmail && !employeeEmail) {
+          updateSubmitStatus('error', 'Please enter the signer email.');
+          setSubmitButtonsEnabled(true);
+          submissionInProgress = false;
+          return;
+        }
+
         // All actions email to admin (tyson.a.gauthier@gmail.com)
-        await sendEmailToAdmin(employeeEmail);
+        await sendEmailToAdmin(employeeEmail, needsEmployeeEmail);
 
         if (action === 'submit') {
           updateSubmitStatus('success', 'Submitted successfully.');
           if (navigator.vibrate) navigator.vibrate([50, 30, 50]);
-          // Auto-close after a short delay
           setTimeout(() => { closeSaveOverlay(); }, 2000);
 
-        } else if (action === 'print') {
-          updateSubmitStatus('success', 'Submitted. Choose how to print...');
+        } else if (action === 'print-local') {
+          updateSubmitStatus('success', 'Submitted. Printing locally...');
           if (navigator.vibrate) navigator.vibrate([50, 30, 50]);
-          // Show print choice modal
+          closeSaveOverlay();
+          printLocally();
+
+        } else if (action === 'print-store') {
+          updateSubmitStatus('success', 'Submitted. Choose a store printer...');
+          if (navigator.vibrate) navigator.vibrate([50, 30, 50]);
+          closeSaveOverlay();
+          openFaxModal('signed');
+
+        } else if (action === 'save-print') {
+          updateSubmitStatus('success', 'Submitted. Saving and printing...');
+          if (navigator.vibrate) navigator.vibrate([50, 30, 50]);
+          if (generatedPDF) generatedPDF.save(pdfFileName);
           setTimeout(() => {
-            document.getElementById('printChoiceOverlay').classList.add('show');
+            closeSaveOverlay();
+            printLocally();
           }, 600);
 
-        } else if (action === 'save') {
-          updateSubmitStatus('success', 'Submitted. Downloading...');
+        } else if (action === 'email-submit') {
+          updateSubmitStatus('success', 'Submitted. Email sent to signer.');
           if (navigator.vibrate) navigator.vibrate([50, 30, 50]);
-          // Trigger download
-          if (generatedPDF) generatedPDF.save(pdfFileName);
           setTimeout(() => { closeSaveOverlay(); }, 2000);
         }
 
@@ -4177,25 +4171,6 @@
       document.getElementById('saveOverlay').classList.remove('show');
       setSubmitButtonsEnabled(true);
       submissionInProgress = false;
-    }
-
-    /* ═══════════════════════════════════════════════════════════
-       PRINT CHOICE MODAL (after Submit & Print)
-       ═══════════════════════════════════════════════════════════ */
-    function closePrintChoice() {
-      document.getElementById('printChoiceOverlay').classList.remove('show');
-    }
-
-    function printChoiceLocal() {
-      closePrintChoice();
-      closeSaveOverlay();
-      printLocally();
-    }
-
-    function printChoiceFax() {
-      closePrintChoice();
-      closeSaveOverlay();
-      openFaxModal('signed');
     }
 
     /* ═══════════════════════════════════════════════════════════
