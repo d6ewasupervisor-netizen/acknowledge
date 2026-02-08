@@ -364,6 +364,61 @@
       color: var(--blue-200);
       border-radius: 2px; padding: 0 2px;
     }
+    .search-category-group {
+      margin-bottom: 0.75rem;
+    }
+    .search-category-header {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.65rem 0.85rem;
+      border-radius: 10px;
+      background: rgba(74,144,196,0.14);
+      border: 1px solid rgba(74,144,196,0.22);
+      cursor: pointer;
+      user-select: none;
+      transition: background 0.15s ease;
+      margin-bottom: 0.35rem;
+    }
+    .search-category-header:hover {
+      background: rgba(74,144,196,0.22);
+    }
+    .search-category-icon {
+      font-size: 1rem;
+      flex-shrink: 0;
+    }
+    .search-category-label {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--blue-200);
+      letter-spacing: 0.03em;
+      flex: 1;
+    }
+    .search-category-count {
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: var(--slate-400);
+      background: rgba(74,144,196,0.18);
+      padding: 0.1rem 0.45rem;
+      border-radius: 8px;
+      min-width: 1.4rem;
+      text-align: center;
+    }
+    .search-category-chevron {
+      font-size: 1rem;
+      color: var(--slate-400);
+      transition: transform 0.2s ease;
+      transform: rotate(90deg);
+    }
+    .search-category-group.collapsed .search-category-chevron {
+      transform: rotate(0deg);
+    }
+    .search-category-group.collapsed .search-category-items {
+      display: none;
+    }
+    .search-category-items {
+      padding-left: 0.5rem;
+    }
 
     .toc-group { margin-bottom: 0.5rem; }
     .toc-group-header {
@@ -3117,6 +3172,14 @@ function getHandbookSectionLabel(page) {
   return subTitle || sectionTitle;
 }
 
+function getHandbookParentSection(page) {
+  let sectionTitle = 'Handbook';
+  for (const section of TOC) {
+    if (page >= section.page) sectionTitle = section.title;
+  }
+  return sectionTitle;
+}
+
 function getSupplementStateLabel(page) {
   const entries = Object.entries(STATE_PAGES)
     .map(([state, start]) => ({ state, start: start + SUPPLEMENT_PAGE_OFFSET }))
@@ -3933,22 +3996,26 @@ async function collectSearchResults(query, includeMeta = false) {
         let page = 1;
         let title = '';
         let meta = '';
+        let category = '';
         if (doc.docType === 'supplement') {
           const state = getStateFromSupplementTxtPath(doc.path);
           const startPage = state && STATE_PAGES[state] ? (STATE_PAGES[state] + SUPPLEMENT_PAGE_OFFSET) : 1;
           page = startPage;
           title = state ? `${state} Supplement` : 'State Supplement';
           meta = state ? `State Supplement · ${state}` : 'State Supplement';
+          category = state ? `State Supplement · ${state}` : 'State Supplement';
         } else {
           page = guessHandbookPageFromTxtPath(doc.path);
           title = 'Handbook';
           meta = `Handbook · ${getHandbookSectionLabel(page)}`;
+          category = `Handbook · ${getHandbookParentSection(page)}`;
         }
 
         const entry = { docType: doc.docType, page, snippet, query: q };
         if (includeMeta) {
           entry.title = title;
           entry.meta = meta;
+          entry.category = category;
         }
         results.push(entry);
         if (results.length >= maxResults) return results;
@@ -3985,6 +4052,9 @@ async function collectSearchResults(query, includeMeta = false) {
           entry.meta = docType === 'handbook'
             ? `Page ${i} of ${handbookDoc.numPages}`
             : `Page ${Math.max(1, i - SUPPLEMENT_PAGE_OFFSET)} of ${supplementDoc.numPages - SUPPLEMENT_PAGE_OFFSET}`;
+          entry.category = docType === 'handbook'
+            ? `Handbook · ${getHandbookParentSection(i)}`
+            : `State Supplement · ${getSupplementStateName(i)}`;
         }
         results.push(entry);
       }
@@ -4054,16 +4124,41 @@ function renderSearchResults(results, query) {
     return;
   }
   lastTocSearchResults = results;
-  tocSearchResults.innerHTML = results.map((r, i) => {
-    const id = getSearchResultId(r);
-    const visited = tocSearchVisited.has(id) ? 'visited' : '';
-    const highlighted = r.snippet.replace(new RegExp(`(${escapeRegex(query)})`, 'gi'), '<mark>$1</mark>');
-    return `<div class="toc-search-item ${visited}" data-id="${id}" data-search-id="${id}" onclick="openSearchResult(${i})">
-      <div class="result-title">${r.title}</div>
-      <div class="result-meta">${r.meta}</div>
-      <div class="result-snippet">${highlighted}</div>
-    </div>`;
-  }).join('');
+
+  // Group results by category (handbook sections & state supplements)
+  const groups = new Map();
+  results.forEach((r, i) => {
+    const cat = r.category || r.meta || 'Other';
+    if (!groups.has(cat)) groups.set(cat, []);
+    groups.get(cat).push({ result: r, index: i });
+  });
+
+  let html = '';
+  for (const [category, items] of groups) {
+    const groupId = 'srg-' + category.replace(/[^a-zA-Z0-9]/g, '-');
+    const isHandbook = items[0].result.docType === 'handbook';
+    const icon = isHandbook ? '📖' : getStateEmoji(items[0].result.category?.split(' · ')[1] || '');
+    html += `<div class="search-category-group">`;
+    html += `<div class="search-category-header" onclick="this.parentElement.classList.toggle('collapsed')" data-group="${groupId}">`;
+    html += `<span class="search-category-icon">${icon}</span>`;
+    html += `<span class="search-category-label">${category}</span>`;
+    html += `<span class="search-category-count">${items.length}</span>`;
+    html += `<span class="search-category-chevron">›</span>`;
+    html += `</div>`;
+    html += `<div class="search-category-items">`;
+    for (const { result: r, index: i } of items) {
+      const id = getSearchResultId(r);
+      const visited = tocSearchVisited.has(id) ? 'visited' : '';
+      const highlighted = r.snippet.replace(new RegExp(`(${escapeRegex(query)})`, 'gi'), '<mark>$1</mark>');
+      html += `<div class="toc-search-item ${visited}" data-id="${id}" data-search-id="${id}" onclick="openSearchResult(${i})">
+        <div class="result-title">${r.title}</div>
+        <div class="result-meta">${r.meta}</div>
+        <div class="result-snippet">${highlighted}</div>
+      </div>`;
+    }
+    html += `</div></div>`;
+  }
+  tocSearchResults.innerHTML = html;
 }
 
 async function performGlobalSearch(query) {
