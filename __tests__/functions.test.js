@@ -278,18 +278,17 @@ describe('sendEmail', () => {
     expect(res._status).toBe(400);
   });
 
-  test('sends only admin email when no employeeEmail provided', async () => {
+  test('returns 400 when employeeEmail or supervisorEmail missing', async () => {
     const res = makeRes();
     await callFn(
       funcs.sendEmail,
       makeReq('POST', { pdfBase64: 'abc', pdfFileName: 'f.pdf', employeeName: 'Test' }),
       res
     );
-    expect(res._status).toBe(200);
-    expect(mockSendMail).toHaveBeenCalledTimes(1);
+    expect(res._status).toBe(400);
   });
 
-  test('sends to both admin and employee when employeeEmail provided', async () => {
+  test('sends to admin, employee, and supervisor', async () => {
     const res = makeRes();
     await callFn(
       funcs.sendEmail,
@@ -298,10 +297,12 @@ describe('sendEmail', () => {
         pdfFileName: 'f.pdf',
         employeeName: 'Test',
         employeeEmail: 'emp@test.com',
+        supervisorEmail: 'sup@test.com',
+        supervisorName: 'Supervisor Name'
       }),
       res
     );
     expect(res._status).toBe(200);
-    expect(mockSendMail).toHaveBeenCalledTimes(2);
+    expect(mockSendMail).toHaveBeenCalledTimes(3);
   });
 });

@@ -415,6 +415,9 @@ exports.faxWebhook = functions.https.onRequest((req, res) => {
  * POST body:
  * {
  *   "employeeName": "John Doe",
+ *   "employeeEmail": "john@example.com",
+ *   "supervisorName": "Jane Manager",
+ *   "supervisorEmail": "jane@example.com",
  *   "signDate": "2026-02-06",
  *   "signatureMode": "draw" | "type" | "upload" | "scan" | "fax",
  *   "signatureDataUrl": "<base64-png>",
@@ -438,6 +441,9 @@ exports.saveAcknowledgement = functions.runWith({ memory: '512MB' }).https.onReq
       console.log('saveAcknowledgement build:', FUNCTIONS_BUILD_ID);
       const {
         employeeName,
+        employeeEmail,
+        supervisorName,
+        supervisorEmail,
         signDate,
         signatureMode,
         signatureDataUrl,
@@ -478,6 +484,9 @@ exports.saveAcknowledgement = functions.runWith({ memory: '512MB' }).https.onReq
 
       const docRef = await db.collection('signedAcknowledgements').add({
         employeeName,
+        employeeEmail: employeeEmail || null,
+        supervisorName: supervisorName || null,
+        supervisorEmail: supervisorEmail || null,
         signDate,
         signatureMode: signatureMode || 'draw',
         signatureDataUrl: signatureDataUrl || null,
@@ -504,14 +513,16 @@ exports.saveAcknowledgement = functions.runWith({ memory: '512MB' }).https.onReq
 });
 
 /**
- * sendEmail - Email signed acknowledgement PDF to admin and optionally to the employee
+ * sendEmail - Email signed acknowledgement PDF to admin, employee, and supervisor
  *
  * POST body:
  * {
  *   "pdfBase64": "<base64-encoded-pdf>",
  *   "pdfFileName": "Doe_John_2026_02_06_Acknowledgement.pdf",
  *   "employeeName": "John Doe",
- *   "employeeEmail": "john@example.com" (optional - sends copy to employee)
+ *   "employeeEmail": "john@example.com",
+ *   "supervisorEmail": "jane@example.com",
+ *   "supervisorName": "Jane Manager"
  * }
  */
 exports.sendEmail = functions.runWith({ memory: '512MB' }).https.onRequest((req, res) => {
@@ -524,11 +535,11 @@ exports.sendEmail = functions.runWith({ memory: '512MB' }).https.onRequest((req,
     }
 
     try {
-      const { pdfBase64, pdfFileName, employeeName, employeeEmail } = req.body;
+      const { pdfBase64, pdfFileName, employeeName, employeeEmail, supervisorEmail, supervisorName } = req.body;
 
-      if (!pdfBase64 || !pdfFileName || !employeeName) {
+      if (!pdfBase64 || !pdfFileName || !employeeName || !employeeEmail || !supervisorEmail) {
         return res.status(400).json({
-          error: 'Missing required fields: pdfBase64, pdfFileName, employeeName'
+          error: 'Missing required fields: pdfBase64, pdfFileName, employeeName, employeeEmail, supervisorEmail'
         });
       }
 
@@ -557,31 +568,47 @@ exports.sendEmail = functions.runWith({ memory: '512MB' }).https.onRequest((req,
 
       const emailPromises = [transporter.sendMail(adminMailOptions)];
 
-      // Optionally send copy to employee
-      if (employeeEmail && employeeEmail.trim()) {
-        const employeeMailOptions = {
-          from: fromEmail,
-          to: employeeEmail.trim(),
-          subject: `Your Signed Acknowledgement — ${employeeName}`,
-          text: `Hi ${employeeName},\n\nAttached is a copy of your signed Employee Handbook Acknowledgement for your records.\n\nThank you.`,
-          html: `<p>Hi ${employeeName},</p><p>Attached is a copy of your signed Employee Handbook Acknowledgement for your records.</p><p>Thank you.</p>`,
-          attachments: [{
-            filename: pdfFileName,
-            content: cleanPdf,
-            encoding: 'base64',
-            contentType: 'application/pdf'
-          }]
-        };
-        emailPromises.push(transporter.sendMail(employeeMailOptions));
-      }
+      const employeeMailOptions = {
+        from: fromEmail,
+        to: employeeEmail.trim(),
+        subject: `Your Signed Acknowledgement — ${employeeName}`,
+        text: `Hi ${employeeName},\n\nAttached is a copy of your signed Employee Handbook Acknowledgement for your records.\n\nThank you.`,
+        html: `<p>Hi ${employeeName},</p><p>Attached is a copy of your signed Employee Handbook Acknowledgement for your records.</p><p>Thank you.</p>`,
+        attachments: [{
+          filename: pdfFileName,
+          content: cleanPdf,
+          encoding: 'base64',
+          contentType: 'application/pdf'
+        }]
+      };
+      emailPromises.push(transporter.sendMail(employeeMailOptions));
+
+      const supervisorDisplayName = supervisorName && supervisorName.trim()
+        ? supervisorName.trim()
+        : 'Supervisor';
+      const supervisorMailOptions = {
+        from: fromEmail,
+        to: supervisorEmail.trim(),
+        subject: `Signed Acknowledgement — ${employeeName}`,
+        text: `Hello ${supervisorDisplayName},\n\n${employeeName} has submitted a signed Employee Handbook Acknowledgement. The signed PDF is attached for your records.`,
+        html: `<p>Hello ${supervisorDisplayName},</p><p>${employeeName} has submitted a signed Employee Handbook Acknowledgement. The signed PDF is attached for your records.</p>`,
+        attachments: [{
+          filename: pdfFileName,
+          content: cleanPdf,
+          encoding: 'base64',
+          contentType: 'application/pdf'
+        }]
+      };
+      emailPromises.push(transporter.sendMail(supervisorMailOptions));
 
       await Promise.all(emailPromises);
 
       return res.status(200).json({
         success: true,
-        message: `Email sent to ${ADMIN_EMAIL}` + (employeeEmail ? ` and ${employeeEmail.trim()}` : ''),
+        message: `Email sent to ${ADMIN_EMAIL}, ${employeeEmail.trim()}, and ${supervisorEmail.trim()}`,
         adminEmail: ADMIN_EMAIL,
-        employeeEmail: employeeEmail ? employeeEmail.trim() : null
+        employeeEmail: employeeEmail ? employeeEmail.trim() : null,
+        supervisorEmail: supervisorEmail ? supervisorEmail.trim() : null
       });
 
     } catch (error) {

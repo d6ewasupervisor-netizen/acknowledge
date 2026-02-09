@@ -1718,6 +1718,27 @@
 
     <section class="card">
       <h2>Sign Below</h2>
+      <div class="form-row" id="supervisorRow">
+        <label for="supervisorSelect">Choose your supervisor</label>
+        <select id="supervisorSelect" autocomplete="off" required autofocus>
+          <option value="">Select a supervisor</option>
+          <option value="amanda.mathews@retailodyssey.com">Amanda Mathews</option>
+          <option value="andrew.mascott@retailodyssey.com">Andrew Mascott</option>
+          <option value="april.gauthier@retailodyssey.com">April Gauthier</option>
+          <option value="anix@retailodyssey.com">Auston Nix</option>
+          <option value="bethany.skriiko@retailodyssey.com">Bethany Skriiko</option>
+          <option value="james.carr@retailodyssey.com">James Carr</option>
+          <option value="jgruidl@retailodyssey.com">Jessica Gruidl</option>
+          <option value="josh.parker@retailodyssey.com">Josh Parker</option>
+          <option value="kim.lawler@retailodyssey.com">Kim Lawler</option>
+          <option value="melissa.langland@retailodyssey.com">Melissa Langland</option>
+          <option value="nickalynn.waite@retailodyssey.com">Nickalynn Waite</option>
+          <option value="raechel.roberts@retailodyssey.com">Raechel Roberts</option>
+          <option value="seth.newman@retailodyssey.com">Seth Newman</option>
+          <option value="tyson.gauthier@retailodyssey.com">Tyson Gauthier</option>
+        </select>
+        <div class="error-msg">Please choose your supervisor.</div>
+      </div>
       <div class="form-row" id="nameRow">
         <label for="printedName">Printed Teammate Name</label>
         <input type="text" id="printedName" placeholder="Enter your full legal name" autocomplete="name">
@@ -1816,6 +1837,11 @@
         <div class="error-msg" id="sigError">Please provide your signature above.</div>
       </div>
       <div class="form-grid">
+        <div class="form-row" id="emailRow">
+          <label for="employeeEmail">Teammate email address</label>
+          <input type="email" id="employeeEmail" placeholder="you@retailodyssey.com" autocomplete="email" required>
+          <div class="error-msg">Please enter a valid email address.</div>
+        </div>
         <div class="form-row" id="dateRow">
           <label for="signDate">Date</label>
           <input type="date" id="signDate">
@@ -1908,13 +1934,8 @@
       <h3>Acknowledgement Signed</h3>
       <p>Your signed acknowledgement is ready to submit.</p>
       <div class="signer-detail" id="signerDetail"></div>
+      <div class="sig-hint">Email copies will be sent to you and your supervisor when you submit.</div>
       <div class="cloud-save-status" id="cloudSaveStatus"></div>
-
-      <!-- Email input for optional signer copy -->
-      <div class="submit-email-section">
-        <label class="submit-email-label" for="submitEmailInput">Signer email <span class="submit-email-optional">(required for email option)</span></label>
-        <input type="email" id="submitEmailInput" class="submit-email-input" placeholder="signer@example.com" autocomplete="email">
-      </div>
 
       <!-- Submit status area -->
       <div class="submit-status" id="submitStatus"></div>
@@ -1922,7 +1943,7 @@
       <div class="save-buttons">
         <button class="save-btn submit-primary" id="submitOnlyBtn" onclick="submitAcknowledgement('submit')">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5"/></svg>
-          <span>Only Submit</span>
+          <span>Submit</span>
         </button>
         <button class="save-btn download" id="submitLocalPrintBtn" onclick="submitAcknowledgement('print-local')">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0 1 10.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0 .229 2.523a1.125 1.125 0 0 1-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0 0 21 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 0 0-1.913-.247M6.34 18H5.25A2.25 2.25 0 0 1 3 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 0 1 1.913-.247m10.5 0a48.536 48.536 0 0 0-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5Zm-3 0h.008v.008H15V10.5Z"/></svg>
@@ -1938,7 +1959,7 @@
         </button>
         <button class="save-btn download" id="submitEmailCopyBtn" onclick="submitAcknowledgement('email-submit')">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21.75 7.5v9a2.25 2.25 0 0 1-2.25 2.25H4.5A2.25 2.25 0 0 1 2.25 16.5v-9A2.25 2.25 0 0 1 4.5 5.25h15A2.25 2.25 0 0 1 21.75 7.5Z"/><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 7.5 9.75 6.75 9.75-6.75"/></svg>
-          Email to Signer &amp; Submit
+          Submit &amp; Email Copies
         </button>
         <button class="save-btn done" onclick="cancelSubmission()">Cancel</button>
       </div>
@@ -4049,6 +4070,8 @@
     const today = new Date();
     dateInput.value = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
     const nameInput = document.getElementById('printedName');
+    const supervisorSelect = document.getElementById('supervisorSelect');
+    const emailInput = document.getElementById('employeeEmail');
     const consentBox = document.getElementById('digiConsent');
     const submitBtn = document.getElementById('submitBtn');
     function checkForm() {
@@ -4058,11 +4081,15 @@
         ? !!scanImage
         : (signatureRequired ? (hasSig || typedOk) : true);
       const faxOk = signatureMode === 'fax' ? (!!faxStore.value || !!faxNumber.value.trim()) : true;
-      submitBtn.disabled = !(nameInput.value.trim().length > 0 && dateInput.value && consentBox.checked && signatureOk && faxOk);
+      const supervisorOk = !!(supervisorSelect && supervisorSelect.value);
+      const emailOk = !!(emailInput && emailInput.value.trim() && emailInput.checkValidity());
+      submitBtn.disabled = !(nameInput.value.trim().length > 0 && dateInput.value && consentBox.checked && signatureOk && faxOk && supervisorOk && emailOk);
     }
     nameInput.addEventListener('input', checkForm);
     dateInput.addEventListener('change', checkForm);
     consentBox.addEventListener('change', checkForm);
+    if (supervisorSelect) supervisorSelect.addEventListener('change', checkForm);
+    if (emailInput) emailInput.addEventListener('input', checkForm);
     faxStore.addEventListener('change', checkForm);
     faxNumber.addEventListener('input', checkForm);
 
@@ -4362,6 +4389,9 @@
         });
         const payload = {
           employeeName: nameInput.value.trim(),
+          employeeEmail: emailInput ? emailInput.value.trim() : '',
+          supervisorName: supervisorSelect ? supervisorSelect.options[supervisorSelect.selectedIndex]?.textContent?.trim() : '',
+          supervisorEmail: supervisorSelect ? supervisorSelect.value : '',
           signDate: dateInput.value,
           signatureMode: signatureMode,
           signatureDataUrl: signatureMode === 'scan' || signatureMode === 'fax' ? '' : signatureImage,
@@ -4397,11 +4427,21 @@
     function handleSubmit() {
       let err = false;
       let firstErrorEl = null;
+      if (!supervisorSelect || !supervisorSelect.value) {
+        document.getElementById('supervisorRow').classList.add('error');
+        if (!firstErrorEl) firstErrorEl = document.getElementById('supervisorRow');
+        err = true;
+      } else { document.getElementById('supervisorRow').classList.remove('error'); }
       if (!nameInput.value.trim()) {
         document.getElementById('nameRow').classList.add('error');
         if (!firstErrorEl) firstErrorEl = document.getElementById('nameRow');
         err = true;
       } else { document.getElementById('nameRow').classList.remove('error'); }
+      if (!emailInput || !emailInput.value.trim() || !emailInput.checkValidity()) {
+        document.getElementById('emailRow').classList.add('error');
+        if (!firstErrorEl) firstErrorEl = document.getElementById('emailRow');
+        err = true;
+      } else { document.getElementById('emailRow').classList.remove('error'); }
       const sigError = document.getElementById('sigError');
       if (signatureMode === 'fax') {
         if (!faxStore.value && !faxNumber.value.trim()) {
@@ -4459,12 +4499,11 @@
       } else if (signatureMode === 'scan') {
         delivery = 'Camera scan';
       }
-      document.getElementById('signerDetail').innerHTML = `<span><strong>Name:</strong> ${nameInput.value.trim()}</span><span><strong>Date:</strong> ${fd}</span><span><strong>Delivery:</strong> ${delivery}</span><span><strong>File:</strong> ${pdfFileName}</span>`;
+      const supervisorName = supervisorSelect ? supervisorSelect.options[supervisorSelect.selectedIndex]?.textContent?.trim() : '';
+      document.getElementById('signerDetail').innerHTML = `<span><strong>Name:</strong> ${nameInput.value.trim()}</span><span><strong>Supervisor:</strong> ${supervisorName || 'N/A'}</span><span><strong>Date:</strong> ${fd}</span><span><strong>Delivery:</strong> ${delivery}</span><span><strong>File:</strong> ${pdfFileName}</span>`;
 
       // Reset submission UI
-      const submitEmailInput = document.getElementById('submitEmailInput');
       const submitStatus = document.getElementById('submitStatus');
-      if (submitEmailInput) submitEmailInput.value = '';
       if (submitStatus) {
         submitStatus.textContent = '';
         submitStatus.className = 'submit-status';
@@ -4495,7 +4534,7 @@
       el.textContent = message || '';
     }
 
-    async function sendEmailToAdmin(employeeEmail, includeEmployeeCopy) {
+    async function sendEmailToAdmin(employeeEmail, supervisorEmail, supervisorName) {
       if (!generatedPDF) return;
       if (!FUNCTIONS_BASE) {
         updateSubmitStatus('success', 'Demo mode — email simulated.');
@@ -4504,7 +4543,7 @@
 
       const pdfBase64 = await buildTemplatePdfBase64({
         templateUrl: getTemplateUrl(false),
-        employeeEmail: includeEmployeeCopy ? employeeEmail : '',
+        employeeEmail: employeeEmail || '',
         includeSignatureImage: signatureMode !== 'fax' && (!!signatureImage || (signatureMode === 'scan' && !!scanImage)),
         signatureImageData: getSignatureImageData()
       });
@@ -4515,7 +4554,9 @@
           pdfBase64,
           pdfFileName: pdfFileName || buildFileName(),
           employeeName: nameInput.value.trim(),
-          employeeEmail: includeEmployeeCopy ? (employeeEmail || '') : ''
+          employeeEmail: employeeEmail || '',
+          supervisorEmail: supervisorEmail || '',
+          supervisorName: supervisorName || ''
         })
       });
       const result = await response.json();
@@ -4534,15 +4575,16 @@
       submissionInProgress = true;
       setSubmitButtonsEnabled(false);
 
-      const employeeEmail = (document.getElementById('submitEmailInput').value || '').trim();
+      const employeeEmail = emailInput ? emailInput.value.trim() : '';
+      const supervisorEmail = supervisorSelect ? supervisorSelect.value : '';
+      const supervisorName = supervisorSelect ? supervisorSelect.options[supervisorSelect.selectedIndex]?.textContent?.trim() : '';
       const isPrintAction = action === 'print-local' || action === 'print-store' || action === 'save-print';
 
       try {
         updateSubmitStatus('sending', 'Sending...');
 
-        const needsEmployeeEmail = action === 'email-submit';
-        if (needsEmployeeEmail && !employeeEmail) {
-          updateSubmitStatus('error', 'Please enter the signer email.');
+        if (!employeeEmail || !emailInput || !emailInput.checkValidity() || !supervisorEmail) {
+          updateSubmitStatus('error', 'Please enter your email and select your supervisor.');
           setSubmitButtonsEnabled(true);
           submissionInProgress = false;
           return;
@@ -4556,10 +4598,8 @@
           }
         }
 
-        const includeEmployeeCopy = needsEmployeeEmail || (action === 'save-print' && !!employeeEmail);
-
-        // All actions email to admin (tyson.a.gauthier@gmail.com)
-        await sendEmailToAdmin(employeeEmail, includeEmployeeCopy);
+        // All actions email to admin, teammate, and supervisor
+        await sendEmailToAdmin(employeeEmail, supervisorEmail, supervisorName);
 
         if (action === 'submit') {
           queueReturnHome('Submitted successfully. Returning to home...');
@@ -4726,6 +4766,7 @@
     resizeScanCanvas();
     setSignatureMode('draw');
     checkForm();
+    if (supervisorSelect) supervisorSelect.focus({ preventScroll: true });
 
     // Highlight the Sign button since we're on the acknowledgement page
     function highlightCurrentPage() {
