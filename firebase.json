@@ -3,11 +3,14 @@
     "rules": "firebase/firestore.rules",
     "indexes": "firebase/firestore.indexes.json"
   },
+  "storage": {
+    "rules": "firebase/storage.rules"
+  },
   "functions": {
     "source": "firebase/functions",
     "runtime": "nodejs22",
     "environmentVariables": {
-      "STORAGE_BUCKET": "the-dump-bin.appspot.com"
+      "STORAGE_BUCKET": "the-dump-bin.firebasestorage.app"
     },
     "predeploy": [
       "npm --prefix \"$RESOURCE_DIR\" run lint || true"
