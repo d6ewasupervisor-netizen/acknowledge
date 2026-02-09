@@ -2449,12 +2449,16 @@
     const psoStatusSub = document.getElementById('psoStatusSub');
     const psoStatusTimer = document.getElementById('psoStatusTimer');
     const psoHeader = document.getElementById('psoHeader');
+    const PRINT_STATUS_KEY = 'acknowledge_print_status';
 
     let psoCurrentState = 'sending'; // sending | waiting | delivered | error
     let psoTimerInterval = null;
     let psoElapsedSeconds = 0;
     let psoDragData = { isDragging: false, startX: 0, startY: 0, origLeft: 0, origTop: 0 };
     let psoHasNotified = false;
+    let psoCurrentTarget = '';
+    let psoStartedAt = 0;
+    let psoTrackingId = '';
 
     // SVG icons for overlay states
     const PSO_ICONS = {
@@ -2466,6 +2470,9 @@
     };
 
     function showPrintOverlay(target) {
+      psoCurrentTarget = target;
+      psoStartedAt = Date.now();
+      psoTrackingId = '';
       psoCurrentState = 'sending';
       psoElapsedSeconds = 0;
       psoHasNotified = false;
@@ -2543,6 +2550,8 @@
         psoHeaderTitle.textContent = 'Sending to Printer';
         printOverlay.classList.remove('delivered-glow', 'error-glow');
       }
+
+      persistPrintStatus();
     }
 
     function notifyPrintComplete(success) {
@@ -2587,11 +2596,39 @@
       clearInterval(psoTimerInterval);
       psoTimerInterval = null;
       cleanupFaxListener();
+      clearPersistedPrintStatus();
 
       printOverlay.classList.add('closing');
       setTimeout(() => {
         printOverlay.classList.remove('show', 'closing', 'minimized', 'delivered-glow', 'error-glow');
       }, 250);
+    }
+
+    function persistPrintStatus(extra = {}) {
+      try {
+        const payload = {
+          state: psoCurrentState,
+          title: psoStatusTitle.textContent || '',
+          sub: psoStatusSub.textContent || '',
+          header: psoHeaderTitle.textContent || '',
+          target: psoCurrentTarget || '',
+          faxMode: faxMode || '',
+          trackingId: psoTrackingId || '',
+          startedAt: psoStartedAt || Date.now(),
+          updatedAt: Date.now()
+        };
+        localStorage.setItem(PRINT_STATUS_KEY, JSON.stringify({ ...payload, ...extra }));
+      } catch (e) {
+        // Ignore storage failures (privacy mode)
+      }
+    }
+
+    function clearPersistedPrintStatus() {
+      try {
+        localStorage.removeItem(PRINT_STATUS_KEY);
+      } catch (e) {
+        // Ignore storage failures
+      }
     }
 
     // ── Drag logic for the overlay ──
@@ -3165,6 +3202,7 @@
           psoStatusTimer.textContent = '';
           faxSending = false;
           resetFaxSendBtn();
+          scheduleReturnHomeAfterPrint();
           return;
         }
 
@@ -3209,6 +3247,7 @@
           ? formatPhoneNumber(capturedDirectNum)
           : `${capturedStore.l} (${capturedStore.n})`;
 
+        psoTrackingId = result.trackingId || '';
         updatePsoState(
           'waiting',
           `Sent to ${shortTarget}`,
@@ -3218,6 +3257,7 @@
 
         // Start listening for delivery confirmation via Firestore
         listenForFaxStatus(result.trackingId, shortTarget);
+        scheduleReturnHomeAfterPrint();
 
       } catch (error) {
         console.error('Fax error:', error);
@@ -3241,6 +3281,12 @@
       faxSendBtn.disabled = false;
       faxSendBtnText.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5"/></svg> Send to Printer';
       updateFaxSendButton();
+    }
+
+    function scheduleReturnHomeAfterPrint(delayMs = 900) {
+      setTimeout(() => {
+        goHome();
+      }, delayMs);
     }
 
     function formatPhoneNumber(num) {

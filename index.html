@@ -11,6 +11,11 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=DM+Serif+Display&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <!-- App configuration (gitignored — copy config.example.js to config.js) -->
+  <script src="config.js"></script>
+  <!-- Firebase SDK for real-time print status updates -->
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
   <style>
     :root {
       --navy-950: #060e1a;
@@ -1456,6 +1461,176 @@
     .search-result-item, .section-tool-btn, .nav-btn, .toolbar-btn, .zoom-btn {
       touch-action: manipulation;
     }
+
+    /* ═══════════════════════════════════════════════════
+       PRINT STATUS OVERLAY
+       ═══════════════════════════════════════════════════ */
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes pulse-sending { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+    @keyframes floatOverlayIn {
+      from { opacity: 0; transform: translateY(24px) scale(0.92); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    @keyframes floatOverlayOut {
+      from { opacity: 1; transform: translateY(0) scale(1); }
+      to { opacity: 0; transform: translateY(24px) scale(0.92); }
+    }
+
+    .print-status-overlay {
+      display: none;
+      position: fixed;
+      bottom: calc(var(--bottom-nav-height) + 16px);
+      right: 16px;
+      z-index: 9999;
+      width: 340px;
+      max-width: calc(100vw - 32px);
+      border-radius: 14px;
+      background: var(--navy-900);
+      border: 1px solid rgba(74,144,196,0.25);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4), 0 2px 8px rgba(0,0,0,0.3);
+      font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+      overflow: hidden;
+      transition: width 0.3s ease, height 0.3s ease, border-radius 0.3s ease, box-shadow 0.3s ease;
+      animation: floatOverlayIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .print-status-overlay.show { display: block; }
+    .print-status-overlay.minimized {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      cursor: pointer;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.4), 0 0 0 2px rgba(74,144,196,0.3);
+    }
+    .print-status-overlay.minimized:hover {
+      box-shadow: 0 4px 20px rgba(0,0,0,0.4), 0 0 0 3px rgba(74,144,196,0.5);
+      transform: scale(1.05);
+    }
+    .print-status-overlay.minimized .pso-expanded { display: none; }
+    .print-status-overlay:not(.minimized) .pso-minimized-icon { display: none; }
+    .print-status-overlay.closing { animation: floatOverlayOut 0.25s ease forwards; }
+
+    .pso-minimized-icon {
+      width: 56px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+    .pso-minimized-icon svg { width: 26px; height: 26px; color: var(--blue-400); }
+    .pso-minimized-icon.sending svg { animation: spin 1.2s linear infinite; }
+    .pso-minimized-icon.waiting svg { animation: pulse-sending 2s ease-in-out infinite; }
+    .pso-minimized-icon.delivered svg { color: var(--green-500); }
+    .pso-minimized-icon.error svg { color: var(--red-500); }
+    .pso-minimized-icon.info svg { color: var(--blue-300); }
+
+    .pso-notify-dot {
+      display: none;
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      width: 12px;
+      height: 12px;
+      background: var(--green-500);
+      border-radius: 50%;
+      border: 2px solid var(--navy-900);
+      animation: notifyPulse 1.5s ease-in-out infinite;
+    }
+    .pso-notify-dot.show { display: block; }
+    @keyframes notifyPulse {
+      0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(34,197,94,0.5); }
+      50% { transform: scale(1.15); box-shadow: 0 0 0 6px rgba(34,197,94,0); }
+    }
+
+    .pso-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 12px 8px;
+      user-select: none;
+      border-bottom: 1px solid rgba(74,144,196,0.1);
+    }
+    .pso-header-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+    .pso-header-icon { width: 20px; height: 20px; flex-shrink: 0; }
+    .pso-header-icon svg { width: 20px; height: 20px; }
+    .pso-header-title {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--white);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .pso-header-actions {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      flex-shrink: 0;
+    }
+    .pso-action-btn {
+      background: none;
+      border: none;
+      color: var(--slate-400);
+      cursor: pointer;
+      padding: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+      transition: color 0.15s, background 0.15s;
+    }
+    .pso-action-btn:hover { color: var(--slate-200); background: rgba(255,255,255,0.06); }
+    .pso-action-btn svg { width: 16px; height: 16px; }
+
+    .pso-body { padding: 12px; }
+    .pso-status-row { display: flex; align-items: flex-start; gap: 10px; }
+    .pso-status-icon {
+      flex-shrink: 0;
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .pso-status-icon svg { width: 18px; height: 18px; }
+    .pso-status-icon.sending { background: rgba(74,144,196,0.15); color: var(--blue-400); }
+    .pso-status-icon.sending svg { animation: spin 1.2s linear infinite; }
+    .pso-status-icon.waiting { background: rgba(245,158,11,0.12); color: #fbbf24; }
+    .pso-status-icon.delivered { background: rgba(34,197,94,0.12); color: var(--green-500); }
+    .pso-status-icon.error { background: rgba(239,68,68,0.1); color: var(--red-500); }
+    .pso-status-icon.info { background: rgba(74,144,196,0.12); color: var(--blue-300); }
+    .pso-status-text { flex: 1; min-width: 0; }
+    .pso-status-title { font-size: 0.82rem; font-weight: 600; color: var(--white); line-height: 1.3; }
+    .pso-status-sub { font-size: 0.75rem; color: var(--slate-400); line-height: 1.4; margin-top: 2px; }
+    .pso-status-timer {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--slate-500);
+      margin-top: 4px;
+      display: block;
+    }
+
+    .print-status-overlay.delivered-glow {
+      border-color: rgba(34,197,94,0.4);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4), 0 0 20px rgba(34,197,94,0.15);
+    }
+    .print-status-overlay.error-glow {
+      border-color: rgba(239,68,68,0.4);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4), 0 0 20px rgba(239,68,68,0.15);
+    }
+
+    @media (max-width: 640px) {
+      .print-status-overlay { width: 300px; right: 10px; bottom: calc(var(--bottom-nav-height) + 10px); }
+      .print-status-overlay.minimized { width: 50px; height: 50px; }
+      .pso-minimized-icon { width: 50px; height: 50px; }
+    }
   </style>
 </head>
 <body>
@@ -1779,6 +1954,46 @@
       <img class="icon-img" src="employeeHandbook/Icons/signature.png" alt="">
       <span class="btn-label">Sign</span>
     </button>
+  </div>
+
+  <!-- Floating Print Status Overlay -->
+  <div class="print-status-overlay" id="printStatusOverlay">
+    <!-- Minimized FAB icon -->
+    <div class="pso-minimized-icon" id="psoMinIcon" onclick="expandPrintOverlay()">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0 1 10.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0 .229 2.523a1.125 1.125 0 0 1-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0 0 21 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 0 0-1.913-.247M6.34 18H5.25A2.25 2.25 0 0 1 3 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 0 1 1.913-.247m10.5 0a48.536 48.536 0 0 0-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5Zm-3 0h.008v.008H15V10.5Z"/></svg>
+      <div class="pso-notify-dot" id="psoNotifyDot"></div>
+    </div>
+    <!-- Expanded content -->
+    <div class="pso-expanded">
+      <div class="pso-header" id="psoHeader">
+        <div class="pso-header-left">
+          <div class="pso-header-icon" id="psoHeaderIcon">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0 1 10.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0 .229 2.523a1.125 1.125 0 0 1-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0 0 21 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 0 0-1.913-.247M6.34 18H5.25A2.25 2.25 0 0 1 3 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 0 1 1.913-.247m10.5 0a48.536 48.536 0 0 0-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5Zm-3 0h.008v.008H15V10.5Z"/></svg>
+          </div>
+          <span class="pso-header-title" id="psoHeaderTitle">Print Job</span>
+        </div>
+        <div class="pso-header-actions">
+          <button class="pso-action-btn" onclick="minimizePrintOverlay()" title="Minimize">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 12h-15"/></svg>
+          </button>
+          <button class="pso-action-btn" onclick="dismissPrintOverlay()" title="Close">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="pso-body">
+        <div class="pso-status-row">
+          <div class="pso-status-icon sending" id="psoStatusIcon">
+            <svg id="psoSpinnerSvg" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.992 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182"/></svg>
+          </div>
+          <div class="pso-status-text">
+            <div class="pso-status-title" id="psoStatusTitle">Sending to printer...</div>
+            <div class="pso-status-sub" id="psoStatusSub">Please wait while we connect to the print server.</div>
+            <span class="pso-status-timer" id="psoStatusTimer"></span>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -4473,6 +4688,211 @@ function updateResourcesOverlay() {
 }
 
 /* ═══════════════════════════════════════════════════════════
+   PRINT STATUS OVERLAY (PERSISTENT)
+   ═══════════════════════════════════════════════════════════ */
+const PRINT_STATUS_KEY = 'acknowledge_print_status';
+const printOverlay = document.getElementById('printStatusOverlay');
+const psoMinIcon = document.getElementById('psoMinIcon');
+const psoNotifyDot = document.getElementById('psoNotifyDot');
+const psoHeaderTitle = document.getElementById('psoHeaderTitle');
+const psoStatusIcon = document.getElementById('psoStatusIcon');
+const psoStatusTitle = document.getElementById('psoStatusTitle');
+const psoStatusSub = document.getElementById('psoStatusSub');
+const psoStatusTimer = document.getElementById('psoStatusTimer');
+
+const PSO_ICONS = {
+  printer: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0 1 10.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0 .229 2.523a1.125 1.125 0 0 1-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0 0 21 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 0 0-1.913-.247M6.34 18H5.25A2.25 2.25 0 0 1 3 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 0 1 1.913-.247m10.5 0a48.536 48.536 0 0 0-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5Zm-3 0h.008v.008H15V10.5Z"/></svg>',
+  spinner: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.992 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182"/></svg>',
+  clock: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>',
+  check: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>',
+  error: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z"/></svg>'
+};
+
+let printStatusTimer = null;
+let printStatusUnsubscribe = null;
+let currentPrintStatus = null;
+
+const _cfg = (typeof APP_CONFIG !== 'undefined') ? APP_CONFIG : {};
+const FIREBASE_CONFIG = {
+  apiKey: _cfg.FIREBASE_API_KEY || '',
+  projectId: _cfg.FIREBASE_PROJECT_ID || ''
+};
+let firestore = null;
+if (FIREBASE_CONFIG.apiKey && FIREBASE_CONFIG.apiKey !== 'YOUR_FIREBASE_API_KEY') {
+  try {
+    firebase.initializeApp(FIREBASE_CONFIG);
+    firestore = firebase.firestore();
+  } catch (e) {
+    console.warn('Firebase initialization failed:', e.message);
+  }
+}
+
+function readPersistedPrintStatus() {
+  try {
+    const raw = localStorage.getItem(PRINT_STATUS_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+function persistPrintStatus(data) {
+  try {
+    localStorage.setItem(PRINT_STATUS_KEY, JSON.stringify(data));
+  } catch (e) {
+    // Ignore storage failures
+  }
+}
+
+function clearPersistedPrintStatus() {
+  try {
+    localStorage.removeItem(PRINT_STATUS_KEY);
+  } catch (e) {
+    // Ignore storage failures
+  }
+}
+
+function headerForState(state) {
+  if (state === 'delivered') return 'Print Complete';
+  if (state === 'error') return 'Print Failed';
+  if (state === 'waiting') return 'Waiting for Printer';
+  if (state === 'info') return 'Print Job';
+  return 'Sending to Printer';
+}
+
+function updatePrintStatusIcon(state) {
+  psoStatusIcon.className = `pso-status-icon ${state}`;
+  if (state === 'sending') psoStatusIcon.innerHTML = PSO_ICONS.spinner;
+  else if (state === 'waiting') psoStatusIcon.innerHTML = PSO_ICONS.clock;
+  else if (state === 'delivered') psoStatusIcon.innerHTML = PSO_ICONS.check;
+  else if (state === 'error') psoStatusIcon.innerHTML = PSO_ICONS.error;
+  else psoStatusIcon.innerHTML = PSO_ICONS.printer;
+  psoMinIcon.className = `pso-minimized-icon ${state}`;
+}
+
+function updatePrintTimer() {
+  if (!currentPrintStatus || !currentPrintStatus.startedAt) {
+    psoStatusTimer.textContent = '';
+    return;
+  }
+  const elapsedSeconds = Math.max(0, Math.floor((Date.now() - currentPrintStatus.startedAt) / 1000));
+  const mins = Math.floor(elapsedSeconds / 60);
+  const secs = elapsedSeconds % 60;
+  psoStatusTimer.textContent = mins > 0
+    ? `${mins}m ${secs.toString().padStart(2, '0')}s elapsed`
+    : `${secs}s elapsed`;
+}
+
+function startPrintTimer() {
+  clearInterval(printStatusTimer);
+  printStatusTimer = setInterval(updatePrintTimer, 1000);
+  updatePrintTimer();
+}
+
+function applyPrintStatus(data) {
+  if (!printOverlay || !data) return;
+  currentPrintStatus = data;
+  const state = data.state || 'waiting';
+  const header = data.header || headerForState(state);
+  psoHeaderTitle.textContent = header;
+  psoStatusTitle.textContent = data.title || 'Print status';
+  psoStatusSub.textContent = data.sub || '';
+  updatePrintStatusIcon(state);
+  printOverlay.classList.add('show');
+  printOverlay.classList.toggle('delivered-glow', state === 'delivered');
+  printOverlay.classList.toggle('error-glow', state === 'error');
+
+  if (printOverlay.classList.contains('minimized') && (state === 'delivered' || state === 'error')) {
+    psoNotifyDot.classList.add('show');
+  } else {
+    psoNotifyDot.classList.remove('show');
+  }
+
+  startPrintTimer();
+}
+
+function updatePrintStatus(state, title, sub, header) {
+  const next = {
+    ...(currentPrintStatus || {}),
+    state,
+    title,
+    sub,
+    header: header || headerForState(state),
+    updatedAt: Date.now()
+  };
+  persistPrintStatus(next);
+  applyPrintStatus(next);
+}
+
+function minimizePrintOverlay() {
+  if (!printOverlay) return;
+  printOverlay.classList.add('minimized');
+}
+
+function expandPrintOverlay() {
+  if (!printOverlay) return;
+  printOverlay.classList.remove('minimized');
+  psoNotifyDot.classList.remove('show');
+}
+
+function dismissPrintOverlay() {
+  if (!printOverlay) return;
+  clearInterval(printStatusTimer);
+  printStatusTimer = null;
+  if (printStatusUnsubscribe) {
+    printStatusUnsubscribe();
+    printStatusUnsubscribe = null;
+  }
+  clearPersistedPrintStatus();
+  printOverlay.classList.add('closing');
+  setTimeout(() => {
+    printOverlay.classList.remove('show', 'closing', 'minimized', 'delivered-glow', 'error-glow');
+  }, 250);
+}
+
+function listenForPrintStatus(data) {
+  if (!firestore || !data || !data.trackingId) return;
+  if (printStatusUnsubscribe) printStatusUnsubscribe();
+  if (data.state === 'delivered' || data.state === 'error') return;
+
+  printStatusUnsubscribe = firestore.collection('faxJobs').doc(data.trackingId)
+    .onSnapshot((doc) => {
+      if (!doc.exists) return;
+      const status = (doc.data().status || '').trim();
+      if (/^(success|delivered|completed)$/i.test(status)) {
+        updatePrintStatus(
+          'delivered',
+          'Printed Successfully',
+          `Your ${data.faxMode || 'print'} form was printed${data.target ? ` at ${data.target}` : ''}.`
+        );
+        if (printStatusUnsubscribe) {
+          printStatusUnsubscribe();
+          printStatusUnsubscribe = null;
+        }
+      } else if (/^(fail|failed|error)$/i.test(status)) {
+        updatePrintStatus(
+          'error',
+          'Print Failed',
+          `The print job${data.target ? ` for ${data.target}` : ''} could not be completed. Please try again.`
+        );
+        if (printStatusUnsubscribe) {
+          printStatusUnsubscribe();
+          printStatusUnsubscribe = null;
+        }
+      }
+    }, (error) => {
+      console.error('Firestore print listener error:', error);
+    });
+}
+
+function initPrintStatusOverlay() {
+  const data = readPersistedPrintStatus();
+  if (!data || !printOverlay) return;
+  applyPrintStatus(data);
+  listenForPrintStatus(data);
+}
+
+/* ═══════════════════════════════════════════════════════════
    RESIZE HANDLER
    ═══════════════════════════════════════════════════════════ */
 /* ═══════════════════════════════════════════════════════════
@@ -4508,6 +4928,7 @@ document.addEventListener('click', (e) => {
 /* ═══════════════════════════════════════════════════════════
    BOOT
    ═══════════════════════════════════════════════════════════ */
+initPrintStatusOverlay();
 init();
 </script>
 </body>
