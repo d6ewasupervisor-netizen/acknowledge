@@ -967,9 +967,11 @@
     .nav-btn:hover { background: rgba(74,144,196,0.18); color: var(--blue-300); }
     .nav-btn:active:not(:disabled) { transform: scale(0.92); }
     .nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
-    .nav-btn svg {
-      width: calc(18px * var(--reader-controls-scale));
-      height: calc(18px * var(--reader-controls-scale));
+    .nav-btn .nav-icon {
+      width: calc(22px * var(--reader-controls-scale));
+      height: calc(22px * var(--reader-controls-scale));
+      object-fit: contain;
+      display: block;
     }
 
     .page-slider-container {
@@ -1383,7 +1385,7 @@
 
       /* Bottom nav — larger touch targets */
       .nav-btn { width: 44px; height: 44px; }
-      .nav-btn svg { width: 20px; height: 20px; }
+      .nav-btn .nav-icon { width: 20px; height: 20px; }
       .page-slider { height: 4px; }
       .page-slider::-webkit-slider-thumb { width: 16px; height: 16px; }
       .page-slider::-moz-range-thumb { width: 16px; height: 16px; }
@@ -1927,7 +1929,7 @@
   <div class="home-bottom-nav">
     <div class="reader-controls" aria-label="Reader navigation">
       <button class="nav-btn" id="btnPrev" onclick="prevPage()" title="Previous Page">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg>
+        <img class="nav-icon" src="employeeHandbook/Icons/left_arrow.png" alt="">
       </button>
       <div class="page-slider-container">
         <div class="page-slider-wrap">
@@ -1936,7 +1938,7 @@
         </div>
       </div>
       <button class="nav-btn" id="btnNext" onclick="nextPage()" title="Next Page">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg>
+        <img class="nav-icon" src="employeeHandbook/Icons/right_arrow.png" alt="">
       </button>
     </div>
     <button class="toolbar-btn" id="backNavBtn" onclick="toggleAppMenu()" title="Menu" aria-label="Menu">
