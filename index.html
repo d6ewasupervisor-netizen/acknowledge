@@ -4986,6 +4986,16 @@ function listenForPrintStatus(data) {
 function initPrintStatusOverlay() {
   const data = readPersistedPrintStatus();
   if (!data || !printOverlay) return;
+  const updatedAt = data.updatedAt || data.startedAt || 0;
+  const now = Date.now();
+  const ageMs = updatedAt ? (now - updatedAt) : Number.POSITIVE_INFINITY;
+  const maxAgeMs = (data.state === 'delivered' || data.state === 'error')
+    ? 5 * 60 * 1000
+    : 20 * 60 * 1000;
+  if (!updatedAt || ageMs > maxAgeMs) {
+    clearPersistedPrintStatus();
+    return;
+  }
   applyPrintStatus(data);
   listenForPrintStatus(data);
 }

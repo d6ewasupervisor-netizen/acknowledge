@@ -241,7 +241,9 @@
       margin-bottom: 0.5rem;
     }
     .form-row input[type="text"],
-    .form-row input[type="date"] {
+    .form-row input[type="date"],
+    .form-row input[type="email"],
+    .form-row select {
       width: 100%;
       padding: 0.75rem 0.95rem;
       font-family: inherit; font-size: 0.92rem;
@@ -253,11 +255,17 @@
       transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
       min-height: 48px;
     }
-    .form-row input::placeholder { color: var(--slate-600); }
-    .form-row input:focus {
+    .form-row input::placeholder,
+    .form-row select:invalid { color: var(--slate-600); }
+    .form-row input:focus,
+    .form-row select:focus {
       border-color: var(--blue-500);
       box-shadow: 0 0 0 3px rgba(74,144,196,0.15);
       background: rgba(255,255,255,0.07);
+    }
+    .form-row select option {
+      color: #0f172a;
+      background: #ffffff;
     }
     /* Fix date input color for dark theme */
     .form-row input[type="date"]::-webkit-calendar-picker-indicator {
@@ -473,7 +481,7 @@
       line-height: 1.4;
       animation: shakeError 0.4s ease;
     }
-    .form-row.error input, .form-row.error .sig-canvas { border-color: var(--red-500) !important; box-shadow: 0 0 0 2px rgba(239,68,68,0.15) !important; }
+    .form-row.error input, .form-row.error select, .form-row.error .sig-canvas { border-color: var(--red-500) !important; box-shadow: 0 0 0 2px rgba(239,68,68,0.15) !important; }
     .form-row.error .error-msg { display: block; }
     @keyframes shakeError {
       0%, 100% { transform: translateX(0); }
@@ -1587,7 +1595,9 @@
       .ack-text { font-size: 0.85rem; line-height: 1.8; }
 
       .form-row input[type="text"],
-      .form-row input[type="date"] {
+      .form-row input[type="date"],
+      .form-row input[type="email"],
+      .form-row select {
         padding: 0.85rem 0.95rem;
         font-size: 1rem; /* 16px prevents iOS zoom on focus */
         min-height: 52px;
