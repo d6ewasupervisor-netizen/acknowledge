@@ -14,6 +14,9 @@ const mockDocGet = jest.fn();
 const mockCollectionAdd = jest.fn().mockResolvedValue({ id: 'mock-doc-id' });
 const mockOrderBy = jest.fn().mockReturnThis();
 const mockCollectionGet = jest.fn();
+const mockStorageSave = jest.fn().mockResolvedValue(undefined);
+const mockStorageFile = jest.fn(() => ({ save: mockStorageSave }));
+const mockStorageBucket = jest.fn(() => ({ file: mockStorageFile }));
 
 const mockDoc = jest.fn(() => ({ set: mockDocSet, get: mockDocGet }));
 const mockCollection = jest.fn(() => ({
@@ -27,6 +30,7 @@ jest.mock('firebase-admin', () => {
   const admin = {
     initializeApp: jest.fn(),
     firestore: jest.fn(() => ({ collection: mockCollection })),
+    storage: jest.fn(() => ({ bucket: mockStorageBucket })),
   };
   admin.firestore.FieldValue = { serverTimestamp: jest.fn(() => 'MOCK_TS') };
   return admin;
@@ -83,6 +87,9 @@ async function callFn(fn, req, res) {
   fn(req, res);
   await _corsPromise;
 }
+
+// Provide storage bucket env for saveAcknowledgement
+process.env.GCLOUD_PROJECT = 'test-project';
 
 // ── Load functions AFTER mocks are set up ────────────────────────────────────
 const funcs = require('../firebase/functions/index');
@@ -247,9 +254,10 @@ describe('saveAcknowledgement', () => {
       res
     );
     expect(res._status).toBe(200);
-    // Verify the stored pdfBase64 had its prefix stripped
-    const savedData = mockCollectionAdd.mock.calls[0][0];
-    expect(savedData.pdfBase64).toBe('AAAA');
+    // Verify the stored PDF buffer had its prefix stripped
+    expect(mockStorageSave).toHaveBeenCalledTimes(1);
+    const savedBuffer = mockStorageSave.mock.calls[0][0];
+    expect(savedBuffer.toString('base64')).toBe('AAAA');
   });
 
   test('extracts client IP from x-forwarded-for header', async () => {
