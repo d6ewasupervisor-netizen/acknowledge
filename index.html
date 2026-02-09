@@ -980,38 +980,38 @@
     }
     .page-slider-wrap { position: relative; width: 100%; }
     .page-slider {
-      width: 100%; height: calc(4px * var(--reader-controls-scale));
+      width: 100%; height: 6px;
       -webkit-appearance: none; appearance: none;
       background: rgba(74,144,196,0.15);
-      border-radius: calc(4px * var(--reader-controls-scale));
+      border-radius: 6px;
       outline: none;
       cursor: pointer;
     }
     .page-slider::-webkit-slider-thumb {
       -webkit-appearance: none; appearance: none;
-      width: calc(16px * var(--reader-controls-scale));
-      height: calc(16px * var(--reader-controls-scale));
+      width: 22px;
+      height: 22px;
       background: var(--blue-500);
       border-radius: 50%;
       cursor: pointer;
       box-shadow: 0 0 8px rgba(74,144,196,0.4);
     }
     .page-slider::-moz-range-thumb {
-      width: calc(16px * var(--reader-controls-scale));
-      height: calc(16px * var(--reader-controls-scale));
+      width: 22px;
+      height: 22px;
       background: var(--blue-500);
       border-radius: 50%; border: none;
       cursor: pointer;
     }
     .page-bubble {
       position: absolute;
-      top: calc(-34px * var(--reader-controls-scale));
+      top: -38px;
       transform: translateX(-50%);
       background: rgba(15, 23, 42, 0.92);
       color: var(--white);
-      font-size: calc(0.72rem * var(--reader-controls-scale));
-      padding: calc(0.2rem * var(--reader-controls-scale)) calc(0.5rem * var(--reader-controls-scale));
-      border-radius: calc(6px * var(--reader-controls-scale));
+      font-size: 0.85rem;
+      padding: 0.25rem 0.6rem;
+      border-radius: 7px;
       border: 1px solid rgba(74,144,196,0.35);
       pointer-events: none;
       opacity: 0;
@@ -1384,9 +1384,10 @@
       /* Bottom nav — larger touch targets */
       .nav-btn { width: 44px; height: 44px; }
       .nav-btn svg { width: 20px; height: 20px; }
-      .page-slider { height: 6px; }
-      .page-slider::-webkit-slider-thumb { width: 22px; height: 22px; }
-      .page-slider::-moz-range-thumb { width: 22px; height: 22px; }
+      .page-slider { height: 4px; }
+      .page-slider::-webkit-slider-thumb { width: 16px; height: 16px; }
+      .page-slider::-moz-range-thumb { width: 16px; height: 16px; }
+      .page-bubble { top: -30px; font-size: 0.75rem; padding: 0.2rem 0.5rem; border-radius: 6px; }
       .reader-actions { display: flex; }
 
       /* Overlays — full screen on mobile */
@@ -1819,6 +1820,10 @@
         <button class="search-nav-btn search-nav-results-btn" onclick="openSearchResultsFromNav()" title="Back to results">
           Results
         </button>
+        <button class="search-nav-btn" id="searchNavPrevSection" onclick="prevSearchSection()" title="Previous section">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M11.25 19.5 3.75 12l7.5-7.5"/><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 19.5 12.75 12l7.5-7.5"/></svg>
+          Prev Sec
+        </button>
         <button class="search-nav-btn" id="searchNavPrev" onclick="prevSearchResult()" title="Previous result">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg>
           Prev
@@ -1826,6 +1831,10 @@
         <button class="search-nav-btn" id="searchNavNext" onclick="nextSearchResult()" title="Next result">
           Next
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg>
+        </button>
+        <button class="search-nav-btn" id="searchNavNextSection" onclick="nextSearchSection()" title="Next section">
+          Next Sec
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m12.75 4.5 7.5 7.5-7.5 7.5"/><path stroke-linecap="round" stroke-linejoin="round" d="m3.75 4.5 7.5 7.5-7.5 7.5"/></svg>
         </button>
       </div>
     </div>
@@ -3779,27 +3788,33 @@ function buildNormalizedIndexForItems(items) {
   return { normalized, map };
 }
 
-function buildHighlightRangesByItem(items, query) {
+function buildHighlightRangesByItem(items, query, matchIndex = null) {
   const rangesByItem = new Map();
   const normalizedQuery = normalizeQueryForIndex(query || '');
   if (!normalizedQuery) return rangesByItem;
   const { normalized, map } = buildNormalizedIndexForItems(items);
   let start = 0;
+  let matchCount = 0;
   while (start < normalized.length) {
     const idx = normalized.indexOf(normalizedQuery, start);
     if (idx === -1) break;
     const endIdx = idx + normalizedQuery.length;
-    // Only highlight real characters mapped to PDF text items (skip synthetic spaces).
-    for (let i = idx; i < endIdx; i++) {
-      const entry = map[i];
-      if (!entry) continue;
-      const { itemIndex, charIndex } = entry;
-      const ranges = rangesByItem.get(itemIndex) || [];
-      const last = ranges[ranges.length - 1];
-      if (last && charIndex === last.end) last.end += 1;
-      else ranges.push({ start: charIndex, end: charIndex + 1 });
-      rangesByItem.set(itemIndex, ranges);
+    const isTarget = matchIndex == null || matchCount === matchIndex;
+    if (isTarget) {
+      // Only highlight real characters mapped to PDF text items (skip synthetic spaces).
+      for (let i = idx; i < endIdx; i++) {
+        const entry = map[i];
+        if (!entry) continue;
+        const { itemIndex, charIndex } = entry;
+        const ranges = rangesByItem.get(itemIndex) || [];
+        const last = ranges[ranges.length - 1];
+        if (last && charIndex === last.end) last.end += 1;
+        else ranges.push({ start: charIndex, end: charIndex + 1 });
+        rangesByItem.set(itemIndex, ranges);
+      }
     }
+    matchCount += 1;
+    if (matchIndex != null && matchCount > matchIndex) break;
     start = endIdx;
   }
   return rangesByItem;
@@ -3856,8 +3871,10 @@ function updateSearchNavOverlay() {
   const section = document.getElementById('searchNavSection');
   const prevBtn = document.getElementById('searchNavPrev');
   const nextBtn = document.getElementById('searchNavNext');
+  const prevSectionBtn = document.getElementById('searchNavPrevSection');
+  const nextSectionBtn = document.getElementById('searchNavNextSection');
   const queryInput = document.getElementById('searchNavInput');
-  if (!overlay || !meta || !section || !prevBtn || !nextBtn) return;
+  if (!overlay || !meta || !section || !prevBtn || !nextBtn || !prevSectionBtn || !nextSectionBtn) return;
   const hasResults = activeSearchResults.length > 0 && activeSearchIndex >= 0;
   if (!hasResults && !searchNavManual) {
     overlay.classList.remove('show');
@@ -3873,14 +3890,28 @@ function updateSearchNavOverlay() {
     }
     prevBtn.disabled = activeSearchIndex <= 0;
     nextBtn.disabled = activeSearchIndex >= activeSearchResults.length - 1;
+    prevSectionBtn.disabled = findSectionChangeIndex(activeSearchIndex, -1) === -1;
+    nextSectionBtn.disabled = findSectionChangeIndex(activeSearchIndex, 1) === -1;
   } else {
     meta.textContent = 'Type a search term';
     section.textContent = 'Search';
     prevBtn.disabled = true;
     nextBtn.disabled = true;
+    prevSectionBtn.disabled = true;
+    nextSectionBtn.disabled = true;
   }
   overlay.classList.add('show');
   positionSearchNavOverlay();
+}
+
+function findSectionChangeIndex(startIndex, direction) {
+  if (!activeSearchResults.length || startIndex < 0) return -1;
+  const currentSection = getSearchResultSection(activeSearchResults[startIndex]);
+  for (let i = startIndex + direction; i >= 0 && i < activeSearchResults.length; i += direction) {
+    const nextSection = getSearchResultSection(activeSearchResults[i]);
+    if (nextSection && nextSection !== currentSection) return i;
+  }
+  return -1;
 }
 
 function positionSearchNavOverlay() {
@@ -4069,7 +4100,11 @@ async function applySearchHighlight() {
   resetTextLayerHighlights();
   if (requestId !== highlightRequestId) return;
   if (!currentTextItems.length || !currentTextDivs.length) return;
-  const rangesByItem = buildHighlightRangesByItem(currentTextItems, query);
+  const matchIndex = Number.isInteger(result.hitIndex) ? result.hitIndex : 0;
+  let rangesByItem = buildHighlightRangesByItem(currentTextItems, query, matchIndex);
+  if (!rangesByItem.size && matchIndex > 0) {
+    rangesByItem = buildHighlightRangesByItem(currentTextItems, query, 0);
+  }
   if (!rangesByItem.size) return;
   for (const [itemIndex, ranges] of rangesByItem.entries()) {
     const div = currentTextDivs[itemIndex];
@@ -4116,6 +4151,18 @@ function prevSearchResult() {
 function nextSearchResult() {
   if (activeSearchIndex >= activeSearchResults.length - 1) return;
   navigateSearchResult(activeSearchIndex + 1, true);
+}
+
+function prevSearchSection() {
+  const idx = findSectionChangeIndex(activeSearchIndex, -1);
+  if (idx === -1) return;
+  navigateSearchResult(idx, true);
+}
+
+function nextSearchSection() {
+  const idx = findSectionChangeIndex(activeSearchIndex, 1);
+  if (idx === -1) return;
+  navigateSearchResult(idx, true);
 }
 
 function toggleSearch() {
@@ -4204,6 +4251,13 @@ async function performSearch(query) {
 async function collectSearchResults(query, includeMeta = false) {
   const q = (query || '').trim();
   const qLower = q.toLowerCase();
+  const pageHitCounter = new Map();
+  const nextHitIndex = (docType, page) => {
+    const key = `${docType}:${page}`;
+    const next = pageHitCounter.get(key) || 0;
+    pageHitCounter.set(key, next + 1);
+    return next;
+  };
 
   // Prefer TXT corpus search when available (more consistent snippets + avoids PDF text-layer drift).
   await ensureTxtCorpusReady();
@@ -4242,7 +4296,7 @@ async function collectSearchResults(query, includeMeta = false) {
           meta = `Handbook · ${getHandbookSectionLabel(page)}`;
         }
 
-        const entry = { docType: doc.docType, page, snippet, query: q };
+        const entry = { docType: doc.docType, page, snippet, query: q, hitIndex: nextHitIndex(doc.docType, page) };
         if (includeMeta) {
           entry.title = title;
           entry.meta = meta;
@@ -4276,7 +4330,7 @@ async function collectSearchResults(query, includeMeta = false) {
         let snippet = (cache[i] || '').substring(start, end);
         if (start > 0) snippet = '…' + snippet;
         if (end < text.length) snippet += '…';
-        const entry = { docType, page: i, snippet, query: q };
+        const entry = { docType, page: i, snippet, query: q, hitIndex: nextHitIndex(docType, i) };
         if (includeMeta) {
           entry.title = docType === 'handbook' ? 'Handbook' : 'State Supplement';
           entry.meta = docType === 'handbook'
