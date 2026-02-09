@@ -2997,7 +2997,18 @@
         if (widgets && widgets.length) {
           const widget = widgets[0];
           const rect = widget.getRectangle();
-          const page = widget.getPage();
+          const page = (() => {
+            if (typeof widget.getPage === 'function') return widget.getPage();
+            const pageRef = typeof widget.getP === 'function'
+              ? widget.getP()
+              : (typeof widget.P === 'function' ? widget.P() : null);
+            if (pageRef) {
+              const pages = pdfDoc.getPages();
+              const match = pages.find(p => p.ref === pageRef);
+              if (match) return match;
+            }
+            return pdfDoc.getPages()[0];
+          })();
           const imageInfo = dataUrlToImageBytes(resolvedSignatureImage);
           const image = imageInfo && (imageInfo.mime.includes('jpeg') || imageInfo.mime.includes('jpg'))
             ? await pdfDoc.embedJpg(imageInfo.bytes)
