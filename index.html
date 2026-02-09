@@ -679,8 +679,9 @@
       display: flex; align-items: flex-start; justify-content: center;
       padding: 1rem 1rem calc(1rem + var(--bottom-nav-height) + env(safe-area-inset-bottom));
       position: relative;
-      touch-action: pan-y pinch-zoom;
+      touch-action: pan-x pan-y pinch-zoom;
     }
+    .reader-canvas-area.panning { cursor: grabbing; }
     .reader-canvas-area.swiping { touch-action: none; }
     .resources-overlay {
       position: absolute;
@@ -3276,6 +3277,12 @@ let lastTapTime = 0;
 let pinchStartDist = 0;
 let pinchStartZoom = 1;
 let isSwiping = false;
+let isPanning = false;
+let panStartX = 0;
+let panStartY = 0;
+let panStartScrollLeft = 0;
+let panStartScrollTop = 0;
+let hasPanned = false;
 window.addEventListener('resize', positionSearchOverlays);
 canvasArea.addEventListener('scroll', positionSearchOverlays);
 
@@ -3310,6 +3317,15 @@ canvasArea.addEventListener('touchstart', (e) => {
   touchStartY = e.touches[0].clientY;
   touchStartTime = now;
   isSwiping = false;
+  isPanning = zoomFactor > 1.05;
+  hasPanned = false;
+  if (isPanning) {
+    panStartX = touchStartX;
+    panStartY = touchStartY;
+    panStartScrollLeft = canvasArea.scrollLeft;
+    panStartScrollTop = canvasArea.scrollTop;
+    canvasArea.classList.add('panning');
+  }
 }, { passive: false });
 
 canvasArea.addEventListener('touchmove', (e) => {
@@ -3328,6 +3344,17 @@ canvasArea.addEventListener('touchmove', (e) => {
     return;
   }
 
+  // Pan when zoomed in
+  if (isPanning && e.touches.length === 1) {
+    const dx = e.touches[0].clientX - panStartX;
+    const dy = e.touches[0].clientY - panStartY;
+    if (Math.abs(dx) > 2 || Math.abs(dy) > 2) hasPanned = true;
+    e.preventDefault();
+    canvasArea.scrollLeft = panStartScrollLeft - dx;
+    canvasArea.scrollTop = panStartScrollTop - dy;
+    return;
+  }
+
   // Track horizontal movement for swipe
   if (e.touches.length === 1) {
     const dx = Math.abs(e.touches[0].clientX - touchStartX);
@@ -3340,6 +3367,11 @@ canvasArea.addEventListener('touchmove', (e) => {
 
 canvasArea.addEventListener('touchend', (e) => {
   if (e.changedTouches.length !== 1) return;
+  if (isPanning) {
+    isPanning = false;
+    canvasArea.classList.remove('panning');
+    if (hasPanned) return;
+  }
   const dx = e.changedTouches[0].clientX - touchStartX;
   const dy = e.changedTouches[0].clientY - touchStartY;
   const dt = Date.now() - touchStartTime;
