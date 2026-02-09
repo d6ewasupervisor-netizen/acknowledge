@@ -125,6 +125,10 @@ const server = http.createServer(async (req, res) => {
       return send(res, 200, JSON.stringify(manifest), { 'Content-Type': MIME['.json'] });
     }
 
+    if (pathname === '/favicon.ico') {
+      return send(res, 204, '');
+    }
+
     if (pathname.startsWith('/employeeHandbook/')) {
       const rel = pathname.replace(/^\/employeeHandbook\//, '');
       const abs = safeJoin(HANDBOOK_DIR, rel);
