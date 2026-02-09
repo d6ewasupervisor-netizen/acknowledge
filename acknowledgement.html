@@ -492,6 +492,8 @@
       z-index: 100;
       align-items: center; justify-content: center;
       animation: fadeIn 0.3s ease;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
     }
     .save-overlay.show { display: flex; }
     .save-card {
@@ -503,6 +505,9 @@
       max-width: 480px; width: 90%;
       box-shadow: 0 20px 60px rgba(0,0,0,0.3);
       animation: slideUp 0.4s ease;
+      max-height: calc(100dvh - 2.5rem);
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
     }
     .save-icon {
       width: 64px; height: 64px;
@@ -886,6 +891,8 @@
       align-items: center;
       justify-content: center;
       animation: fadeIn 0.3s ease;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
     }
     .fax-modal-overlay.show { display: flex; }
 
@@ -895,7 +902,7 @@
       border-radius: 16px;
       width: 90%;
       max-width: 520px;
-      max-height: 85vh;
+      max-height: min(85vh, 720px);
       display: flex;
       flex-direction: column;
       box-shadow: 0 20px 60px rgba(0,0,0,0.4);
@@ -1261,14 +1268,25 @@
 
     /* Mobile Bottom Sheet */
     @media (max-width: 640px) {
+      .save-overlay {
+        align-items: flex-start;
+        padding: max(1rem, env(safe-area-inset-top)) 1rem calc(1rem + env(safe-area-inset-bottom));
+      }
+      .save-card {
+        width: 100%;
+        max-width: 100%;
+        max-height: calc(100dvh - (2rem + env(safe-area-inset-top) + env(safe-area-inset-bottom)));
+        border-radius: 14px;
+      }
       .fax-modal-overlay {
         align-items: flex-end;
+        padding: max(0.5rem, env(safe-area-inset-top)) 0.5rem env(safe-area-inset-bottom);
       }
       .fax-modal {
         width: 100%;
         max-width: 100%;
-        max-height: 90vh;
-        border-radius: 20px 20px 0 0;
+        max-height: calc(100dvh - (env(safe-area-inset-top) + env(safe-area-inset-bottom) + 1rem));
+        border-radius: 16px 16px 0 0;
         animation: slideUpSheet 0.3s cubic-bezier(0.16, 1, 0.3, 1);
       }
       .fax-modal-header {
@@ -1322,6 +1340,13 @@
       overflow: hidden;
       transition: width 0.3s ease, height 0.3s ease, border-radius 0.3s ease, box-shadow 0.3s ease;
       animation: floatOverlayIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      flex-direction: column;
+      max-height: calc(100dvh - (var(--bottom-nav-height) + 32px));
+      isolation: isolate;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+      transform: translateZ(0);
     }
     .print-status-overlay.show { display: block; }
     .print-status-overlay.minimized {
@@ -1443,6 +1468,8 @@
     /* Status body */
     .pso-body {
       padding: 12px;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
     }
     .pso-status-row {
       display: flex;
@@ -1500,9 +1527,10 @@
     /* Mobile adjustments */
     @media (max-width: 640px) {
       .print-status-overlay {
-        width: 300px;
-        right: 10px;
+        width: min(92vw, 360px);
+        right: 4vw;
         bottom: calc(var(--bottom-nav-height) + 10px);
+        max-height: calc(100dvh - (var(--bottom-nav-height) + 20px));
       }
       .print-status-overlay.minimized {
         width: 50px;
@@ -2458,6 +2486,16 @@
     let psoCurrentTarget = '';
     let psoStartedAt = 0;
     let psoTrackingId = '';
+    let localPrintInProgress = false;
+    let localPrintResetTimer = null;
+
+    function isFaxPrintActive() {
+      return printOverlay.classList.contains('show') && (psoCurrentState === 'sending' || psoCurrentState === 'waiting');
+    }
+
+    function isLocalPrintActive() {
+      return localPrintInProgress;
+    }
 
     // SVG icons for overlay states
     const PSO_ICONS = {
@@ -3146,6 +3184,14 @@
     // Main send fax function
     async function sendFax() {
       if (faxSending) return;
+      if (isFaxPrintActive()) {
+        showFaxStatus('error', 'A print job is already in progress. Please wait for it to finish before sending another.');
+        return;
+      }
+      if (isLocalPrintActive()) {
+        showFaxStatus('error', 'A local print job is in progress. Please finish it before sending to a store printer.');
+        return;
+      }
 
       const directNum = faxDirectNumber.value.replace(/\D/g, '');
       const useDirectFax = !selectedStore && directNum.length >= 10;
@@ -4354,9 +4400,24 @@
       setSubmitButtonsEnabled(false);
 
       const employeeEmail = (document.getElementById('submitEmailInput').value || '').trim();
+      const isPrintAction = action === 'print-local' || action === 'print-store' || action === 'save-print';
 
       try {
         updateSubmitStatus('sending', 'Sending...');
+
+        if (isPrintAction && isFaxPrintActive()) {
+          updateSubmitStatus('error', 'A store print job is already in progress. Please wait for it to finish or close the print status overlay.');
+          setSubmitButtonsEnabled(true);
+          submissionInProgress = false;
+          return;
+        }
+
+        if (isPrintAction && isLocalPrintActive()) {
+          updateSubmitStatus('error', 'A local print job is already in progress. Please wait a moment and try again.');
+          setSubmitButtonsEnabled(true);
+          submissionInProgress = false;
+          return;
+        }
 
         const needsEmployeeEmail = action === 'email-submit';
         if (needsEmployeeEmail && !employeeEmail) {
@@ -4457,6 +4518,12 @@
 
     async function printLocally() {
       if (!generatedPDF) return;
+      if (localPrintInProgress) return;
+      localPrintInProgress = true;
+      if (localPrintResetTimer) {
+        clearTimeout(localPrintResetTimer);
+        localPrintResetTimer = null;
+      }
       let pdfBlob = null;
       try {
         const pdfBase64 = await buildTemplatePdfBase64({
@@ -4468,6 +4535,7 @@
       } catch (error) {
         console.error('Template print failed:', error);
         alert('Unable to load the acknowledgement template. Please try again.');
+        localPrintInProgress = false;
         return;
       }
       const blobUrl = URL.createObjectURL(pdfBlob);
@@ -4488,6 +4556,10 @@
           setTimeout(() => { document.body.removeChild(iframe); URL.revokeObjectURL(blobUrl); }, 1000);
         });
       }
+      localPrintResetTimer = setTimeout(() => {
+        localPrintInProgress = false;
+        localPrintResetTimer = null;
+      }, 2000);
     }
 
     // Legacy functions - now open the fax modal
