@@ -5,7 +5,10 @@
   },
   "functions": {
     "source": "firebase/functions",
-    "runtime": "nodejs20",
+    "runtime": "nodejs22",
+    "environmentVariables": {
+      "STORAGE_BUCKET": "the-dump-bin.appspot.com"
+    },
     "predeploy": [
       "npm --prefix \"$RESOURCE_DIR\" run lint || true"
     ]
