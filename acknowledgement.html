@@ -2271,8 +2271,8 @@
     // FAX CONFIGURATION (loaded from config.js)
     // ═══════════════════════════════════════════════════════════
     const FUNCTIONS_BASE = _cfg.FUNCTIONS_BASE || '';
-    const TEMPLATE_BLANK_BW_URL = 'employeeHandbook/Acknowledgement_Templates/blank_bandw_acknowledgement.pdf';
-    const TEMPLATE_BLANK_COLOR_URL = 'employeeHandbook/Acknowledgement_Templates/blank_color_acknowledgement.pdf';
+    const TEMPLATE_BLANK_BW_URL = 'employeeHandbook/Acknowledgement_Templates/blank_bandw_acknowledgement.pdf?v=20260209';
+    const TEMPLATE_BLANK_COLOR_URL = 'employeeHandbook/Acknowledgement_Templates/blank_color_acknowledgement.pdf?v=20260209';
 
     const FIREBASE_CONFIG = {
       apiKey: _cfg.FIREBASE_API_KEY || '',
@@ -3178,7 +3178,7 @@
         date: fields.find(f => f.key === 'date')?.field
           || pickTemplateField(textFields, ['date']),
         signature: fields.find(f => f.key === 'signature_image')?.field
-          || pickTemplateField(textFields, ['signature', 'sign'], ['date', 'name']),
+          || pickTemplateField(fields, ['signature', 'sign', 'sig', 'image', 'img'], ['date', 'name', 'logo', 'banner', 'header']),
         store: pickTemplateField(textFields, ['store', 'location', 'site', 'branch', 'unit']),
         email: pickTemplateField(textFields, ['email', 'e-mail']),
         consent: fields.find(f => f.key === 'acknowledge_checkbox')?.field
@@ -3229,6 +3229,8 @@
           page.drawImage(image, { x, y, width: fitted.width, height: fitted.height });
           if (mapped.signature && typeof mapped.signature.setText === 'function') mapped.signature.setText('');
         }
+      } else if (includeSignatureImage && resolvedSignatureImage && !mapped.signature) {
+        console.warn('Signature image provided, but no signature field was found in the template.');
       }
 
       const font = await pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica);
