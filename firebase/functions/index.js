@@ -29,6 +29,7 @@ const getStorageBucketName = () => {
   const config = functions.config();
   return (
     config.storage?.bucket ||
+    process.env.FIREBASE_STORAGE_BUCKET ||
     process.env.STORAGE_BUCKET ||
     (process.env.GCLOUD_PROJECT ? `${process.env.GCLOUD_PROJECT}.appspot.com` : '')
   );
