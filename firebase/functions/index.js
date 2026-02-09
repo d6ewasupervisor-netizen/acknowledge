@@ -16,6 +16,7 @@
  */
 
 const functions = require('firebase-functions/v1');
+const { defineJsonSecret } = require('firebase-functions/params');
 const admin = require('firebase-admin');
 const nodemailer = require('nodemailer');
 const cors = require('cors');
@@ -25,8 +26,23 @@ admin.initializeApp();
 const db = admin.firestore();
 const FUNCTIONS_BUILD_ID = '2026-02-08-storage-save';
 
+const runtimeConfig = defineJsonSecret('RUNTIME_CONFIG');
+const getRuntimeConfig = () => {
+  try {
+    const value = runtimeConfig.value();
+    if (value && typeof value === 'object') return value;
+  } catch {
+    // Secret not available (local/test)
+  }
+  try {
+    return functions.config() || {};
+  } catch {
+    return {};
+  }
+};
+
 const getStorageBucketName = () => {
-  const config = functions.config();
+  const config = getRuntimeConfig();
   return (
     config.storage?.bucket ||
     process.env.FIREBASE_STORAGE_BUCKET ||
@@ -54,7 +70,7 @@ const handleCorsPreflight = (req, res) => {
 
 // Get SMTP config from Firebase Functions config
 const getSmtpConfig = () => {
-  const config = functions.config();
+  const config = getRuntimeConfig();
   return {
     host: config.smtp?.host || process.env.SMTP_HOST,
     port: parseInt(config.smtp?.port || process.env.SMTP_PORT || '587'),
@@ -67,12 +83,12 @@ const getSmtpConfig = () => {
 };
 
 const getFromEmail = () => {
-  const config = functions.config();
+  const config = getRuntimeConfig();
   return config.smtp?.from || process.env.SMTP_FROM || 'handbook@company.com';
 };
 
 const getFaxGatewayEmail = () => {
-  const config = functions.config();
+  const config = getRuntimeConfig();
   return config.fax?.gateway_email || process.env.FAX_GATEWAY_EMAIL;
 };
 
@@ -92,7 +108,7 @@ const createTransporter = () => {
  *   "type": "blank" | "signed"
  * }
  */
-exports.sendFax = functions.runWith({ memory: '512MB', minInstances: 1 }).https.onRequest((req, res) => {
+exports.sendFax = functions.runWith({ memory: '512MB', minInstances: 1, secrets: [runtimeConfig] }).https.onRequest((req, res) => {
   const preflight = handleCorsPreflight(req, res);
   if (preflight) return preflight;
   corsHandler(req, res, async () => {
@@ -203,7 +219,7 @@ exports.sendFax = functions.runWith({ memory: '512MB', minInstances: 1 }).https.
  *   "type": "blank" | "signed"
  * }
  */
-exports.sendFaxDirect = functions.runWith({ memory: '512MB', minInstances: 1 }).https.onRequest((req, res) => {
+exports.sendFaxDirect = functions.runWith({ memory: '512MB', minInstances: 1, secrets: [runtimeConfig] }).https.onRequest((req, res) => {
   const preflight = handleCorsPreflight(req, res);
   if (preflight) return preflight;
   corsHandler(req, res, async () => {
@@ -305,7 +321,7 @@ exports.sendFaxDirect = functions.runWith({ memory: '512MB', minInstances: 1 }).
  * GET request, returns array of stores ordered by storeNumber
  * Used as backup API - frontend embeds store data for instant load
  */
-exports.getStores = functions.https.onRequest((req, res) => {
+exports.getStores = functions.runWith({ secrets: [runtimeConfig] }).https.onRequest((req, res) => {
   const preflight = handleCorsPreflight(req, res);
   if (preflight) return preflight;
   corsHandler(req, res, async () => {
@@ -358,7 +374,7 @@ exports.getStores = functions.https.onRequest((req, res) => {
  *   "faxKey": "20260205-125013"  (optional)
  * }
  */
-exports.faxWebhook = functions.https.onRequest((req, res) => {
+exports.faxWebhook = functions.runWith({ secrets: [runtimeConfig] }).https.onRequest((req, res) => {
   const preflight = handleCorsPreflight(req, res);
   if (preflight) return preflight;
   corsHandler(req, res, async () => {
@@ -428,7 +444,7 @@ exports.faxWebhook = functions.https.onRequest((req, res) => {
  *   "storeNumber": "#023"
  * }
  */
-exports.saveAcknowledgement = functions.runWith({ memory: '512MB' }).https.onRequest((req, res) => {
+exports.saveAcknowledgement = functions.runWith({ memory: '512MB', secrets: [runtimeConfig] }).https.onRequest((req, res) => {
   const preflight = handleCorsPreflight(req, res);
   if (preflight) return preflight;
   corsHandler(req, res, async () => {
@@ -525,7 +541,7 @@ exports.saveAcknowledgement = functions.runWith({ memory: '512MB' }).https.onReq
  *   "supervisorName": "Jane Manager"
  * }
  */
-exports.sendEmail = functions.runWith({ memory: '512MB' }).https.onRequest((req, res) => {
+exports.sendEmail = functions.runWith({ memory: '512MB', secrets: [runtimeConfig] }).https.onRequest((req, res) => {
   const preflight = handleCorsPreflight(req, res);
   if (preflight) return preflight;
   corsHandler(req, res, async () => {
@@ -628,11 +644,11 @@ exports.sendEmail = functions.runWith({ memory: '512MB' }).https.onRequest((req,
  * Subject format: FAXDONE:{FaxKey}:{Status}
  * Body: RequesterEmail
  */
-exports.monitorFaxStatus = functions.pubsub
+exports.monitorFaxStatus = functions.runWith({ secrets: [runtimeConfig] }).pubsub
 .schedule('every 1 minutes')
 .onRun(async (context) => {
   const imapSimple = require('imap-simple');
-  const config = functions.config();
+  const config = getRuntimeConfig();
 
   // Gmail IMAP credentials — check firebase config first, then .env, then fall back to SMTP creds
   // (since the SMTP account and IMAP inbox are typically the same Gmail account)

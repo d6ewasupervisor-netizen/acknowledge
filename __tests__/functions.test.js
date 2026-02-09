@@ -48,6 +48,17 @@ jest.mock('firebase-functions/v1', () => ({
   },
 }));
 
+jest.mock('firebase-functions/params', () => ({
+  defineJsonSecret: () => ({
+    value: () => ({
+      smtp: { host: 'smtp.test', port: '587', user: 'u', pass: 'p', from: 'test@test.com' },
+      fax: { gateway_email: 'fax@gateway.test' },
+      storage: { bucket: 'test-project.appspot.com' },
+      gmail: { user: 'gmail@test.com', pass: 'gmailpass' }
+    })
+  })
+}));
+
 const mockSendMail = jest.fn().mockResolvedValue({ messageId: 'mock-id' });
 jest.mock('nodemailer', () => ({
   createTransport: () => ({ sendMail: mockSendMail }),
