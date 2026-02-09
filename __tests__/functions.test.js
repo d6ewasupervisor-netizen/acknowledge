@@ -66,8 +66,14 @@ function makeRes() {
   const res = {
     _status: null,
     _body: null,
+    _headers: {},
+    set(key, value) {
+      res._headers[key] = value;
+      return res;
+    },
     status(code) { res._status = code; return res; },
     json(data) { res._body = data; return res; },
+    send(data) { res._body = data; return res; },
   };
   return res;
 }
