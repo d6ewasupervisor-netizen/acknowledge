@@ -1929,7 +1929,6 @@
 
       <div class="fax-modal-footer">
         <button class="fax-send-btn" id="faxSendBtn" onclick="sendFax()" disabled>
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5"/></svg>
           <span id="faxSendBtnText">Send to Printer</span>
         </button>
         <div class="fax-status" id="faxStatus"></div>
@@ -2983,11 +2982,13 @@
         ? (faxStore.value ? `Store ${faxStore.value}` : faxNumber.value.trim())
         : '';
 
-      if (mapped.name && submitName) mapped.name.setText(submitName);
-      if (mapped.date && submitDate) mapped.date.setText(submitDate);
-      if (mapped.store && storeValue) mapped.store.setText(storeValue);
-      if (mapped.email && employeeEmail) mapped.email.setText(employeeEmail);
-      if (mapped.signature && submitName && !includeSignatureImage) mapped.signature.setText(submitName);
+      if (mapped.name && submitName && typeof mapped.name.setText === 'function') mapped.name.setText(submitName);
+      if (mapped.date && submitDate && typeof mapped.date.setText === 'function') mapped.date.setText(submitDate);
+      if (mapped.store && storeValue && typeof mapped.store.setText === 'function') mapped.store.setText(storeValue);
+      if (mapped.email && employeeEmail && typeof mapped.email.setText === 'function') mapped.email.setText(employeeEmail);
+      if (mapped.signature && submitName && !includeSignatureImage && typeof mapped.signature.setText === 'function') {
+        mapped.signature.setText(submitName);
+      }
       if (mapped.consent && consentBox.checked) mapped.consent.check();
 
       const resolvedSignatureImage = signatureImageData || signatureImage;
@@ -3017,7 +3018,7 @@
           const x = rect.x + (rect.width - fitted.width) / 2;
           const y = rect.y + (rect.height - fitted.height) / 2;
           page.drawImage(image, { x, y, width: fitted.width, height: fitted.height });
-          if (mapped.signature.setText) mapped.signature.setText('');
+          if (mapped.signature && typeof mapped.signature.setText === 'function') mapped.signature.setText('');
         }
       }
 
