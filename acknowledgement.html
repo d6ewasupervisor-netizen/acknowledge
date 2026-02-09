@@ -2804,29 +2804,9 @@
     }
 
     function initPrintStatusOverlay() {
-      const data = readPersistedPrintStatus();
       if (!printOverlay) return;
-      if (!data) {
-        printOverlay.classList.remove('show', 'minimized', 'delivered-glow', 'error-glow');
-        return;
-      }
-      const state = data.state || 'waiting';
-      const hasTracking = !!(data.trackingId && String(data.trackingId).trim());
-      if (!hasTracking && (state === 'sending' || state === 'waiting')) {
-        clearPersistedPrintStatus();
-        printOverlay.classList.remove('show', 'minimized', 'delivered-glow', 'error-glow');
-        return;
-      }
-      const updatedAt = data.updatedAt || data.startedAt || 0;
-      const now = Date.now();
-      const ageMs = updatedAt ? (now - updatedAt) : Number.POSITIVE_INFINITY;
-      const maxAgeMs = (state === 'delivered' || state === 'error')
-        ? 5 * 60 * 1000
-        : 20 * 60 * 1000;
-      if (!updatedAt || ageMs > maxAgeMs) {
-        clearPersistedPrintStatus();
-        printOverlay.classList.remove('show', 'minimized', 'delivered-glow', 'error-glow');
-      }
+      clearPersistedPrintStatus();
+      printOverlay.classList.remove('show', 'minimized', 'delivered-glow', 'error-glow');
     }
 
     // ── Drag logic for the overlay ──
