@@ -681,6 +681,7 @@
       position: relative;
       touch-action: pan-x pan-y pinch-zoom;
     }
+    .reader-canvas-area.pan-active { justify-content: flex-start; }
     .reader-canvas-area.panning { cursor: grabbing; }
     .reader-canvas-area.swiping { touch-action: none; }
     .resources-overlay {
@@ -3259,6 +3260,7 @@ function zoomIn() {
   zoomFactor = Math.min(zoomFactor + 0.25, 3.0);
   scale = baseScale * zoomFactor;
   document.getElementById('zoomLevel').textContent = Math.round(zoomFactor * 100) + '%';
+  updatePanMode();
   renderPage(currentPage);
 }
 
@@ -3266,6 +3268,7 @@ function zoomOut() {
   zoomFactor = Math.max(zoomFactor - 0.25, 0.5);
   scale = baseScale * zoomFactor;
   document.getElementById('zoomLevel').textContent = Math.round(zoomFactor * 100) + '%';
+  updatePanMode();
   renderPage(currentPage);
 }
 
@@ -3290,6 +3293,11 @@ function getTouchDist(touches) {
   const dx = touches[0].clientX - touches[1].clientX;
   const dy = touches[0].clientY - touches[1].clientY;
   return Math.sqrt(dx * dx + dy * dy);
+}
+
+function updatePanMode() {
+  if (!canvasArea) return;
+  canvasArea.classList.toggle('pan-active', zoomFactor > 1.05);
 }
 
 canvasArea.addEventListener('touchstart', (e) => {
@@ -3339,6 +3347,7 @@ canvasArea.addEventListener('touchmove', (e) => {
       zoomFactor = newZoom;
       scale = baseScale * zoomFactor;
       document.getElementById('zoomLevel').textContent = Math.round(zoomFactor * 100) + '%';
+      updatePanMode();
       renderPage(currentPage);
     }
     return;
@@ -3393,6 +3402,7 @@ function handleDoubleTap() {
   }
   scale = baseScale * zoomFactor;
   document.getElementById('zoomLevel').textContent = Math.round(zoomFactor * 100) + '%';
+  updatePanMode();
   renderPage(currentPage);
   showToast(zoomFactor > 1.1 ? `Zoomed to ${Math.round(zoomFactor * 100)}%` : 'Fit to width');
 }
