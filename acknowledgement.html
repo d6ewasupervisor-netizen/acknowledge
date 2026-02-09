@@ -1135,6 +1135,26 @@
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
+    .fax-local-print-wrap { padding: 0 1.5rem 0.85rem; }
+    .fax-local-print-btn {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border-radius: 12px;
+      border: 1px solid rgba(74,144,196,0.25);
+      background: rgba(15,23,42,0.6);
+      color: var(--slate-200);
+      font-weight: 600;
+      cursor: pointer;
+      min-height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      transition: all 0.2s ease;
+    }
+    .fax-local-print-btn:hover { border-color: rgba(74,144,196,0.4); color: var(--white); }
+    .fax-local-print-btn:active { transform: scale(0.98); }
+
     .fax-status {
       margin-top: 0.75rem;
       padding: 0.75rem 1rem;
@@ -1309,6 +1329,7 @@
       .fax-store-list { max-height: 35vh; }
       .fax-divider { padding: 0.85rem 1.25rem; }
       .fax-direct-input-wrap { padding: 0 1.25rem 0.85rem; }
+      .fax-local-print-wrap { padding: 0 1.25rem 0.85rem; }
       .fax-modal-footer {
         padding: 1rem 1.25rem calc(1rem + env(safe-area-inset-bottom));
       }
@@ -1955,6 +1976,10 @@
         <div class="fax-direct-hint">Enter the full printer number including area code</div>
       </div>
 
+      <div class="fax-local-print-wrap sig-hidden" id="faxLocalPrintWrap">
+        <button class="fax-local-print-btn" type="button" onclick="queueBlankLocalPrintFromFax()">Print Blank Locally</button>
+      </div>
+
       <div class="fax-modal-footer">
         <button class="fax-send-btn" id="faxSendBtn" onclick="sendFax()" disabled>
           <span id="faxSendBtnText">Send to Printer</span>
@@ -2418,6 +2443,7 @@
     const faxSendBtn = document.getElementById('faxSendBtn');
     const faxSendBtnText = document.getElementById('faxSendBtnText');
     const faxStatusEl = document.getElementById('faxStatus');
+    const faxLocalPrintWrap = document.getElementById('faxLocalPrintWrap');
 
     function openFaxModal(mode) {
       cleanupFaxListener();
@@ -2427,6 +2453,9 @@
       faxDirectNumber.value = '';
       faxStatusEl.className = 'fax-status';
       faxStatusEl.textContent = '';
+      if (faxLocalPrintWrap) {
+        faxLocalPrintWrap.classList.toggle('sig-hidden', mode !== 'blank');
+      }
       updateFaxSendButton();
 
       if (mode === 'signed' && !generatedPDF) {
@@ -2489,12 +2518,73 @@
     let localPrintInProgress = false;
     let localPrintResetTimer = null;
 
+    const printJobQueue = [];
+    let activePrintJob = null;
+
     function isFaxPrintActive() {
       return printOverlay.classList.contains('show') && (psoCurrentState === 'sending' || psoCurrentState === 'waiting');
     }
 
     function isLocalPrintActive() {
       return localPrintInProgress;
+    }
+
+    function refreshQueuedPrintMessage() {
+      const queued = printJobQueue.length;
+      const base = psoStatusSub.dataset.baseText || psoStatusSub.textContent || '';
+      if (queued > 0) {
+        psoStatusSub.textContent = `${base} (${queued} queued job${queued > 1 ? 's' : ''})`;
+      } else {
+        psoStatusSub.textContent = base;
+      }
+    }
+
+    function processPrintQueue() {
+      if (activePrintJob || printJobQueue.length === 0) return;
+      activePrintJob = printJobQueue.shift();
+      refreshQueuedPrintMessage();
+      activePrintJob.start();
+    }
+
+    function completeActivePrintJob() {
+      activePrintJob = null;
+      refreshQueuedPrintMessage();
+      if (printJobQueue.length) processPrintQueue();
+    }
+
+    function enqueuePrintJob(job) {
+      printJobQueue.push(job);
+      refreshQueuedPrintMessage();
+      processPrintQueue();
+    }
+
+    function enqueueLocalPrintJob({ startMessage, doneMessage, action }) {
+      enqueuePrintJob({
+        type: 'local-print',
+        start: async () => {
+          updateSubmitStatus('sending', startMessage);
+          try {
+            await action();
+            if (doneMessage) updateSubmitStatus('success', doneMessage);
+          } catch (error) {
+            console.error('Local print error:', error);
+            updateSubmitStatus('error', 'Local print failed. Please try again.');
+            completeActivePrintJob();
+          }
+        }
+      });
+    }
+
+    function enqueueStoreModalJob() {
+      enqueuePrintJob({
+        type: 'store-modal',
+        start: () => {
+          updateSubmitStatus('success', 'Choose a store printer to continue.');
+          closeSaveOverlay();
+          openFaxModal('signed');
+          completeActivePrintJob();
+        }
+      });
     }
 
     // SVG icons for overlay states
@@ -2566,7 +2656,9 @@
       // Update text
       psoStatusTitle.textContent = title;
       psoStatusSub.textContent = sub;
+      psoStatusSub.dataset.baseText = sub || '';
       if (timer !== undefined) psoStatusTimer.textContent = timer;
+      refreshQueuedPrintMessage();
 
       // Update header
       if (state === 'delivered') {
@@ -2617,6 +2709,8 @@
         }, 800);
       }
 
+      completeActivePrintJob();
+
     }
 
     function minimizePrintOverlay() {
@@ -2634,6 +2728,7 @@
       psoTimerInterval = null;
       cleanupFaxListener();
       clearPersistedPrintStatus();
+      completeActivePrintJob();
 
       printOverlay.classList.add('closing');
       setTimeout(() => {
@@ -2806,6 +2901,24 @@
     function showFaxStatusHtml(type, html) {
       faxStatusEl.className = `fax-status show ${type}`;
       faxStatusEl.innerHTML = html;
+    }
+
+    function queueBlankLocalPrintFromFax() {
+      const shouldQueue = activePrintJob || printJobQueue.length > 0;
+      enqueuePrintJob({
+        type: 'local-blank',
+        start: async () => {
+          showFaxStatus('sending', 'Printing blank form locally...');
+          await printBlankLocally();
+          showFaxStatus('success', 'Printing blank form locally...');
+          closeFaxModal();
+        }
+      });
+
+      if (shouldQueue) {
+        showFaxStatus('info', 'Queued to print locally. We will start after the current job finishes.');
+        setTimeout(() => closeFaxModal(), 600);
+      }
     }
 
     // ═══════════════════════════════════════════════════════════
@@ -3184,15 +3297,6 @@
     // Main send fax function
     async function sendFax() {
       if (faxSending) return;
-      if (isFaxPrintActive()) {
-        showFaxStatus('error', 'A print job is already in progress. Please wait for it to finish before sending another.');
-        return;
-      }
-      if (isLocalPrintActive()) {
-        showFaxStatus('error', 'A local print job is in progress. Please finish it before sending to a store printer.');
-        return;
-      }
-
       const directNum = faxDirectNumber.value.replace(/\D/g, '');
       const useDirectFax = !selectedStore && directNum.length >= 10;
 
@@ -3209,11 +3313,39 @@
       const capturedDirectNum = directNum;
       const capturedFaxMode = faxMode;
 
+      const jobPayload = {
+        useDirectFax,
+        targetLabel,
+        capturedStore,
+        capturedDirectNum,
+        capturedFaxMode
+      };
+
+      const shouldQueue = activePrintJob || printJobQueue.length > 0;
+      enqueuePrintJob({ type: 'fax', start: () => runFaxJob(jobPayload) });
+
+      if (shouldQueue) {
+        showFaxStatus('info', 'Queued. We will send this after the current print finishes.');
+        resetFaxSendBtn();
+        setTimeout(() => closeFaxModal(), 600);
+        return;
+      }
+    }
+
+    async function runFaxJob(payload) {
+      const { useDirectFax, targetLabel, capturedStore, capturedDirectNum, capturedFaxMode } = payload;
+
       faxSending = true;
       faxSendBtn.disabled = true;
       faxSendBtnText.innerHTML = '<span class="spinner"></span> Sending...';
 
       try {
+        if (capturedFaxMode === 'signed' && !generatedPDF) {
+          showFaxStatus('error', 'No signed PDF available yet. Please submit the acknowledgement first.');
+          completeActivePrintJob();
+          return;
+        }
+
         // Generate appropriate PDF
         let fileName, pdfBase64 = '';
         const useStoreTemplate = !useDirectFax;
@@ -3245,6 +3377,7 @@
           faxSending = false;
           resetFaxSendBtn();
           scheduleReturnHomeAfterPrint();
+          completeActivePrintJob();
           return;
         }
 
@@ -3310,8 +3443,10 @@
           updatePsoState('error', 'Print Failed',
             error.message || 'Failed to send to printer. Please try again.', '');
           psoStatusTimer.textContent = '';
+          completeActivePrintJob();
         } else {
           showFaxStatus('error', error.message || 'Failed to send to printer. Please try again.');
+          completeActivePrintJob();
         }
       } finally {
         faxSending = false;
@@ -4405,20 +4540,6 @@
       try {
         updateSubmitStatus('sending', 'Sending...');
 
-        if (isPrintAction && isFaxPrintActive()) {
-          updateSubmitStatus('error', 'A store print job is already in progress. Please wait for it to finish or close the print status overlay.');
-          setSubmitButtonsEnabled(true);
-          submissionInProgress = false;
-          return;
-        }
-
-        if (isPrintAction && isLocalPrintActive()) {
-          updateSubmitStatus('error', 'A local print job is already in progress. Please wait a moment and try again.');
-          setSubmitButtonsEnabled(true);
-          submissionInProgress = false;
-          return;
-        }
-
         const needsEmployeeEmail = action === 'email-submit';
         if (needsEmployeeEmail && !employeeEmail) {
           updateSubmitStatus('error', 'Please enter the signer email.');
@@ -4444,19 +4565,34 @@
           queueReturnHome('Submitted successfully. Returning to home...');
 
         } else if (action === 'print-local') {
-          await printLocally();
-          queueReturnHome('Submitted. Printing locally...', 1200);
+          const shouldQueue = activePrintJob || printJobQueue.length > 0;
+          if (shouldQueue) updateSubmitStatus('success', 'Queued for local printing. We will start after the current job finishes.');
+          enqueueLocalPrintJob({
+            startMessage: 'Queued for local printing...',
+            doneMessage: 'Submitted. Printing locally...',
+            action: async () => {
+              await printLocally();
+              queueReturnHome('Submitted. Printing locally...', 1200);
+            }
+          });
 
         } else if (action === 'print-store') {
-          updateSubmitStatus('success', 'Submitted. Choose a store printer...');
-          if (navigator.vibrate) navigator.vibrate([50, 30, 50]);
-          closeSaveOverlay();
-          openFaxModal('signed');
+          const shouldQueue = activePrintJob || printJobQueue.length > 0;
+          if (shouldQueue) updateSubmitStatus('success', 'Queued to choose a store printer. We will prompt you after the current job finishes.');
+          enqueueStoreModalJob();
 
         } else if (action === 'save-print') {
-          await downloadPDF();
-          await printLocally();
-          queueReturnHome('Submitted. Saving and printing...', 1500);
+          const shouldQueue = activePrintJob || printJobQueue.length > 0;
+          if (shouldQueue) updateSubmitStatus('success', 'Queued to save and print. We will start after the current job finishes.');
+          enqueueLocalPrintJob({
+            startMessage: 'Queued to save and print...',
+            doneMessage: 'Submitted. Saving and printing...',
+            action: async () => {
+              await downloadPDF();
+              await printLocally();
+              queueReturnHome('Submitted. Saving and printing...', 1500);
+            }
+          });
 
         } else if (action === 'email-submit') {
           queueReturnHome('Submitted. Email sent to signer. Returning to home...');
@@ -4518,26 +4654,42 @@
 
     async function printLocally() {
       if (!generatedPDF) return;
-      if (localPrintInProgress) return;
-      localPrintInProgress = true;
-      if (localPrintResetTimer) {
-        clearTimeout(localPrintResetTimer);
-        localPrintResetTimer = null;
-      }
-      let pdfBlob = null;
       try {
         const pdfBase64 = await buildTemplatePdfBase64({
           templateUrl: getTemplateUrl(false),
           includeSignatureImage: signatureMode !== 'fax' && (!!signatureImage || (signatureMode === 'scan' && !!scanImage)),
           signatureImageData: getSignatureImageData()
         });
-        pdfBlob = base64ToBlob(pdfBase64, 'application/pdf');
+        await printBase64Locally(pdfBase64);
       } catch (error) {
         console.error('Template print failed:', error);
         alert('Unable to load the acknowledgement template. Please try again.');
-        localPrintInProgress = false;
-        return;
+        completeActivePrintJob();
       }
+    }
+
+    async function printBlankLocally() {
+      try {
+        const pdfBase64 = await buildTemplatePdfBase64({
+          templateUrl: getTemplateUrl(false)
+        });
+        await printBase64Locally(pdfBase64);
+      } catch (error) {
+        console.error('Blank print failed:', error);
+        alert('Unable to load the acknowledgement template. Please try again.');
+        completeActivePrintJob();
+      }
+    }
+
+    async function printBase64Locally(pdfBase64) {
+      if (!pdfBase64) return;
+      if (localPrintInProgress) return;
+      localPrintInProgress = true;
+      if (localPrintResetTimer) {
+        clearTimeout(localPrintResetTimer);
+        localPrintResetTimer = null;
+      }
+      const pdfBlob = base64ToBlob(pdfBase64, 'application/pdf');
       const blobUrl = URL.createObjectURL(pdfBlob);
       const printWindow = window.open(blobUrl, '_blank');
       if (printWindow) {
@@ -4559,6 +4711,7 @@
       localPrintResetTimer = setTimeout(() => {
         localPrintInProgress = false;
         localPrintResetTimer = null;
+        completeActivePrintJob();
       }, 2000);
     }
 
