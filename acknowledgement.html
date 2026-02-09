@@ -2914,8 +2914,9 @@
       if (mapped.signature && submitName && !includeSignatureImage) mapped.signature.setText(submitName);
       if (mapped.consent && consentBox.checked) mapped.consent.check();
 
-      if (includeSignatureImage && signatureImage && mapped.signature?.getWidgets) {
-        const widgets = mapped.signature.getWidgets();
+      if (includeSignatureImage && signatureImage && mapped.signature) {
+        const acroField = mapped.signature.acroField || mapped.signature;
+        const widgets = acroField.getWidgets ? acroField.getWidgets() : [];
         if (widgets && widgets.length) {
           const widget = widgets[0];
           const rect = widget.getRectangle();
@@ -2925,7 +2926,7 @@
           const x = rect.x + (rect.width - fitted.width) / 2;
           const y = rect.y + (rect.height - fitted.height) / 2;
           page.drawImage(image, { x, y, width: fitted.width, height: fitted.height });
-          mapped.signature.setText('');
+          if (mapped.signature.setText) mapped.signature.setText('');
         }
       }
 
@@ -4174,6 +4175,10 @@
           if (navigator.vibrate) navigator.vibrate(100);
         }
         return;
+      }
+
+      if (signatureMode === 'type' && typedInput.value.trim() && !signatureImage) {
+        applyTypedSignature();
       }
 
       generatePDF();
