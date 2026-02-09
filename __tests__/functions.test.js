@@ -36,7 +36,7 @@ jest.mock('firebase-admin', () => {
   return admin;
 });
 
-jest.mock('firebase-functions', () => ({
+jest.mock('firebase-functions/v1', () => ({
   config: () => ({
     smtp: { host: 'smtp.test', port: '587', user: 'u', pass: 'p', from: 'test@test.com' },
     fax: { gateway_email: 'fax@gateway.test' },
