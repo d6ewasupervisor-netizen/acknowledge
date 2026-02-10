@@ -1599,6 +1599,11 @@
     .pso-action-btn svg { width: 16px; height: 16px; }
 
     .pso-body { padding: 12px; }
+    .pso-expanded,
+    .pso-header,
+    .pso-body {
+      background: var(--navy-900);
+    }
     .pso-status-row { display: flex; align-items: flex-start; gap: 10px; }
     .pso-status-icon {
       flex-shrink: 0;
@@ -1640,6 +1645,11 @@
       .print-status-overlay { width: 300px; right: 10px; bottom: calc(var(--bottom-nav-height) + 10px); }
       .print-status-overlay.minimized { width: 50px; height: 50px; }
       .pso-minimized-icon { width: 50px; height: 50px; }
+      .print-status-overlay {
+        box-shadow: none;
+        -webkit-transform: translateZ(0);
+        transform: translateZ(0);
+      }
     }
   </style>
 </head>
