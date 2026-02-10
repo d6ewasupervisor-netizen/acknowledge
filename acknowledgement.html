@@ -1372,10 +1372,7 @@
       display: flex;
       flex-direction: column;
       max-height: calc(100dvh - (var(--bottom-nav-height) + 32px));
-      isolation: isolate;
-      backface-visibility: hidden;
-      -webkit-backface-visibility: hidden;
-      transform: translateZ(0);
+      background-clip: padding-box;
     }
     .print-status-overlay.show { display: block; }
     .print-status-overlay.minimized {
@@ -1392,6 +1389,7 @@
     }
     .print-status-overlay.minimized .pso-expanded { display: none; }
     .print-status-overlay:not(.minimized) .pso-minimized-icon { display: none; }
+    .print-status-overlay.dragging { cursor: grabbing; }
 
     @keyframes floatOverlayIn {
       from { opacity: 0; transform: translateY(24px) scale(0.92); }
@@ -1413,6 +1411,7 @@
       align-items: center;
       justify-content: center;
       position: relative;
+      cursor: grab;
     }
     .pso-minimized-icon svg {
       width: 26px;
@@ -2023,7 +2022,7 @@
   <!-- Floating Print Status Overlay -->
   <div class="print-status-overlay" id="printStatusOverlay" hidden style="display:none;">
     <!-- Minimized FAB icon -->
-    <div class="pso-minimized-icon" id="psoMinIcon" onclick="expandPrintOverlay()">
+    <div class="pso-minimized-icon" id="psoMinIcon">
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0 1 10.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0 .229 2.523a1.125 1.125 0 0 1-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0 0 21 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 0 0-1.913-.247M6.34 18H5.25A2.25 2.25 0 0 1 3 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 0 1 1.913-.247m10.5 0a48.536 48.536 0 0 0-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5Zm-3 0h.008v.008H15V10.5Z"/></svg>
       <div class="pso-notify-dot" id="psoNotifyDot"></div>
     </div>
@@ -2425,6 +2424,7 @@
       {n:"#694",l:"Juneau",f:"19077805241"},
       {n:"#999",l:"Corporate HQ",f:"15032223344"}
     ];
+    const VISIBLE_STORES = STORES.filter(store => store.n !== '#999');
 
     let drawing = false;
     let hasSig = false;
@@ -2447,7 +2447,7 @@
     function populateStoreOptions(select) {
       if (!select) return;
       select.querySelectorAll('option[data-store]').forEach(opt => opt.remove());
-      STORES.forEach(store => {
+      VISIBLE_STORES.forEach(store => {
         const opt = document.createElement('option');
         opt.value = store.n;
         opt.textContent = `${store.n} - ${store.l}`;
@@ -2547,7 +2547,7 @@
     let psoCurrentState = 'sending'; // sending | waiting | delivered | error
     let psoTimerInterval = null;
     let psoElapsedSeconds = 0;
-    let psoDragData = { isDragging: false, startX: 0, startY: 0, origLeft: 0, origTop: 0 };
+    let psoDragData = { isDragging: false, startX: 0, startY: 0, origLeft: 0, origTop: 0, moved: false, blockClick: false };
     let psoHasNotified = false;
     let psoCurrentTarget = '';
     let psoStartedAt = 0;
@@ -2821,16 +2821,30 @@
       printOverlay.style.display = 'none';
     }
 
+    function clampPsoPosition(left, top) {
+      const nav = document.querySelector('.home-bottom-nav');
+      const padding = 12;
+      const rect = printOverlay.getBoundingClientRect();
+      const navHeight = nav ? nav.getBoundingClientRect().height : 0;
+      const maxLeft = window.innerWidth - rect.width - padding;
+      const maxTop = window.innerHeight - navHeight - rect.height - padding;
+      return {
+        left: Math.min(Math.max(left, padding), Math.max(padding, maxLeft)),
+        top: Math.min(Math.max(top, padding), Math.max(padding, maxTop))
+      };
+    }
+
     // ── Drag logic for the overlay ──
     function initPsoDrag(e) {
-      // Only drag from header, ignore button clicks
       if (e.target.closest('.pso-action-btn')) return;
-      if (printOverlay.classList.contains('minimized')) return;
+      const fromMinIcon = e.currentTarget === psoMinIcon;
+      const isMinimized = printOverlay.classList.contains('minimized');
+      if (fromMinIcon && !isMinimized) return;
+      if (!fromMinIcon && isMinimized) return;
 
       const touch = e.touches ? e.touches[0] : e;
       const rect = printOverlay.getBoundingClientRect();
 
-      // Convert from right/bottom positioning to left/top
       if (!printOverlay.style.left || printOverlay.style.right) {
         printOverlay.style.left = rect.left + 'px';
         printOverlay.style.top = rect.top + 'px';
@@ -2843,8 +2857,11 @@
         startX: touch.clientX,
         startY: touch.clientY,
         origLeft: rect.left,
-        origTop: rect.top
+        origTop: rect.top,
+        moved: false,
+        blockClick: false
       };
+      printOverlay.classList.add('dragging');
 
       document.addEventListener('mousemove', onPsoDrag);
       document.addEventListener('mouseup', endPsoDrag);
@@ -2858,23 +2875,22 @@
       const touch = e.touches ? e.touches[0] : e;
       const dx = touch.clientX - psoDragData.startX;
       const dy = touch.clientY - psoDragData.startY;
+      if (!psoDragData.moved && (Math.abs(dx) > 3 || Math.abs(dy) > 3)) {
+        psoDragData.moved = true;
+      }
 
-      let newLeft = psoDragData.origLeft + dx;
-      let newTop = psoDragData.origTop + dy;
-
-      // Keep within viewport
-      const rect = printOverlay.getBoundingClientRect();
-      const maxLeft = window.innerWidth - rect.width;
-      const maxTop = window.innerHeight - rect.height;
-      newLeft = Math.max(0, Math.min(newLeft, maxLeft));
-      newTop = Math.max(0, Math.min(newTop, maxTop));
-
-      printOverlay.style.left = newLeft + 'px';
-      printOverlay.style.top = newTop + 'px';
+      const next = clampPsoPosition(psoDragData.origLeft + dx, psoDragData.origTop + dy);
+      printOverlay.style.left = next.left + 'px';
+      printOverlay.style.top = next.top + 'px';
     }
 
     function endPsoDrag() {
       psoDragData.isDragging = false;
+      printOverlay.classList.remove('dragging');
+      if (psoDragData.moved) {
+        psoDragData.blockClick = true;
+        setTimeout(() => { psoDragData.blockClick = false; }, 0);
+      }
       document.removeEventListener('mousemove', onPsoDrag);
       document.removeEventListener('mouseup', endPsoDrag);
       document.removeEventListener('touchmove', onPsoDrag);
@@ -2883,6 +2899,16 @@
 
     psoHeader.addEventListener('mousedown', initPsoDrag);
     psoHeader.addEventListener('touchstart', initPsoDrag, { passive: true });
+    psoMinIcon.addEventListener('mousedown', initPsoDrag);
+    psoMinIcon.addEventListener('touchstart', initPsoDrag, { passive: true });
+    psoMinIcon.addEventListener('click', (e) => {
+      if (psoDragData.blockClick) {
+        e.preventDefault();
+        e.stopPropagation();
+        return;
+      }
+      expandPrintOverlay();
+    });
 
     function renderFaxStoreList(stores) {
       if (stores.length === 0) {
@@ -2911,11 +2937,11 @@
     function filterFaxStores() {
       const query = faxStoreSearch.value.toLowerCase().trim();
       if (!query) {
-        renderFaxStoreList(STORES);
+        renderFaxStoreList(VISIBLE_STORES);
         return;
       }
 
-      const filtered = STORES.filter(store => 
+      const filtered = VISIBLE_STORES.filter(store => 
         store.n.toLowerCase().includes(query) || 
         store.l.toLowerCase().includes(query)
       );

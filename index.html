@@ -1497,6 +1497,7 @@
       overflow: hidden;
       transition: width 0.3s ease, height 0.3s ease, border-radius 0.3s ease, box-shadow 0.3s ease;
       animation: floatOverlayIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+      background-clip: padding-box;
     }
     .print-status-overlay.show { display: block; }
     .print-status-overlay.minimized {
@@ -1513,6 +1514,7 @@
     }
     .print-status-overlay.minimized .pso-expanded { display: none; }
     .print-status-overlay:not(.minimized) .pso-minimized-icon { display: none; }
+    .print-status-overlay.dragging { cursor: grabbing; }
     .print-status-overlay.closing { animation: floatOverlayOut 0.25s ease forwards; }
 
     .pso-minimized-icon {
@@ -1522,6 +1524,7 @@
       align-items: center;
       justify-content: center;
       position: relative;
+      cursor: grab;
     }
     .pso-minimized-icon svg { width: 26px; height: 26px; color: var(--blue-400); }
     .pso-minimized-icon.sending svg { animation: spin 1.2s linear infinite; }
@@ -1553,9 +1556,11 @@
       align-items: center;
       justify-content: space-between;
       padding: 10px 12px 8px;
+      cursor: grab;
       user-select: none;
       border-bottom: 1px solid rgba(74,144,196,0.1);
     }
+    .pso-header:active { cursor: grabbing; }
     .pso-header-left {
       display: flex;
       align-items: center;
@@ -1972,7 +1977,7 @@
   <!-- Floating Print Status Overlay -->
   <div class="print-status-overlay" id="printStatusOverlay">
     <!-- Minimized FAB icon -->
-    <div class="pso-minimized-icon" id="psoMinIcon" onclick="expandPrintOverlay()">
+    <div class="pso-minimized-icon" id="psoMinIcon">
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0 1 10.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0 .229 2.523a1.125 1.125 0 0 1-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0 0 21 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 0 0-1.913-.247M6.34 18H5.25A2.25 2.25 0 0 1 3 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 0 1 1.913-.247m10.5 0a48.536 48.536 0 0 0-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5Zm-3 0h.008v.008H15V10.5Z"/></svg>
       <div class="pso-notify-dot" id="psoNotifyDot"></div>
     </div>
@@ -4793,6 +4798,7 @@ const printOverlay = document.getElementById('printStatusOverlay');
 const psoMinIcon = document.getElementById('psoMinIcon');
 const psoNotifyDot = document.getElementById('psoNotifyDot');
 const psoHeaderTitle = document.getElementById('psoHeaderTitle');
+const psoHeader = document.getElementById('psoHeader');
 const psoStatusIcon = document.getElementById('psoStatusIcon');
 const psoStatusTitle = document.getElementById('psoStatusTitle');
 const psoStatusSub = document.getElementById('psoStatusSub');
@@ -4809,6 +4815,7 @@ const PSO_ICONS = {
 let printStatusTimer = null;
 let printStatusUnsubscribe = null;
 let currentPrintStatus = null;
+let psoDragData = { isDragging: false, startX: 0, startY: 0, origLeft: 0, origTop: 0, moved: false, blockClick: false };
 
 const _cfg = (typeof APP_CONFIG !== 'undefined') ? APP_CONFIG : {};
 const FIREBASE_CONFIG = {
@@ -4931,6 +4938,96 @@ function expandPrintOverlay() {
   if (!printOverlay) return;
   printOverlay.classList.remove('minimized');
   psoNotifyDot.classList.remove('show');
+}
+
+function clampPsoPosition(left, top) {
+  const nav = document.querySelector('.home-bottom-nav');
+  const padding = 12;
+  const rect = printOverlay.getBoundingClientRect();
+  const navHeight = nav ? nav.getBoundingClientRect().height : 0;
+  const maxLeft = window.innerWidth - rect.width - padding;
+  const maxTop = window.innerHeight - navHeight - rect.height - padding;
+  return {
+    left: Math.min(Math.max(left, padding), Math.max(padding, maxLeft)),
+    top: Math.min(Math.max(top, padding), Math.max(padding, maxTop))
+  };
+}
+
+function initPsoDrag(e) {
+  if (!printOverlay) return;
+  if (e.target.closest('.pso-action-btn')) return;
+  const fromMinIcon = e.currentTarget === psoMinIcon;
+  const isMinimized = printOverlay.classList.contains('minimized');
+  if (fromMinIcon && !isMinimized) return;
+  if (!fromMinIcon && isMinimized) return;
+
+  const touch = e.touches ? e.touches[0] : e;
+  const rect = printOverlay.getBoundingClientRect();
+  if (!printOverlay.style.left || printOverlay.style.right) {
+    printOverlay.style.left = rect.left + 'px';
+    printOverlay.style.top = rect.top + 'px';
+    printOverlay.style.right = 'auto';
+    printOverlay.style.bottom = 'auto';
+  }
+  psoDragData = {
+    isDragging: true,
+    startX: touch.clientX,
+    startY: touch.clientY,
+    origLeft: rect.left,
+    origTop: rect.top,
+    moved: false,
+    blockClick: false
+  };
+  printOverlay.classList.add('dragging');
+
+  document.addEventListener('mousemove', onPsoDrag);
+  document.addEventListener('mouseup', endPsoDrag);
+  document.addEventListener('touchmove', onPsoDrag, { passive: false });
+  document.addEventListener('touchend', endPsoDrag);
+}
+
+function onPsoDrag(e) {
+  if (!psoDragData.isDragging) return;
+  e.preventDefault();
+  const touch = e.touches ? e.touches[0] : e;
+  const dx = touch.clientX - psoDragData.startX;
+  const dy = touch.clientY - psoDragData.startY;
+  if (!psoDragData.moved && (Math.abs(dx) > 3 || Math.abs(dy) > 3)) {
+    psoDragData.moved = true;
+  }
+  const next = clampPsoPosition(psoDragData.origLeft + dx, psoDragData.origTop + dy);
+  printOverlay.style.left = `${next.left}px`;
+  printOverlay.style.top = `${next.top}px`;
+}
+
+function endPsoDrag() {
+  psoDragData.isDragging = false;
+  printOverlay.classList.remove('dragging');
+  if (psoDragData.moved) {
+    psoDragData.blockClick = true;
+    setTimeout(() => { psoDragData.blockClick = false; }, 0);
+  }
+  document.removeEventListener('mousemove', onPsoDrag);
+  document.removeEventListener('mouseup', endPsoDrag);
+  document.removeEventListener('touchmove', onPsoDrag);
+  document.removeEventListener('touchend', endPsoDrag);
+}
+
+if (psoHeader) {
+  psoHeader.addEventListener('mousedown', initPsoDrag);
+  psoHeader.addEventListener('touchstart', initPsoDrag, { passive: true });
+}
+if (psoMinIcon) {
+  psoMinIcon.addEventListener('mousedown', initPsoDrag);
+  psoMinIcon.addEventListener('touchstart', initPsoDrag, { passive: true });
+  psoMinIcon.addEventListener('click', (e) => {
+    if (psoDragData.blockClick) {
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+    expandPrintOverlay();
+  });
 }
 
 function dismissPrintOverlay() {
