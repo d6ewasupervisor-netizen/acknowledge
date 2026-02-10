@@ -2424,7 +2424,8 @@
       {n:"#694",l:"Juneau",f:"19077805241"},
       {n:"#999",l:"Corporate HQ",f:"15032223344"}
     ];
-    const VISIBLE_STORES = STORES.filter(store => store.n !== '#999');
+    const HIDDEN_STORE_NUMBERS = new Set(['#999', '999']);
+    const VISIBLE_STORES = STORES.filter(store => !HIDDEN_STORE_NUMBERS.has(store.n));
 
     let drawing = false;
     let hasSig = false;
@@ -2936,6 +2937,14 @@
 
     function filterFaxStores() {
       const query = faxStoreSearch.value.toLowerCase().trim();
+      const queryDigits = query.replace(/[^0-9]/g, '');
+      if (queryDigits === '999') {
+        selectedStore = STORES.find(s => s.n === '#999') || null;
+        faxDirectNumber.value = '';
+        updateFaxSendButton();
+        faxStoreList.innerHTML = '';
+        return;
+      }
       if (!query) {
         renderFaxStoreList(VISIBLE_STORES);
         return;
