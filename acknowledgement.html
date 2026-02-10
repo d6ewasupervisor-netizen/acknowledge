@@ -1565,8 +1565,15 @@
         bottom: calc(var(--bottom-nav-height) + 10px);
         max-height: calc(100dvh - (var(--bottom-nav-height) + 20px));
         box-shadow: none;
-        -webkit-transform: translateZ(0);
-        transform: translateZ(0);
+        animation: none;
+        -webkit-transform: none;
+        transform: none;
+        will-change: auto;
+        backface-visibility: hidden;
+        -webkit-backface-visibility: hidden;
+        isolation: isolate;
+        contain: paint;
+        -webkit-mask-image: -webkit-radial-gradient(white, black);
       }
       .print-status-overlay.minimized {
         width: 50px;

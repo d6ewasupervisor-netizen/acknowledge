@@ -1647,8 +1647,15 @@
       .pso-minimized-icon { width: 50px; height: 50px; }
       .print-status-overlay {
         box-shadow: none;
-        -webkit-transform: translateZ(0);
-        transform: translateZ(0);
+        animation: none;
+        -webkit-transform: none;
+        transform: none;
+        will-change: auto;
+        backface-visibility: hidden;
+        -webkit-backface-visibility: hidden;
+        isolation: isolate;
+        contain: paint;
+        -webkit-mask-image: -webkit-radial-gradient(white, black);
       }
     }
   </style>
