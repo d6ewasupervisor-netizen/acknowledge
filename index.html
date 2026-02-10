@@ -1525,6 +1525,7 @@
       justify-content: center;
       position: relative;
       cursor: grab;
+      touch-action: none;
     }
     .pso-minimized-icon svg { width: 26px; height: 26px; color: var(--blue-400); }
     .pso-minimized-icon.sending svg { animation: spin 1.2s linear infinite; }
@@ -1560,6 +1561,7 @@
       user-select: none;
       border-bottom: 1px solid rgba(74,144,196,0.1);
     }
+    .pso-header { touch-action: none; }
     .pso-header:active { cursor: grabbing; }
     .pso-header-left {
       display: flex;
@@ -1646,6 +1648,8 @@
       .print-status-overlay.minimized { width: 50px; height: 50px; }
       .pso-minimized-icon { width: 50px; height: 50px; }
       .print-status-overlay {
+        background: transparent;
+        border: none;
         box-shadow: none;
         animation: none;
         -webkit-transform: none;
@@ -1658,6 +1662,12 @@
         -webkit-mask-image: -webkit-radial-gradient(white, black);
         border-radius: 0;
         overflow: visible;
+        padding: 0;
+      }
+      .pso-expanded {
+        border-radius: 14px;
+        overflow: hidden;
+        box-shadow: 0 10px 26px rgba(0,0,0,0.35);
       }
     }
   </style>
