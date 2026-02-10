@@ -1527,7 +1527,14 @@
       cursor: grab;
       touch-action: none;
     }
-    .pso-minimized-icon svg { width: 26px; height: 26px; color: var(--blue-400); }
+    .pso-minimized-icon svg,
+    .pso-minimized-icon .icon-img {
+      width: 26px;
+      height: 26px;
+      color: var(--blue-400);
+      object-fit: contain;
+      display: block;
+    }
     .pso-minimized-icon.sending svg { animation: spin 1.2s linear infinite; }
     .pso-minimized-icon.waiting svg { animation: pulse-sending 2s ease-in-out infinite; }
     .pso-minimized-icon.delivered svg { color: var(--green-500); }
@@ -1570,7 +1577,13 @@
       min-width: 0;
     }
     .pso-header-icon { width: 20px; height: 20px; flex-shrink: 0; }
-    .pso-header-icon svg { width: 20px; height: 20px; }
+    .pso-header-icon svg,
+    .pso-header-icon .icon-img {
+      width: 20px;
+      height: 20px;
+      object-fit: contain;
+      display: block;
+    }
     .pso-header-title {
       font-size: 0.82rem;
       font-weight: 600;
@@ -1616,7 +1629,13 @@
       align-items: center;
       justify-content: center;
     }
-    .pso-status-icon svg { width: 18px; height: 18px; }
+    .pso-status-icon svg,
+    .pso-status-icon .icon-img {
+      width: 18px;
+      height: 18px;
+      object-fit: contain;
+      display: block;
+    }
     .pso-status-icon.sending { background: rgba(74,144,196,0.15); color: var(--blue-400); }
     .pso-status-icon.sending svg { animation: spin 1.2s linear infinite; }
     .pso-status-icon.waiting { background: rgba(245,158,11,0.12); color: #fbbf24; }
@@ -1648,27 +1667,23 @@
       .print-status-overlay.minimized { width: 50px; height: 50px; }
       .pso-minimized-icon { width: 50px; height: 50px; }
       .print-status-overlay {
-        background: transparent;
-        border: none;
+        background: var(--navy-900);
+        border: 1px solid rgba(74,144,196,0.25);
         box-shadow: none;
         animation: none;
         -webkit-transform: none;
         transform: none;
         will-change: auto;
-        backface-visibility: hidden;
-        -webkit-backface-visibility: hidden;
-        isolation: isolate;
-        contain: paint;
-        -webkit-mask-image: -webkit-radial-gradient(white, black);
-        border-radius: 0;
-        overflow: visible;
+        backface-visibility: visible;
+        -webkit-backface-visibility: visible;
+        isolation: auto;
+        contain: none;
+        -webkit-mask-image: none;
+        border-radius: 12px;
+        overflow: hidden;
         padding: 0;
       }
-      .pso-expanded {
-        border-radius: 14px;
-        overflow: hidden;
-        box-shadow: 0 10px 26px rgba(0,0,0,0.35);
-      }
+      .pso-expanded { box-shadow: none; }
     }
   </style>
 </head>
