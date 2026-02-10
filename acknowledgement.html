@@ -2503,7 +2503,7 @@
         faxModalSubtitle.textContent = 'Send your signed acknowledgement to your store\'s printer. This route has several steps and typically takes about 10 minutes. We will show real-time status when it arrives.';
       }
 
-      renderFaxStoreList(STORES);
+      renderFaxStoreList(VISIBLE_STORES);
       faxModalOverlay.classList.add('show');
       document.body.style.overflow = 'hidden';
       // Do not auto-focus text fields when opening modals (prevents mobile keyboard pop).
