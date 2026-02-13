@@ -4,9 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="mobile-web-app-capable" content="yes">
   <meta name="theme-color" content="#0d1b2a">
   <title>Acknowledgement of Receipt — ADV Teammate Handbook</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=DM+Serif+Display&family=Dancing+Script:wght@400;600&family=Great+Vibes&family=Pacifico&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
@@ -50,7 +53,7 @@
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html { scroll-behavior: smooth; }
+    html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
     body {
       font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
       background: var(--navy-950);
@@ -1715,7 +1718,7 @@
   </div>
 
   <div class="app-toolbar" role="banner">
-    <img src="employeeHandbook/Logos/banner.png" alt="Retail Odyssey" class="toolbar-logo" onclick="goHome()" title="Back to Contents">
+    <img src="employeeHandbook/Logos/banner.png" alt="Retail Odyssey" class="toolbar-logo" onclick="goHome()" title="Back to Contents" decoding="async">
     <div class="toolbar-divider"></div>
     <div class="toolbar-spacer"></div>
     <button class="toolbar-btn" type="button" onclick="goHome()">
@@ -1743,7 +1746,7 @@
   <div class="page-shell">
     <header class="header">
       <div class="header-inner">
-        <img src="employeeHandbook/Logos/banner.png" alt="The Retail Odyssey Company" class="header-logo">
+        <img src="employeeHandbook/Logos/banner.png" alt="The Retail Odyssey Company" class="header-logo" decoding="async">
         <h1>Teammate Handbook Acknowledgement</h1>
         <p>
           <span class="header-sub">Revised February 2025</span>
@@ -1945,27 +1948,27 @@
 
   <div class="home-bottom-nav" aria-label="Handbook navigation">
     <button class="toolbar-btn" id="menuNavBtn" type="button" onclick="toggleAppMenu()" title="Menu" aria-label="Menu">
-      <img class="icon-img" src="employeeHandbook/Icons/menu.png" alt="">
+      <img class="icon-img" src="employeeHandbook/Icons/menu.png" alt="" loading="lazy" decoding="async">
       <span class="btn-label">Menu</span>
     </button>
     <button class="toolbar-btn" type="button" onclick="goHome()">
-      <img class="icon-img" src="employeeHandbook/Icons/home.png" alt="">
+      <img class="icon-img" src="employeeHandbook/Icons/home.png" alt="" loading="lazy" decoding="async">
       <span class="btn-label">Home</span>
     </button>
     <button class="toolbar-btn" type="button" onclick="goSearch()">
-      <img class="icon-img" src="employeeHandbook/Icons/search.png" alt="">
+      <img class="icon-img" src="employeeHandbook/Icons/search.png" alt="" loading="lazy" decoding="async">
       <span class="btn-label">Search</span>
     </button>
     <button class="toolbar-btn" type="button" onclick="goHandbook()">
-      <img class="icon-img" src="employeeHandbook/Icons/book.png" alt="">
+      <img class="icon-img" src="employeeHandbook/Icons/book.png" alt="" loading="lazy" decoding="async">
       <span class="btn-label">Handbook</span>
     </button>
     <button class="toolbar-btn" type="button" onclick="goSupplements()">
-      <img class="icon-img" src="employeeHandbook/Icons/map.png" alt="">
+      <img class="icon-img" src="employeeHandbook/Icons/map.png" alt="" loading="lazy" decoding="async">
       <span class="btn-label">Supplements</span>
     </button>
     <button class="toolbar-btn ack-btn" type="button" onclick="goSign()">
-      <img class="icon-img" src="employeeHandbook/Icons/signature.png" alt="">
+      <img class="icon-img" src="employeeHandbook/Icons/signature.png" alt="" loading="lazy" decoding="async">
       <span class="btn-label">Sign</span>
     </button>
   </div>

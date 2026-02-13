@@ -9,6 +9,7 @@
   <meta name="theme-color" content="#0d1b2a">
   <title>ADV Teammate Handbook — The Retail Odyssey Company</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=DM+Serif+Display&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <!-- App configuration (gitignored — copy config.example.js to config.js) -->
@@ -1691,7 +1692,7 @@
 
   <!-- ═══════ LOADING SCREEN ═══════ -->
   <div id="loadingScreen">
-    <img src="employeeHandbook/Logos/banner.png" alt="Retail Odyssey" class="loading-logo">
+    <img src="employeeHandbook/Logos/banner.png" alt="Retail Odyssey" class="loading-logo" decoding="async" fetchpriority="high">
     <div class="loading-bar-track" id="loadingBarTrack"><div class="loading-bar-fill" id="loadingBar"></div></div>
     <div class="loading-text" id="loadingText">Loading handbook…</div>
     <div class="state-select hidden" id="stateSelectPanel">
@@ -1804,7 +1805,7 @@
   <div id="tocView" class="hidden">
     <header class="toc-header">
       <div class="toc-header-content">
-        <img src="employeeHandbook/Logos/banner.png" alt="Retail Odyssey" class="toc-logo">
+        <img src="employeeHandbook/Logos/banner.png" alt="Retail Odyssey" class="toc-logo" decoding="async">
         <h1 class="toc-title">Advantage Teammate Handbook</h1>
         <p class="toc-subtitle">Revised February 2025 &nbsp;·&nbsp; 56 Pages</p>
       </div>
@@ -1825,7 +1826,7 @@
   <div id="readerView" class="hidden">
     <!-- Top Toolbar -->
     <div class="reader-toolbar">
-      <img src="employeeHandbook/Logos/banner.png" alt="Retail Odyssey" class="toolbar-logo" onclick="showTocView()" title="Back to Contents">
+      <img src="employeeHandbook/Logos/banner.png" alt="Retail Odyssey" class="toolbar-logo" onclick="showTocView()" title="Back to Contents" decoding="async">
       <div class="toolbar-divider"></div>
       <div class="toolbar-page-info" id="pageInfo">Page <strong>1</strong> of 56</div>
       <div class="toolbar-spacer"></div>
@@ -1980,7 +1981,7 @@
   <div class="home-bottom-nav">
     <div class="reader-controls" aria-label="Reader navigation">
       <button class="nav-btn" id="btnPrev" onclick="prevPage()" title="Previous Page">
-        <img class="nav-icon" src="employeeHandbook/Icons/left_arrow.png" alt="">
+        <img class="nav-icon" src="employeeHandbook/Icons/left_arrow.png" alt="" loading="lazy" decoding="async">
       </button>
       <div class="page-slider-container">
         <div class="page-slider-wrap">
@@ -1989,31 +1990,31 @@
         </div>
       </div>
       <button class="nav-btn" id="btnNext" onclick="nextPage()" title="Next Page">
-        <img class="nav-icon" src="employeeHandbook/Icons/right_arrow.png" alt="">
+        <img class="nav-icon" src="employeeHandbook/Icons/right_arrow.png" alt="" loading="lazy" decoding="async">
       </button>
     </div>
     <button class="toolbar-btn" id="backNavBtn" onclick="toggleAppMenu()" title="Menu" aria-label="Menu">
-      <img class="icon-img" src="employeeHandbook/Icons/menu.png" alt="">
+      <img class="icon-img" src="employeeHandbook/Icons/menu.png" alt="" loading="lazy" decoding="async">
       <span class="btn-label">Menu</span>
     </button>
     <button class="toolbar-btn" onclick="showTocView()" title="Home">
-      <img class="icon-img" src="employeeHandbook/Icons/home.png" alt="">
+      <img class="icon-img" src="employeeHandbook/Icons/home.png" alt="" loading="lazy" decoding="async">
       <span class="btn-label">Home</span>
     </button>
     <button class="toolbar-btn" onclick="goPrimarySearch()" title="Search">
-      <img class="icon-img" src="employeeHandbook/Icons/search.png" alt="">
+      <img class="icon-img" src="employeeHandbook/Icons/search.png" alt="" loading="lazy" decoding="async">
       <span class="btn-label">Search</span>
     </button>
     <button class="toolbar-btn" onclick="openHandbookPage(1)" title="Handbook">
-      <img class="icon-img" src="employeeHandbook/Icons/book.png" alt="">
+      <img class="icon-img" src="employeeHandbook/Icons/book.png" alt="" loading="lazy" decoding="async">
       <span class="btn-label">Handbook</span>
     </button>
     <button class="toolbar-btn" onclick="openSupplementOverlay()" title="Supplements">
-      <img class="icon-img" src="employeeHandbook/Icons/map.png" alt="">
+      <img class="icon-img" src="employeeHandbook/Icons/map.png" alt="" loading="lazy" decoding="async">
       <span class="btn-label">Supplements</span>
     </button>
     <button class="toolbar-btn" onclick="goToAcknowledgement()" title="Sign">
-      <img class="icon-img" src="employeeHandbook/Icons/signature.png" alt="">
+      <img class="icon-img" src="employeeHandbook/Icons/signature.png" alt="" loading="lazy" decoding="async">
       <span class="btn-label">Sign</span>
     </button>
   </div>
