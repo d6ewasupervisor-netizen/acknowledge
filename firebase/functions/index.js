@@ -92,6 +92,51 @@ const getFaxGatewayEmail = () => {
   return config.fax?.gateway_email || process.env.FAX_GATEWAY_EMAIL;
 };
 
+// Mirrors the client-side helper in acknowledgement.html. Returns a sentence
+// suitable for appending to the acknowledgement paragraph; empty string when
+// no optional policies were checked.
+function buildAddendumSentence(addendums) {
+  if (!addendums) return '';
+  const items = [];
+  if (addendums.vendor_policy) {
+    items.push('the Fred Meyer Vendor Dress & Conduct Policy');
+  }
+  if (addendums.kompass_responsibilities) {
+    items.push('the Kompass Program Responsibilities');
+  }
+  if (items.length === 0) return '';
+
+  let list;
+  if (items.length === 1) {
+    list = items[0];
+  } else if (items.length === 2) {
+    list = items[0] + ' and ' + items[1];
+  } else {
+    list = items.slice(0, -1).join(', ') + ', and ' + items[items.length - 1];
+  }
+
+  return ' I further acknowledge that I have reviewed and agree to comply with ' + list + '.';
+}
+
+// Returns { text, html } blocks for a visible "Additional documents acknowledged"
+// callout, or empty strings when nothing was checked. Intended to be appended
+// near the signature block of an email body for inbox-level scannability.
+function buildAddendumList(addendums) {
+  if (!addendums) return { text: '', html: '' };
+  const items = [];
+  if (addendums.vendor_policy) items.push('Fred Meyer Vendor Dress & Conduct Policy');
+  if (addendums.kompass_responsibilities) items.push('Kompass Program Responsibilities');
+  if (items.length === 0) return { text: '', html: '' };
+
+  const text = '\n\nAdditional documents acknowledged:\n  • ' + items.join('\n  • ');
+  const html =
+    '<p style="margin-top:16px;"><strong>Additional documents acknowledged:</strong></p>' +
+    '<ul style="margin:4px 0 0 0; padding-left:20px;">' +
+    items.map(i => `<li>${i}</li>`).join('') +
+    '</ul>';
+  return { text, html };
+}
+
 // Create nodemailer transporter
 const createTransporter = () => {
   return nodemailer.createTransport(getSmtpConfig());
@@ -441,7 +486,8 @@ exports.faxWebhook = functions.runWith({ secrets: [runtimeConfig] }).https.onReq
  *   "pdfBase64": "<full-pdf-base64>",
  *   "pdfFileName": "Doe_John_2026_02_06_Acknowledgement.pdf",
  *   "deliveryMethod": "digital" | "print-store" | "print-direct" | "scan",
- *   "storeNumber": "#023"
+ *   "storeNumber": "#023",
+ *   "addendums": { "vendor_policy": false, "kompass_responsibilities": false }
  * }
  */
 exports.saveAcknowledgement = functions.runWith({ memory: '512MB', secrets: [runtimeConfig] }).https.onRequest((req, res) => {
@@ -467,8 +513,14 @@ exports.saveAcknowledgement = functions.runWith({ memory: '512MB', secrets: [run
         pdfBase64,
         pdfFileName,
         deliveryMethod,
-        storeNumber
+        storeNumber,
+        addendums
       } = req.body || {};
+
+      const normalizedAddendums = {
+        vendor_policy: !!(addendums && addendums.vendor_policy),
+        kompass_responsibilities: !!(addendums && addendums.kompass_responsibilities)
+      };
 
       if (!employeeName || !signDate || !pdfBase64 || !pdfFileName) {
         return res.status(400).json({
@@ -512,6 +564,7 @@ exports.saveAcknowledgement = functions.runWith({ memory: '512MB', secrets: [run
         pdfSizeBytes: pdfBuffer.length,
         deliveryMethod: deliveryMethod || 'digital',
         storeNumber: storeNumber || null,
+        addendums: normalizedAddendums,
         createdAt: admin.firestore.FieldValue.serverTimestamp(),
         ipAddress: ipAddress || null,
         userAgent: userAgent || null
@@ -538,7 +591,8 @@ exports.saveAcknowledgement = functions.runWith({ memory: '512MB', secrets: [run
  *   "employeeName": "John Doe",
  *   "employeeEmail": "john@example.com",
  *   "supervisorEmail": "jane@example.com",
- *   "supervisorName": "Jane Manager"
+ *   "supervisorName": "Jane Manager",
+ *   "addendums": { "vendor_policy": false, "kompass_responsibilities": false }
  * }
  */
 exports.sendEmail = functions.runWith({ memory: '512MB', secrets: [runtimeConfig] }).https.onRequest((req, res) => {
@@ -551,7 +605,7 @@ exports.sendEmail = functions.runWith({ memory: '512MB', secrets: [runtimeConfig
     }
 
     try {
-      const { pdfBase64, pdfFileName, employeeName, employeeEmail, supervisorEmail, supervisorName } = req.body;
+      const { pdfBase64, pdfFileName, employeeName, employeeEmail, supervisorEmail, supervisorName, addendums } = req.body;
 
       if (!pdfBase64 || !pdfFileName || !employeeName || !employeeEmail || !supervisorEmail) {
         return res.status(400).json({
@@ -567,13 +621,15 @@ exports.sendEmail = functions.runWith({ memory: '512MB', secrets: [runtimeConfig
         ? String(pdfBase64).split(',')[1]
         : String(pdfBase64);
 
+      const addendumBlock = buildAddendumList(addendums);
+
       // Always send to admin
       const adminMailOptions = {
         from: fromEmail,
         to: ADMIN_EMAIL,
         subject: `Signed Acknowledgement — ${employeeName}`,
-        text: `${employeeName} has submitted a signed Employee Handbook Acknowledgement.\n\nSee attached PDF.`,
-        html: `<p><strong>${employeeName}</strong> has submitted a signed Employee Handbook Acknowledgement.</p><p>See attached PDF.</p>`,
+        text: `${employeeName} has submitted a signed Employee Handbook Acknowledgement.\n\nSee attached PDF.${addendumBlock.text}`,
+        html: `<p><strong>${employeeName}</strong> has submitted a signed Employee Handbook Acknowledgement.</p><p>See attached PDF.</p>${addendumBlock.html}`,
         attachments: [{
           filename: pdfFileName,
           content: cleanPdf,
@@ -588,8 +644,8 @@ exports.sendEmail = functions.runWith({ memory: '512MB', secrets: [runtimeConfig
         from: fromEmail,
         to: employeeEmail.trim(),
         subject: `Your Signed Acknowledgement — ${employeeName}`,
-        text: `Hi ${employeeName},\n\nAttached is a copy of your signed Employee Handbook Acknowledgement for your records.\n\nThank you.`,
-        html: `<p>Hi ${employeeName},</p><p>Attached is a copy of your signed Employee Handbook Acknowledgement for your records.</p><p>Thank you.</p>`,
+        text: `Hi ${employeeName},\n\nAttached is a copy of your signed Employee Handbook Acknowledgement for your records.${addendumBlock.text}\n\nThank you.`,
+        html: `<p>Hi ${employeeName},</p><p>Attached is a copy of your signed Employee Handbook Acknowledgement for your records.</p>${addendumBlock.html}<p>Thank you.</p>`,
         attachments: [{
           filename: pdfFileName,
           content: cleanPdf,
@@ -606,8 +662,8 @@ exports.sendEmail = functions.runWith({ memory: '512MB', secrets: [runtimeConfig
         from: fromEmail,
         to: supervisorEmail.trim(),
         subject: `Signed Acknowledgement — ${employeeName}`,
-        text: `Hello ${supervisorDisplayName},\n\n${employeeName} has submitted a signed Employee Handbook Acknowledgement. The signed PDF is attached for your records.`,
-        html: `<p>Hello ${supervisorDisplayName},</p><p>${employeeName} has submitted a signed Employee Handbook Acknowledgement. The signed PDF is attached for your records.</p>`,
+        text: `Hello ${supervisorDisplayName},\n\n${employeeName} has submitted a signed Employee Handbook Acknowledgement. The signed PDF is attached for your records.${addendumBlock.text}`,
+        html: `<p>Hello ${supervisorDisplayName},</p><p>${employeeName} has submitted a signed Employee Handbook Acknowledgement. The signed PDF is attached for your records.</p>${addendumBlock.html}`,
         attachments: [{
           filename: pdfFileName,
           content: cleanPdf,

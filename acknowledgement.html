@@ -1767,6 +1767,108 @@
       </div>
     </section>
 
+    <section id="additional-policies" class="addl-policies">
+      <h2 class="addl-title">Additional Store-Level Policies</h2>
+      <p class="addl-intro">
+        Optional acknowledgements for site-specific standards. Review each document, then check the box if it applies to your role and you've read it. Unchecked items will not be referenced in your signed acknowledgement.
+      </p>
+
+      <div class="addl-list">
+        <div class="addl-item">
+          <label class="addl-row">
+            <input type="checkbox" id="ack-vendor-policy" class="addl-check">
+            <div class="addl-body">
+              <div class="addl-name">Fred Meyer Vendor Dress &amp; Conduct Policy</div>
+              <div class="addl-desc">Conduct, dress code, and safety standards for vendors and reset teams working in Fred Meyer / Kroger stores.</div>
+              <a href="vendor_policy.html" target="_blank" rel="noopener" class="addl-link">Open document &rarr;</a>
+            </div>
+          </label>
+        </div>
+
+        <div class="addl-item">
+          <label class="addl-row">
+            <input type="checkbox" id="ack-kompass-resp" class="addl-check">
+            <div class="addl-body">
+              <div class="addl-name">Kompass Program Responsibilities</div>
+              <div class="addl-desc">Roles and weekly workflow split between the store's Kompass Champion and the Retail Odyssey Kompass Team.</div>
+              <a href="kompass_responsibilities.html" target="_blank" rel="noopener" class="addl-link">Open document &rarr;</a>
+            </div>
+          </label>
+        </div>
+      </div>
+    </section>
+
+    <style>
+      .addl-policies {
+        background: #FAFAF9;
+        border: 1px solid #E7E5E4;
+        border-radius: 10px;
+        padding: 18px 20px;
+        margin: 24px 0;
+      }
+      .addl-policies .addl-title {
+        margin: 0 0 6px 0;
+        font-size: 18px;
+        color: #C8102E;
+        font-weight: 700;
+      }
+      .addl-policies .addl-intro {
+        margin: 0 0 14px 0;
+        font-size: 14px;
+        color: #4B5563;
+        line-height: 1.5;
+      }
+      .addl-policies .addl-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .addl-policies .addl-item {
+        background: white;
+        border: 1px solid #E5E7EB;
+        border-radius: 8px;
+        transition: border-color 0.15s;
+      }
+      .addl-policies .addl-item:has(.addl-check:checked) {
+        border-color: #C8102E;
+        background: #FFF5F6;
+      }
+      .addl-policies .addl-row {
+        display: flex;
+        gap: 12px;
+        padding: 12px 14px;
+        cursor: pointer;
+        align-items: flex-start;
+      }
+      .addl-policies .addl-check {
+        margin-top: 3px;
+        width: 18px;
+        height: 18px;
+        accent-color: #C8102E;
+        flex-shrink: 0;
+      }
+      .addl-policies .addl-body { flex: 1; }
+      .addl-policies .addl-name {
+        font-weight: 700;
+        color: #111827;
+        font-size: 15px;
+        margin-bottom: 2px;
+      }
+      .addl-policies .addl-desc {
+        font-size: 13.5px;
+        color: #4B5563;
+        line-height: 1.45;
+        margin-bottom: 6px;
+      }
+      .addl-policies .addl-link {
+        color: #C8102E;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 13px;
+      }
+      .addl-policies .addl-link:hover { text-decoration: underline; }
+    </style>
+
     <section class="card">
       <h2>Sign Below</h2>
       <div class="form-row" id="supervisorRow">
@@ -4295,7 +4397,7 @@
         'I also understand that this Handbook is the most up-to-date version of the Company\'s policies and procedures and replaces any prior written and oral communications about the subjects contained in it.',
         'I acknowledge that my employment relationship with the Company is "at-will", meaning that, regardless of anything contained in this Handbook and regardless of any custom or practice, either I or the Company may terminate my employment at any time, for any reason or no reason, with or without cause, and with or without procedural requirements. I understand that no representatives of the Company, other than the CEO in a writing signed by him/her/them, may enter into any agreements, or make any representations, written or oral, to alter my at-will status or otherwise create any contractual obligation between me and the Company.',
         'I further acknowledge that this handbook and the policies contained herein are not intended to create (and shall not be construed as creating) a contract (express or implied) for employment between the Company and any Teammate and that said policies can be modified by the Company at any time, with or without notice to me, in its sole and absolute discretion.',
-        'By signing below, I acknowledge that I have received and will abide by the Company\'s Handbook and all the policies within it, including those on harassment, discrimination, retaliation, and bringing complaints regarding the same.'
+        'By signing below, I acknowledge that I have received and will abide by the Company\'s Handbook and all the policies within it, including those on harassment, discrimination, retaliation, and bringing complaints regarding the same.' + buildAddendumText()
       ];
       paras.forEach(p => { const lines = doc.splitTextToSize(p, contentW); doc.text(lines, margin, y); y += lines.length * 4.2 + 4; });
       y += 4;
@@ -4412,7 +4514,7 @@
         'I also understand that this Handbook is the most up-to-date version of the Company\'s policies and procedures and replaces any prior written and oral communications about the subjects contained in it.',
         'I acknowledge that my employment relationship with the Company is "at-will", meaning that, regardless of anything contained in this Handbook and regardless of any custom or practice, either I or the Company may terminate my employment at any time, for any reason or no reason, with or without cause, and with or without procedural requirements. I understand that no representatives of the Company, other than the CEO in a writing signed by him/her/them, may enter into any agreements, or make any representations, written or oral, to alter my at-will status or otherwise create any contractual obligation between me and the Company.',
         'I further acknowledge that this handbook and the policies contained herein are not intended to create (and shall not be construed as creating) a contract (express or implied) for employment between the Company and any Teammate and that said policies can be modified by the Company at any time, with or without notice to me, in its sole and absolute discretion.',
-        'By signing below, I acknowledge that I have received and will abide by the Company\'s Handbook and all the policies within it, including those on harassment, discrimination, retaliation, and bringing complaints regarding the same.'
+        'By signing below, I acknowledge that I have received and will abide by the Company\'s Handbook and all the policies within it, including those on harassment, discrimination, retaliation, and bringing complaints regarding the same.' + buildAddendumText()
       ];
       paras.forEach(p => { const lines = doc.splitTextToSize(p, contentW); doc.text(lines, margin, y); y += lines.length * 4.2 + 4; });
       y += 4;
@@ -4488,6 +4590,35 @@
       return 'digital';
     }
 
+    function buildAddendumText() {
+      const items = [];
+      if (document.getElementById('ack-vendor-policy')?.checked) {
+        items.push('the Fred Meyer Vendor Dress & Conduct Policy');
+      }
+      if (document.getElementById('ack-kompass-resp')?.checked) {
+        items.push('the Kompass Program Responsibilities');
+      }
+      if (items.length === 0) return '';
+
+      let list;
+      if (items.length === 1) {
+        list = items[0];
+      } else if (items.length === 2) {
+        list = items[0] + ' and ' + items[1];
+      } else {
+        list = items.slice(0, -1).join(', ') + ', and ' + items[items.length - 1];
+      }
+
+      return ' I further acknowledge that I have reviewed and agree to comply with ' + list + '.';
+    }
+
+    function buildAddendumFlags() {
+      return {
+        vendor_policy: !!document.getElementById('ack-vendor-policy')?.checked,
+        kompass_responsibilities: !!document.getElementById('ack-kompass-resp')?.checked
+      };
+    }
+
     async function saveAcknowledgementRecord() {
       if (!generatedPDF) return false;
       updateCloudSaveStatus('info', 'Saving your acknowledgement to the cloud...');
@@ -4515,7 +4646,8 @@
           pdfBase64,
           pdfFileName: pdfFileName || buildFileName(),
           deliveryMethod: getDeliveryMethod(),
-          storeNumber: signatureMode === 'fax' ? (faxStore.value || '') : ''
+          storeNumber: signatureMode === 'fax' ? (faxStore.value || '') : '',
+          addendums: buildAddendumFlags()
         };
 
         const response = await fetch(`${FUNCTIONS_BASE}/saveAcknowledgement`, {
@@ -4672,7 +4804,8 @@
           employeeName: nameInput.value.trim(),
           employeeEmail: employeeEmail || '',
           supervisorEmail: supervisorEmail || '',
-          supervisorName: supervisorName || ''
+          supervisorName: supervisorName || '',
+          addendums: buildAddendumFlags()
         })
       });
       const result = await response.json();
